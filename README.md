@@ -94,7 +94,19 @@ Die Idee, die Ziele und die Entscheidungen kommen von einem Menschen. Texte, Üb
 
 ## DISCLAIMER
 
-<hier Disclaimer einfügen auch und vor allem für Kauflinks das diese weder affiliate sind noch sonst iwie bezahlt es war mir nur wichtig einen zuverlässigen anbieter zu haben den ich selbst nutze der faire preise hat und ohne das man selbst ewig suchen muss was das passende stück hardware ist natürlich gehen auch alle gleichwertigen wo anders erworbenen proidukte>
+Die in diesem Projekt genannten Produkte und Hardware-Komponenten sowie die dazugehörigen Kauflinks dienen ausschließlich als Empfehlungen und Orientierungshilfe.
+
+**Es bestehen keinerlei Affiliate-Partnerschaften, Werbeverträge oder sonstige bezahlte Kooperationen.** Durch die Nutzung der verlinkten Angebote erhalte ich weder Provisionen noch sonstige finanzielle oder materielle Vorteile.
+
+Mir war es lediglich wichtig, einen zuverlässigen Anbieter zu empfehlen, bei dem ich selbst einkaufe und mit dem ich bisher gute Erfahrungen gemacht habe. Dabei stehen für mich faire Preise, Zuverlässigkeit und ein möglichst unkomplizierter Beschaffungsprozess im Vordergrund.
+
+Die Verlinkungen sollen euch außerdem die teilweise zeitaufwendige Suche nach geeigneten und kompatiblen Hardware-Komponenten ersparen.
+
+**Selbstverständlich steht es jedem frei, die aufgeführten Produkte bei einem anderen Händler zu erwerben.** Gleichwertige Produkte anderer Hersteller oder Anbieter können jederzeit verwendet werden, sofern sie die entsprechenden technischen Anforderungen erfüllen und kompatibel sind.
+
+Die genannten Produkte stellen somit keine zwingende Kaufvorgabe dar, sondern lediglich eine praktische Empfehlung.
+
+**Kurz gesagt:** Keine Werbung, keine Provisionen, keine Verpflichtungen – lediglich persönliche Empfehlungen, die euch Zeit bei der Auswahl und Beschaffung geeigneter Hardware ersparen sollen.
 
 ## Für Entwickler
 
