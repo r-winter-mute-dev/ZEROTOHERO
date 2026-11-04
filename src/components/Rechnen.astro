@@ -100,6 +100,24 @@ const { id, titel = 'Rechenaufgaben', typ, anzahl = 3 } = Astro.props;
       return { text: `Beim Senden zieht die Klingel kurz zusätzlich ${i} mA. Bis der Wandler nachregelt, vergehen ${t} µs. In dieser Zeit soll allein der Kondensator liefern, und die Spannung darf höchstens um ${fmt(du)} V sinken.`, frage: 'Kapazität C =', einheit: 'µF', loesung: c,
         weg: `C = I × Δt / ΔU. Erst in Grundeinheiten: ${i} mA = ${fmt(i / 1000, 3)} A, ${t} µs = ${fmt(t / 1e6, 6)} s. C = ${fmt(i / 1000, 3)} A × ${fmt(t / 1e6, 6)} s / ${fmt(du)} V = ${fmt(c / 1e6, 6)} F = ${fmt(c, 0)} µF. Elkos haben große Toleranzen und verlieren mit dem Alter Kapazität. Deshalb wählst du mit kräftiger Reserve, oft das Doppelte oder mehr.` };
     },
+    budget() {
+      const is = pick([0.01, 0.05, 0.5, 2, 5]), t = pick([5, 8, 10]), ia = pick([120, 150, 180]), n = pick([5, 10, 20]), c = 2900;
+      const schlaf = is * 24, wach = (n * t * ia) / 3600, tage = c / (schlaf + wach);
+      return { text: `Die Klingel zieht im Tiefschlaf ${fmt(is)} mA. Bei jedem Klingeln ist sie ${t} s wach und zieht dabei ${ia} mA. Sie klingelt ${n}-mal am Tag. Der Akku hat ${c} mAh.`, frage: 'Laufzeit =', einheit: 'Tage', loesung: tage,
+        weg: `Schlaf pro Tag: ${fmt(is)} mA × 24 h = ${fmt(schlaf, 2)} mAh. Wach pro Tag: ${n} × ${t} s × ${ia} mA / 3600 = ${fmt(wach, 2)} mAh. Zusammen ${fmt(schlaf + wach, 2)} mAh pro Tag. ${c} mAh / ${fmt(schlaf + wach, 2)} mAh = ${fmt(tage, 0)} Tage. ${schlaf > wach ? 'Der Schlaf verbraucht hier mehr als das Klingeln.' : 'Hier verbraucht das Klingeln mehr als der Schlaf.'}` };
+    },
+    buerde() {
+      const r = pick([1, 1.8, 5, 10]), i = pick([50, 100, 150]);
+      const u = (r * i) / 1000;
+      return { text: `Dein Multimeter hat im mA-Bereich einen Innenwiderstand von ${fmt(r)} Ω. Durch die Klingel fließen ${i} mA.`, frage: 'Spannung, die am Multimeter verloren geht: U =', einheit: 'V', loesung: u,
+        weg: `U = R × I = ${fmt(r)} Ω × ${fmt(i / 1000, 3)} A = ${fmt(u, 3)} V. ${u >= 0.3 ? 'So viel fehlt der Klingel. Das kann für einen Neustart reichen.' : 'Das verkraftet die Klingel meist noch.'}` };
+    },
+    standby() {
+      const i = pick([0.01, 0.2, 2, 6, 12]), c = 2900;
+      const tage = c / (i * 24);
+      return { text: `Im Tiefschlaf zieht die Klingel ${fmt(i)} mA. Der Akku hat ${c} mAh. Niemand klingelt.`, frage: 'Tage, bis der Akku leer ist =', einheit: 'Tage', loesung: tage,
+        weg: `Pro Tag: ${fmt(i)} mA × 24 h = ${fmt(i * 24, 2)} mAh. ${c} mAh / ${fmt(i * 24, 2)} mAh = ${fmt(tage, 0)} Tage${tage > 365 ? ', also mehr als ein Jahr. In Wirklichkeit entlädt sich die Zelle auch von selbst ein wenig' : ''}.` };
+    },
     energie() {
       const kap = pick([1000, 2000, 2500, 2900, 3400]), u = pick([3.6, 3.7]);
       const wh = (kap / 1000) * u;

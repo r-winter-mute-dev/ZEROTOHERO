@@ -115,12 +115,12 @@ export const KAMPAGNE: Akt[] = [
     nr: 6, titel: 'Der Schlaf', teil: 'schlaf', teilName: 'Schlaf',
     ziel: 'Die Klingel spart Energie.',
     missionen: [
-      m('m-6-1', '6.1', 'Das Budget', 'Ausrechnen, wie lange der Akku hält.', 'Strom × Zeit', 'Rechenaufgabe'),
-      m('m-6-2', '6.2', 'Strom messen', 'Das Multimeter in Reihe schalten.', 'Messbereiche, Bürdenspannung', 'Messwert'),
-      m('m-6-3', '6.3', 'Tiefschlaf', 'Deep Sleep und Aufwachen per Klingelknopf.', 'RTC-Pins', 'Gerätenachweis'),
-      m('m-6-4', '6.4', 'Akkustand melden', 'Den Akkustand mit dem Foto mitschicken.', 'ADC, Kalibrierung, Spannungsteiler aus 1.5', 'Messprotokoll und Chat-Nachweis'),
-      m('m-6-5', '6.5', 'Die Enttäuschung', 'Den Ruhestrom des Boards messen.', 'Warum das Board im Schlaf Milliampere zieht', 'Messprotokoll'),
-      m('m-6-boss', 'Boss 6', 'Akku nach wenigen Tagen leer', 'Ruhestrom-Quellen eingrenzen.', 'Ruhestrom', 'Fehlerszenario', { boss: true }),
+      m('m-6-1', '6.1', 'Das Budget', 'Ausrechnen, wohin die Energie der Klingel geht und wie lange der Akku hält.', 'Wach und Schlaf getrennt rechnen, Reserve', 'Rechenaufgaben', { bereit: true }),
+      m('m-6-2', '6.2', 'Strom messen', 'Den Strom der wachen Klingel messen, ohne sie zu stören.', 'Messstelle, Bürdenspannung, Messbereiche', 'Rechenaufgaben und Messwert', { bereit: true }),
+      m('m-6-3', '6.3', 'Tiefschlaf', 'Klingel v2: schlafen, per Klingelknopf aufwachen, Foto senden.', 'Deep Sleep, RTC-Pins, Pins festhalten', 'Nachweis aus dem Chat', { bereit: true }),
+      m('m-6-4', '6.4', 'Akkustand melden', 'Den Akkustand messen, kalibrieren und mit dem Foto mitschicken.', 'Spannungsteiler, ADC2 und WLAN, Kalibrierung', 'Messprotokoll und Nachweis aus dem Chat', { bereit: true }),
+      m('m-6-5', '6.5', 'Die Enttäuschung', 'Den Ruhestrom der schlafenden Klingel messen.', 'Warum das Board im Schlaf Milliampere zieht', 'Messwert und Rechenaufgaben', { bereit: true }),
+      m('m-6-boss', 'Boss 6', 'Akku nach wenigen Tagen leer', 'Akkufresser anhand von Messungen und Chatprotokollen finden.', 'Schwebende Pins, Dauerverbraucher, Wachbleiben', 'Fehlerszenarien', { boss: true, bereit: true }),
     ],
   },
   {

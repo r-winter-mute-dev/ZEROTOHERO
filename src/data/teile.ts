@@ -46,6 +46,12 @@ export const TEILE: Record<number, Teil[]> = {
     { teil: 'Elko 1000 µF', zweck: 'Puffer gegen Stromspitzen', produkt: '20x Elko Elektrolytkondensator 50V 1000uF 13x25mm Radial', url: `${RB}/p/20x-elko-elektrolytkondensator-50v-1000uf-13x25mm-radial`, hinweis: 'Ein Elko reicht, der Rest ist Vorrat. Elkos haben eine Richtung: Der Streifen auf dem Gehäuse markiert Minus.' },
     { teil: 'USB-Netzteil 5 V', zweck: 'Zum Laden', produkt: 'Kein Link: vorhandenes Handy-Netzteil nutzen', hinweis: 'Ein einfaches 5-V-Netzteil mit mindestens 1 A. Manche USB-C-Schnellladegeräte liefern dem Modul laut Händler keine 5 V, dann hilft ein USB-A-Netzteil mit passendem Kabel.' },
   ],
+  6: [
+    { teil: '2 Widerstände 10 kΩ', zweck: 'Spannungsteiler für den Akkustand (Mission 6.4)', produkt: 'Kein neuer Kauf: aus dem Widerstandssortiment aus Akt 1', hinweis: 'Farbringe Braun-Schwarz-Orange. Prüfe in der Werteliste deines Sortiments, dass 10 kΩ dabei ist.' },
+    { teil: 'Taster', zweck: 'Der echte Klingelknopf an GPIO 13', produkt: 'Kein neuer Kauf: ein Taster aus Akt 1' },
+    { teil: 'Multimeter mit mA-Bereich', zweck: 'Wachstrom und Ruhestrom messen', produkt: 'Kein neuer Kauf: dein Multimeter aus Akt 0', hinweis: 'Ein µA-Bereich macht Mission 6.5 genauer, ist aber kein Muss.' },
+    { teil: 'Steckbrücke', zweck: 'Brücke über das Multimeter (Mission 6.5)', produkt: 'Kein neuer Kauf: aus dem Set aus Akt 0' },
+  ],
   7: [
     { teil: 'MOSFETs und Dioden', zweck: 'Selbsthalteschaltung', hinweis: 'Wird nach der Messung am Prototyp festgelegt.' },
   ],

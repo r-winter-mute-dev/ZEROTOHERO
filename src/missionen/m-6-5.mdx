@@ -1,0 +1,94 @@
+---
+id: m-6-5
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: ruhestrom
+    hardware: true
+  - id: rechnen
+spick:
+  - t: "Chip im Tiefschlaf"
+    v: "etwa 10 µA laut Datenblatt"
+  - t: "Board im Tiefschlaf"
+    v: "Deutlich mehr: Kamera, PSRAM, Regler, LEDs"
+  - t: "Dein Teiler"
+    v: "4,0 V / 20 kΩ = 0,2 mA"
+  - t: "Brücke"
+    v: "Steckbrücke über das Multimeter, solange die Klingel wach ist"
+  - t: "1 mA"
+    v: "= 1000 µA"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Rechnen from '../components/Rechnen.astro';
+import Zahl from '../components/Zahl.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+
+Die Klingel schläft. Laut Datenblatt braucht der Chip dabei nur etwa 10 µA, das wären über zehn Jahre mit einem Akku. Zeit, das nachzumessen. **Deine Mission: Miss den Ruhestrom der schlafenden Klingel und finde heraus, warum er so viel größer ist als im Datenblatt.**
+
+## Theorie
+
+<Karte nr={1} titel="Das Datenblatt meint nur den Chip">
+Die 10 µA aus dem Datenblatt gelten für den nackten ESP32-Chip [Fachquelle: Espressif, ESP32-Datenblatt]. Auf deinem Board sitzt viel mehr an der 3,3-V-Leitung: der Zusatzspeicher (PSRAM), die Kamera, ein Spannungsregler (AMS1117), Widerstände und LEDs. Jedes dieser Teile zieht auch dann etwas, wenn der Chip schläft. Wie viel zusammen, steht in keinem Datenblatt. Für den Regler allein nennt das Datenblatt einen Eigenverbrauch von typisch 5 mA, wenn er arbeitet [Fachquelle: AMS1117-Datenblatt]. Bei deiner Klingel bekommt er am 5V-Pin keine Spannung, er arbeitet also nicht. Ob er trotzdem etwas zieht, zeigt nur die Messung.
+</Karte>
+
+<Merke>Das Datenblatt gilt für den Chip, nicht für das Board. Das Board zieht mehr.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Datenblatt" fragen={[
+  { frage: 'Das Datenblatt verspricht 10 µA, du misst viel mehr. Was ist die wahrscheinlichste Erklärung?', richtig: 'Andere Bauteile auf dem Board ziehen auch im Schlaf Strom.', falsch: ['Das Datenblatt ist falsch.', 'Der Chip ist kaputt.'], erklaerung: 'Das Datenblatt beschreibt den Chip allein. Ein Board ist mehr als der Chip.' },
+]} />
+
+<Karte nr={2} titel="Auch deine eigenen Teile ziehen">
+Dein Spannungsteiler aus Mission 6.4 hängt rund um die Uhr am Akku: 4,0 V / (10 kΩ + 10 kΩ) = **0,2 mA**. Auch der Buck-Boost-Wandler braucht etwas Strom für sich selbst, um bereit zu bleiben. Im Datenblatt heißt das **Ruhestrom** (englisch quiescent current). Und das Lademodul mit seinem Schutzchip zieht ebenfalls einige Mikroampere, der DW01 allein laut Datenblatt typisch 3 µA [Fachquelle: Fortune Semiconductor, DW01A-Datenblatt].
+</Karte>
+
+<Merke>Jedes Teil, das am Akku hängt, zieht im Schlaf mit: Teiler, Wandler, Schutzschaltung.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Teiler" fragen={[
+  { frage: 'Wie viel Strom zieht ein Teiler aus 2 × 10 kΩ an 4,0 V?', richtig: '0,2 mA', falsch: ['2 mA', '0,02 mA'], erklaerung: 'I = U / R = 4,0 V / 20 000 Ω = 0,0002 A = 0,2 mA.' },
+]} />
+
+<Karte nr={3} titel="Messen, ohne die Klingel abzuwürgen">
+Für kleine Ströme brauchst du den mA- oder µA-Bereich. Der hat aber einen großen Innenwiderstand und eine schwache Sicherung (Mission 6.2). Wacht die Klingel auf, zieht sie plötzlich über 100 mA. Das verkraftet der kleine Bereich nicht. Der Trick: Eine **Steckbrücke** überbrückt das Multimeter, solange die Klingel wach ist. Der Strom nimmt dann den bequemen Weg durch die Brücke. Erst wenn sie schläft, ziehst du die Brücke ab und liest ab. Vor dem nächsten Klingeln steckst du sie wieder.
+</Karte>
+
+<Merke>Brücke drin, solange die Klingel wach ist. Brücke raus nur zum Ablesen im Schlaf.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Brücke" fragen={[
+  { frage: 'Du hast die Brücke gezogen und drückst versehentlich den Klingelknopf. Was kann passieren?', richtig: 'Die Klingel startet neu, oder die Sicherung im Multimeter brennt durch.', falsch: ['Nichts, das Multimeter regelt das.', 'Der Akku lädt sich auf.'], erklaerung: 'Der Wachstrom ist für den kleinen Messbereich viel zu groß.' },
+]} />
+
+## Messen
+
+<Hinweis art="sicherheit" titel="Strombereich ist Kurzschlussgefahr">
+Wie in Mission 6.2: Im Strombereich ist das Multimeter fast ein Draht. Nie direkt an den Akku halten. Nach dem Messen sofort zurück auf V⎓ und in die V-Buchse.
+</Hinweis>
+
+<Checkliste id="messen" punkte={[
+  'Klingel v3 aus Mission 6.4 ist aufgespielt, der Teiler steckt.',
+  'Akku heraus. Die Verbindung von <strong>OUT+</strong> zum Wandler auftrennen und das Multimeter dazwischensetzen wie in Mission 6.2.',
+  'Das obere Ende des Teilers auf die Seite des Wandlers umstecken, also an <strong>IN+</strong>. So fließt auch sein Strom durch das Multimeter.',
+  'Eine Steckbrücke direkt von der roten zur schwarzen Messspitze stecken. Das ist die Brücke.',
+  'Multimeter auf den <strong>mA-Bereich</strong> stellen, rote Leitung in die mA-Buchse. Akku einlegen.',
+  'Klingeln und warten, bis das Foto im Chat ist. Dann noch 10 Sekunden warten: Jetzt schläft die Klingel.',
+  'Die Brücke abziehen und ablesen. Zeigt die Anzeige weniger als 1 mA und hat dein Gerät einen µA-Bereich, darfst du dorthin wechseln (Brücke vorher wieder stecken).',
+  'Brücke wieder stecken. Akku heraus, Multimeter zurück auf V⎓, Verbindung wiederherstellen.',
+]} />
+
+<Zahl id="ruhestrom" titel="Messwert: Die schlafende Klingel" frage="Welchen Strom zieht die Klingel im Tiefschlaf? Gib ihn in mA an (1 µA = 0,001 mA)." einheit="mA" min={0.05} max={40} vorlaeufig hardware hilfe={[
+  { unter: 0.05, text: 'Weniger als der Teiler allein (0,2 mA). Hängt der Teiler hinter dem Multimeter? Oder hast du µA eingetragen statt mA?' },
+  { ueber: 40, text: 'So viel zieht keine schlafende Klingel. Schläft sie wirklich? Ist das Foto schon angekommen? Glimmt der Blitz?' },
+]} />
+
+<Merke>Schreib dir deinen Wert auf. In Akt 7 misst du noch einmal und vergleichst.</Merke>
+
+## Was das bedeutet
+
+<Rechnen id="rechnen" typ="standby" anzahl={3} titel="Rechenaufgaben: Wie lange reicht der Schlaf?" />
+
+<Hinweis titel="Die Enttäuschung ist der Plan">
+Liegt dein Wert bei einigen Milliampere, hält der Akku Wochen statt Jahre. Das ist kein Fehler von dir, sondern der Grund für Akt 7. Dort baust du einen Schalter, der im Schlaf das ganze Board vom Akku trennt. Ziel: ein Ruhestrom, der mindestens 100-mal kleiner ist als dein Wert heute.
+</Hinweis>

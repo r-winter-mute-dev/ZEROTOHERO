@@ -1,0 +1,76 @@
+---
+id: m-6-1
+abzeichen: Haushälter
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: k4
+  - id: rechnen
+spick:
+  - t: "Ladung"
+    v: "Strom × Zeit, in mAh"
+  - t: "Wach pro Tag"
+    v: "Anzahl × Sekunden × mA / 3600 = mAh"
+  - t: "Schlaf pro Tag"
+    v: "Schlafstrom in mA × 24 h = mAh"
+  - t: "Laufzeit in Tagen"
+    v: "Kapazität / (Schlaf + Wach pro Tag)"
+  - t: "Merksatz"
+    v: "Der Schlaf entscheidet, nicht das Klingeln"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Rechnen from '../components/Rechnen.astro';
+import TeileListe from '../components/TeileListe.astro';
+
+Die Klingel läuft am Akku. Aber wie lange? Klingel v1 ist die ganze Zeit wach und leert die Zelle in gut einem Tag. Bevor du daran etwas änderst, rechnest du aus, wo die Energie wirklich hingeht. Das Ergebnis überrascht fast alle. **Deine Mission: Stell das Energiebudget der Klingel auf und finde heraus, welcher Teil des Tages den Akku leert.** Für diese Mission brauchst du keine Hardware.
+
+<TeileListe akte={[6]} />
+
+## Theorie
+
+<Karte nr={1} titel="Ein Tag hat zwei Zustände">
+Eine Klingel an der Haustür tut fast immer: nichts. Sie wartet. Ein paarmal am Tag drückt jemand, dann ist sie für ein paar Sekunden wach: Kamera, WLAN, Foto, senden. Der Rest des Tages ist Warten. Für das Budget rechnest du beide Zustände getrennt aus und zählst sie zusammen.
+</Karte>
+
+<Merke>Wach und Warten getrennt rechnen, dann zusammenzählen.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Zwei Zustände" fragen={[
+  { frage: 'Die Klingel klingelt 10-mal am Tag und ist dabei je 8 Sekunden wach. Wie lange wartet sie pro Tag ungefähr?', richtig: 'Fast 24 Stunden', falsch: ['Etwa 12 Stunden', 'Etwa 80 Sekunden'], erklaerung: '10 × 8 s sind 80 Sekunden. Der Rest des Tages, also fast 24 Stunden, ist Warten.' },
+]} />
+
+<Karte nr={2} titel="Das Klingeln kostet wenig">
+Aus Mission 5.1 kennst du: Ladung = Strom × Zeit. Zieht die Klingel beim Senden 150 mA und ist sie 10-mal am Tag je 8 s wach, sind das 10 × 8 s × 150 mA = 12 000 mAs. Geteilt durch 3600 ergibt das **3,3 mAh pro Tag**. Bei 2900 mAh würde das Klingeln allein über zwei Jahre reichen.
+</Karte>
+
+<Merke>Wach pro Tag = Anzahl × Sekunden × mA / 3600. Meist nur wenige mAh.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Klingeln" fragen={[
+  { frage: 'Warum teilst du durch 3600?', richtig: 'Weil eine Stunde 3600 Sekunden hat und das Ergebnis in mAh sein soll', falsch: ['Weil der Akku 3600 mAh hat', 'Weil 3600 der Ruhestrom ist'], erklaerung: 'mA × s ergibt mAs. 3600 mAs sind 1 mAh.' },
+]} />
+
+<Karte nr={3} titel="Das Warten kostet alles">
+Jetzt das Warten. Bleibt die Klingel einfach wach wie Klingel v1, zieht sie mit WLAN dauerhaft etwa 100 mA (deinen echten Wert misst du in Mission 6.2): 100 mA × 24 h = **2400 mAh pro Tag**. Der Akku ist nach gut einem Tag leer. Schläft sie dagegen und zieht nur noch 5 mA, sind es 120 mAh pro Tag und gut drei Wochen Laufzeit. Bei 0,01 mA wären es 0,24 mAh pro Tag, und der Akku hielte rechnerisch über zwei Jahre. In den ersten beiden Fällen spielt das Klingeln kaum eine Rolle. Erst wenn der Schlaf fast nichts mehr kostet, wird das Klingeln zum größten Posten.
+</Karte>
+
+<Merke>Der Schlafstrom entscheidet über die Laufzeit, nicht das Klingeln.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Was zählt" fragen={[
+  { frage: 'Du willst, dass der Akku länger hält. Was bringt am meisten?', richtig: 'Den Strom im Wartezustand senken', falsch: ['Das Foto schneller senden', 'Seltener klingeln lassen'], erklaerung: 'Das Warten dauert fast den ganzen Tag. Jedes Milliampere dort zählt 24 Stunden lang.' },
+]} />
+
+<Karte nr={4} titel="Rechnung gegen Wirklichkeit">
+Die Rechnung ist eine Obergrenze. In Wirklichkeit liefert eine Zelle bei Kälte weniger, sie altert, und sie entlädt sich langsam auch von selbst. Außerdem schaltet die Klingel ab, bevor die Zelle ganz leer ist. Plane deshalb mit Reserve, zum Beispiel mit zwei Dritteln des Rechenwerts. Wie hoch dein echter Schlafstrom ist, misst du in Mission 6.5.
+</Karte>
+
+<Merke>Die Rechnung ist eine Obergrenze. Plane mit Reserve.</Merke>
+
+<Quiz id="k4" titel="Kurzcheck: Reserve" fragen={[
+  { frage: 'Die Rechnung ergibt 90 Tage. Womit planst du?', richtig: 'Mit deutlich weniger, etwa zwei Monaten', falsch: ['Mit genau 90 Tagen', 'Mit mehr, weil die Zelle sich erholt'], erklaerung: 'Kälte, Alterung und Selbstentladung kosten Kapazität.' },
+]} />
+
+## Rechnen
+
+<Rechnen id="rechnen" typ="budget,standby,budget" anzahl={3} titel="Rechenaufgaben: Das Energiebudget" />

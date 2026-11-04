@@ -1,0 +1,88 @@
+---
+id: m-6-2
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: rechnen
+  - id: wach
+    hardware: true
+spick:
+  - t: "Strom messen"
+    v: "Immer in Reihe: Der Strom muss durch das Multimeter"
+  - t: "Wo"
+    v: "Zwischen OUT+ des Lademoduls und IN+ des Wandlers"
+  - t: "Bürdenspannung"
+    v: "U = Innenwiderstand × Strom, fehlt der Schaltung"
+  - t: "Messbereich"
+    v: "Wach: A-Bereich. Schlaf: mA- oder µA-Bereich"
+  - t: "Nie"
+    v: "Im Strombereich an eine Spannungsquelle halten: Kurzschluss"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Rechnen from '../components/Rechnen.astro';
+import Zahl from '../components/Zahl.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+
+Rechnen ist gut, messen ist besser. Den Strom einer LED hast du schon in Mission 1.3 gemessen. Bei der Klingel ist es kniffliger: Der Strom springt zwischen fast nichts und mehreren hundert Milliampere, und das Multimeter selbst kann die Messung stören. **Deine Mission: Miss, wie viel Strom die wache Klingel aus dem Akku zieht, ohne dass sie dabei abstürzt.**
+
+## Theorie
+
+<Karte nr={1} titel="In Reihe, an der richtigen Stelle">
+Für eine Strommessung trennst du den Stromkreis an einer Stelle auf und setzt das Multimeter in die Lücke. Bei der Klingel ist die beste Stelle **zwischen OUT+ des Lademoduls und IN+ des Wandlers**. Dort fließt genau der Strom, den der Akku liefert. Genau der zählt für das Budget aus Mission 6.1.
+</Karte>
+
+<Merke>Strom in Reihe messen: Kreis auftrennen, Multimeter in die Lücke. Hier zwischen OUT+ und Wandler.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Wo messen" fragen={[
+  { frage: 'Warum misst du zwischen Lademodul und Wandler, nicht zwischen Wandler und ESP32-CAM?', richtig: 'Weil dort der Strom fließt, den der Akku wirklich liefert', falsch: ['Weil dort die Spannung höher ist', 'Weil das Multimeter sonst kaputtgeht'], erklaerung: 'Der Wandler setzt Spannung und Strom um. Für die Laufzeit zählt der Strom aus dem Akku.' },
+]} />
+
+<Karte nr={2} titel="Das Multimeter ist nicht unsichtbar">
+Im Strombereich misst das Multimeter die Spannung an einem kleinen eingebauten Widerstand, dem **Shunt**. An ihm fällt Spannung ab, die der Schaltung fehlt. Das heißt **Bürdenspannung**. Ein Beispiel aus einer Herstellerangabe: Im 400-mA-Bereich eines Fluke 87V fallen etwa 1,8 mV pro mA ab, bei 100 mA also 0,18 V [Fachquelle: Fluke, „Can you live with the burden?“]. Günstige Geräte haben oft mehr. In welchem Bereich deines Geräts wie viel abfällt, steht in seiner Anleitung.
+</Karte>
+
+<Merke>Das Multimeter nimmt der Schaltung Spannung weg: Bürdenspannung = Innenwiderstand × Strom.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Bürdenspannung" fragen={[
+  { frage: 'Im µA-Bereich hat dein Multimeter einen großen Innenwiderstand. Was passiert, wenn die Klingel aufwacht und plötzlich 150 mA zieht?', richtig: 'Es fällt so viel Spannung am Multimeter ab, dass die Klingel neu startet oder die Sicherung auslöst.', falsch: ['Nichts, das Multimeter schaltet automatisch um.', 'Die Klingel wird schneller.'], erklaerung: 'Großer Widerstand mal großer Strom ergibt eine große Spannung, die der Schaltung fehlt.' },
+]} />
+
+<Karte nr={3} titel="Der Wandler hilft hier mit">
+Zum Glück sitzt das Multimeter vor dem Buck-Boost-Wandler. Fällt dort etwas Spannung ab, bekommt der Wandler zum Beispiel 3,6 V statt 3,8 V. Er regelt trotzdem auf 3,3 V nach, die ESP32-CAM merkt kaum etwas. Für den wachen Zustand nimmst du trotzdem den **A-Bereich** (oft 10 A): Er hat den kleinsten Innenwiderstand und die stärkste Sicherung. Die ersten Kommastellen reichen hier.
+</Karte>
+
+<Merke>Wach messen im A-Bereich. Der kleinste Innenwiderstand stört am wenigsten.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Messbereich" fragen={[
+  { frage: 'Welchen Bereich nimmst du für die wache Klingel?', richtig: 'Den A-Bereich mit der passenden Buchse', falsch: ['Den µA-Bereich, der ist am genauesten', 'Den V-Bereich'], erklaerung: 'Hohe Ströme gehören in den A-Bereich. µA-Bereiche haben einen großen Innenwiderstand und schwache Sicherungen.' },
+]} />
+
+<Rechnen id="rechnen" typ="buerde" anzahl={3} titel="Rechenaufgaben: Bürdenspannung" />
+
+## Messen
+
+<Hinweis art="sicherheit" titel="Strombereich ist Kurzschlussgefahr">
+Steckt die rote Leitung in der A- oder mA-Buchse, ist das Multimeter fast ein Draht. Hältst du es so direkt an den Akku, schließt du ihn kurz. Deshalb: erst Kreis auftrennen, dann messen, danach sofort wieder auf V⎓ und in die V-Buchse.
+</Hinweis>
+
+<Checkliste id="messen" punkte={[
+  'Klingel v1 aus Mission 4.6 auf die ESP32-CAM laden (auf der MB-Platine), dann zurück aufs Steckbrett wie in Mission 5.5.',
+  'Akku aus dem Halter nehmen.',
+  'Die Verbindung von <strong>OUT+</strong> des Lademoduls zu <strong>IN+</strong> des Wandlers auftrennen.',
+  'Multimeter auf den <strong>A-Bereich</strong> stellen, rote Leitung in die A-Buchse, schwarze in COM.',
+  'Rote Spitze an OUT+, schwarze an IN+ des Wandlers. Jetzt fließt alles durch das Multimeter.',
+  'Akku einlegen, RST drücken. Warte, bis das Foto im Chat ist. Klingel v1 bleibt danach wach und hält das WLAN.',
+  'Den Strom ablesen und notieren. Ein Wert in A mal 1000 ergibt mA.',
+  'Akku heraus, Multimeter zurück auf V⎓ und in die V-Buchse, Verbindung wiederherstellen.',
+]} />
+
+<Zahl id="wach" titel="Messwert: Die wache Klingel" frage="Welchen Strom zieht die Klingel, nachdem das Foto verschickt ist?" einheit="mA" min={20} max={400} vorlaeufig hardware hilfe={[
+  { unter: 20, text: 'Sehr wenig für einen wachen ESP32 mit WLAN. Hast du A und mA verwechselt? 0,08 A sind 80 mA.' },
+  { ueber: 400, text: 'Sehr viel. Ist der Blitz dauerhaft an? Oder hast du mA und µA verwechselt?' },
+]} />
+
+<Merke>Diesen Wert brauchst du gleich: Er ist der Strom, den die Klingel ohne Schlaf rund um die Uhr zieht.</Merke>

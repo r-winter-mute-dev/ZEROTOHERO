@@ -1,0 +1,88 @@
+---
+id: m-6-boss
+abzeichen: Stromsparer
+checks:
+  - id: boss
+spick:
+  - t: "Vorgehen"
+    v: "Ruhestrom messen, dann ein Teil nach dem anderen abklemmen"
+  - t: "Teiler"
+    v: "Akkuspannung / (R1 + R2)"
+  - t: "Wacht ständig auf"
+    v: "Knopf, Pull-up oder Verdrahtung an GPIO 13 prüfen"
+  - t: "ADC2"
+    v: "Nur vor dem WLAN messbar"
+  - t: "Nach Fehlern"
+    v: "Immer schlafen"
+---
+import Logdiagnose from '../components/Logdiagnose.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Eine Klingel soll Monate durchhalten. Diese hier sind nach wenigen Tagen leer, oder sie verhalten sich seltsam. Der Fehler versteckt sich im Schlaf, und da sieht man nichts. Man muss messen und mitlesen. **Dein Bosskampf: Fünf Klingeln verschwenden Energie. Lies die Protokolle und finde die Ursache.**
+
+## Die Methode
+
+1. **Ruhestrom messen** wie in Mission 6.5, mit Brücke.
+2. **Vergleichen:** Passt der Wert zu deinem eigenen aus Mission 6.5?
+3. **Eingrenzen:** Ein Teil nach dem anderen abklemmen (Akku vorher heraus) und neu messen. Wo der Strom stark sinkt, sitzt der Verbraucher.
+4. **Mitlesen:** Was steht im Chat oder im seriellen Monitor? Wie oft wacht die Klingel auf?
+
+<Merke>Ruhestrom messen, vergleichen, Teile einzeln abklemmen. Wo der Strom fällt, sitzt die Ursache.</Merke>
+
+<Hinweis titel="Lesetipp">
+Die Protokolle sind ausgedachte, aber typische Beispiele: Messwerte mit dem Multimeter und Nachrichten aus dem Chat.
+</Hinweis>
+
+<Logdiagnose id="boss" titel="Bosskampf: Akku nach wenigen Tagen leer" anzahl={5} faelle={[
+  {
+    symptom: 'Im Chat kommen Fotos von einer leeren Haustür, ohne dass jemand geklingelt hat. Nach zwei Tagen ist der Akku leer.',
+    log: 'Es klingelt! (Nr. 412)\nEs klingelt! (Nr. 413)\nEs klingelt! (Nr. 414)\n... alle paar Minuten ein Foto\nMessung an IO13 gegen GND im Schlaf: schwankt zwischen 0,4 V und 2,9 V',
+    richtig: 'GPIO 13 schwebt: Der Knopf ist an einem falschen Pin oder der Pull-up fehlt. Die Klingel weckt sich selbst.',
+    falsch: ['Der Akku ist zu schwach für das WLAN.', 'Die Kamera braucht zu viel Strom.'],
+    erklaerung: 'Ein schwebender Eingang fängt Störungen ein und wird zufällig LOW. Mit Pull-up liegt er im Schlaf fest bei etwa 3,3 V. Die Nummer unter den Fotos verrät, wie oft die Klingel wach war.',
+  },
+  {
+    symptom: 'Nach dem Einbau der Akkuanzeige ist der Akku viel schneller leer als vorher.',
+    log: 'Ruhestrom vor dem Teiler: 1,8 mA\nRuhestrom mit Teiler: 3,8 mA\nAkku: 4,00 V\nTeiler: zwei Widerstände Braun-Schwarz-Rot',
+    richtig: 'Der Teiler ist aus 2 × 1 kΩ statt 2 × 10 kΩ und zieht dauernd 2 mA.',
+    falsch: ['Der ADC misst im Schlaf weiter.', 'Der Teiler lädt den Akku falsch herum.'],
+    erklaerung: 'Braun-Schwarz-Rot heißt 1 kΩ. 4,0 V / 2 kΩ = 2 mA, rund um die Uhr. Mit 10 kΩ (Braun-Schwarz-Orange) wären es 0,2 mA.',
+  },
+  {
+    symptom: 'Abends sieht jemand, dass die Blitz-LED der Klingel ganz schwach glimmt. Der Ruhestrom ist viel höher als in Mission 6.5.',
+    log: 'Ruhestrom: 24 mA\nIm Sketch geändert: Abschnitt "gpio_hold_en(GPIO_NUM_4)" gelöscht, "damit der Code kürzer ist"',
+    richtig: 'GPIO 4 wird im Schlaf nicht mehr auf LOW festgehalten. Der Pin schwebt, und der Transistor des Blitzes leitet ein wenig.',
+    falsch: ['Die LED ist kaputt und muss getauscht werden.', 'Das WLAN bleibt im Schlaf an.'],
+    erklaerung: 'Ohne Festhalten verliert der Pin im Tiefschlaf seinen Zustand. Eine halb geöffnete LED zieht viel mehr als der ganze schlafende Chip.',
+  },
+  {
+    symptom: 'Bei der Messung des Ruhestroms startet die Klingel beim Klingeln immer wieder neu, und es kommt nie ein Foto an.',
+    log: 'Multimeter im µA-Bereich, rote Leitung in der µA-Buchse\nKnopf gedrückt\nMultimeter: Anzeige springt, dann "OL"\nKein Foto, die Klingel startet in einer Schleife neu',
+    richtig: 'Die Brücke über dem Multimeter fehlt. Am großen Innenwiderstand fällt beim Aufwachen zu viel Spannung ab.',
+    falsch: ['Der Akku ist leer.', 'GPIO 13 ist kaputt.'],
+    erklaerung: 'Bürdenspannung: Großer Innenwiderstand mal Wachstrom ergibt eine Spannung, die der Klingel fehlt. Solange sie wach ist, gehört die Brücke drauf.',
+  },
+  {
+    symptom: 'Das WLAN-Passwort wurde geändert. Seitdem kommt kein Foto mehr, und der Akku ist nach einem Tag leer.',
+    log: 'Wach. Grund: knopf\nFehler: kein WLAN\nWarte auf neuen Versuch ...\nWarte auf neuen Versuch ...\n(Strom dauerhaft 95 mA)',
+    richtig: 'Das Programm bleibt nach dem Fehler wach und wartet, statt einzuschlafen.',
+    falsch: ['Die Kamera ist kaputt.', 'Der Akku kann keine 95 mA liefern.'],
+    erklaerung: 'Ein Akkugerät darf nach einem Fehler nie wach bleiben. Klingel v2 und v3 schlafen deshalb immer ein, auch nach „kein WLAN“.',
+  },
+  {
+    symptom: 'Jemand hat das Programm umgebaut. Jetzt steht unter jedem Foto „Akku: 0,00 V (leer, bitte laden)“, obwohl die Zelle voll ist.',
+    log: 'Ablauf im geänderten Sketch:\n1. Kamera starten\n2. WLAN verbinden\n3. Akku messen\n4. Foto senden\nMultimeter an OUT+: 4,08 V',
+    richtig: 'Der Akku wird erst gemessen, nachdem das WLAN läuft. ADC2 ist dann für das Programm gesperrt.',
+    falsch: ['Der Teiler ist falsch herum eingebaut.', 'Die Korrektur ist zu klein.'],
+    erklaerung: 'GPIO 14 hängt am ADC2, den auch der WLAN-Treiber nutzt. Deshalb kommt das Messen immer zuerst.',
+  },
+]} />
+
+## Die Faustregeln aus diesem Bosskampf
+
+1. **Eingänge nie schweben lassen.** Ein Pull-up macht den Weckpin eindeutig.
+2. **Was am Akku hängt, zieht immer.** Teiler, LEDs und Wandler gehören ins Budget.
+3. **Nach jedem Fehler schlafen** und den Akku zuerst messen, dann das WLAN starten.
+
+<Merke>Schweben, Dauerverbraucher, Wachbleiben: Das sind die drei großen Akkufresser.</Merke>
