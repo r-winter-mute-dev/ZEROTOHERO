@@ -92,6 +92,10 @@ Am meisten hilft gerade:
 
 Die Idee, die Ziele und die Entscheidungen kommen von einem Menschen. Texte, Übungen und Firmware schreibt die KI, ein Mensch prüft sie und gibt sie frei. Auch so können Fehler drinstecken. Wenn dir etwas falsch vorkommt, [öffne ein Issue](https://github.com/r-winter-mute-dev/zerotohero/issues). Hinweise mit Quelle helfen am meisten.
 
+## DISCLAIMER
+
+<hier Disclaimer einfügen auch und vor allem für Kauflinks das diese weder affiliate sind noch sonst iwie bezahlt es war mir nur wichtig einen zuverlässigen anbieter zu haben den ich selbst nutze der faire preise hat und ohne das man selbst ewig suchen muss was das passende stück hardware ist natürlich gehen auch alle gleichwertigen wo anders erworbenen proidukte>
+
 ## Für Entwickler
 
 <details>
