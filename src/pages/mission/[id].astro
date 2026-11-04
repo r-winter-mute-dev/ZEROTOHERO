@@ -194,7 +194,8 @@ const spick: { t: string; v: string }[] = fm.spick ?? [];
     if (!akt) {
       if (!el && !n.textContent?.trim()) { inhalt.append(n); continue; }
       if (unsichtbar) { inhalt.append(n); continue; }
-      akt = neu(schritte.length ? (el?.querySelector('h3')?.textContent?.trim() || 'Fortsetzung') : 'Worum es geht');
+      const titelEl = el?.matches('details') ? el.querySelector('summary') : el?.querySelector('h3, .titel, summary');
+      akt = neu(schritte.length ? (titelEl?.textContent?.replace(/^Vertiefung:\s*/, '').trim() || 'Fortsetzung') : 'Worum es geht');
     }
     akt.el.append(n);
   }

@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.astro/
+.DS_Store
+*.log
+# Zugangsdaten für spätere Firmware (Akt 3+) niemals committen
+firmware/**/secrets.h

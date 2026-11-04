@@ -40,3 +40,19 @@ export const PUZZLE_M27 = `if (millis() - letzteAenderung ___ ENTPRELLZEIT && je
     zaehler++;
   }
 }`;
+
+// Mission 4.4: Aufbau eines multipart/form-data-Pakets (Telegram sendPhoto, Bild gekürzt)
+export const PUZZLE_M44 = `POST /bot<TOKEN>/sendPhoto HTTP/1.1
+Host: api.telegram.org
+Content-Type: multipart/form-data; boundary=0toHeroKlingelGrenze
+
+___
+Content-Disposition: form-data; name="chat_id"
+
+123456789
+--0toHeroKlingelGrenze
+Content-Disposition: form-data; name="photo"; filename="klingel.jpg"
+Content-Type: ___
+
+ÿØÿà … (hier stehen die Bytes des Fotos) … ÿÙ
+___`;
