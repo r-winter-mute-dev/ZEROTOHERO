@@ -11,6 +11,7 @@ const P = { A: [70, 60], B: [150, 60], C: [430, 60], D: [430, 240], E: [70, 240]
 <Station id={id} titel={titel} art={modus === 'fehler' ? 'Bosskampf' : 'Messplatz'}>
   <div class="messplatz" data-kw-messplatz data-modus={modus} data-aufgaben={JSON.stringify(aufgaben)} data-anzahl={anzahl}>
     <p class="szenario" data-mp-szenario></p>
+    <div data-mp-aufgabe aria-live="polite"></div>
     <div class="aufbau">
       <svg viewBox="0 0 520 300" role="img" aria-label="Schaltplan: Batterie, Widerstand und LED in Reihe, Messpunkte A bis E">
         <g class="draht" fill="none" stroke-width="3">
@@ -35,7 +36,8 @@ const P = { A: [70, 60], B: [150, 60], C: [430, 60], D: [430, 240], E: [70, 240]
         </g>
         {Object.entries(P).map(([k, [x, y]]) => (
           <g class="punkt" data-punkt={k} tabindex="0" role="button" aria-label={`Messpunkt ${k}`}>
-            <circle cx={x} cy={y} r="13" />
+            <circle class="treffer" cx={x} cy={y} r="28" />
+            <circle cx={x} cy={y} r="15" />
             <text x={x} y={y + 5} text-anchor="middle">{k}</text>
           </g>
         ))}
@@ -47,11 +49,11 @@ const P = { A: [70, 60], B: [150, 60], C: [430, 60], D: [430, 240], E: [70, 240]
           <label><input type="radio" name={`spitze-${id}`} value="rot" checked /> <span class="rot">Rot (+)</span>: <b data-mp-rot>–</b></label>
           <label><input type="radio" name={`spitze-${id}`} value="schwarz" /> <span class="schwarz">Schwarz (COM)</span>: <b data-mp-schwarz>–</b></label>
         </fieldset>
-        <p class="leise klein">Tippe auf einen Messpunkt: Der erste Tipp setzt Rot, der zweite Schwarz, dann wieder Rot.</p>
+        <p class="leise klein">Tippe auf einen Messpunkt: Der erste Tipp setzt Rot, der zweite Schwarz. Der nächste Tipp beginnt eine neue Messung.</p>
         <p class="leise klein" data-mp-zaehler></p>
+        <p class="info" data-mp-info></p>
       </div>
     </div>
-    <div data-mp-aufgabe></div>
     <div class="diagnose" data-mp-diagnose hidden>
       <label for={`diag-${id}`}>Deine Diagnose:</label>
       <select id={`diag-${id}`} data-mp-wahl></select>
@@ -92,8 +94,14 @@ const P = { A: [70, 60], B: [150, 60], C: [430, 60], D: [430, 240], E: [70, 240]
     let pot: Pot = NORMAL;
     let rot: Pkt | null = null, schwarz: Pkt | null = null;
     let messungen = 0, schritt = 0;
+    let komplett = false; // true, sobald eine Messung mit beiden Spitzen ausgewertet ist
     let faelle: typeof SZENARIEN = [];
 
+    function rueck(text: string, art: 'gut' | 'warnung' = 'gut') {
+      // Zwischenstände nur am Messgerät, damit nichts doppelt erscheint.
+      s.melden('', '');
+      const i = $('[data-mp-info]'); i.textContent = text; i.className = `info ${art}`;
+    }
     function anzeigen() {
       $('[data-mp-rot]').textContent = rot ?? '–';
       $('[data-mp-schwarz]').textContent = schwarz ?? '–';
@@ -106,12 +114,19 @@ const P = { A: [70, 60], B: [150, 60], C: [430, 60], D: [430, 240], E: [70, 240]
     }
 
     function setzen(p: Pkt) {
+      // Nach einer fertigen Messung startet der nächste Tipp neu mit Rot.
+      if (komplett) { rot = null; schwarz = null; komplett = false; if (!s.bestanden()) $('[data-mp-info]').textContent = ''; (box.querySelector('input[value=rot]') as HTMLInputElement).checked = true; }
       const wahl = box.querySelector<HTMLInputElement>('input[type=radio]:checked')!;
       if (wahl.value === 'rot') { rot = p; (box.querySelector('input[value=schwarz]') as HTMLInputElement).checked = true; }
       else { schwarz = p; (box.querySelector('input[value=rot]') as HTMLInputElement).checked = true; }
-      if (rot && schwarz) { messungen++; if (modus === 'aufgaben' && !s.gesperrt()) pruefeAufgabe(); }
+      if (rot && schwarz) {
+        messungen++; komplett = true;
+        if (modus === 'aufgaben' && !s.gesperrt()) pruefeAufgabe();
+      }
       anzeigen();
     }
+    // Wer die Spitze von Hand umschaltet, setzt nur diese Spitze neu.
+    box.querySelectorAll<HTMLInputElement>('input[type=radio]').forEach((r) => r.addEventListener('change', () => { komplett = false; }));
 
     box.querySelectorAll<SVGGElement>('[data-punkt]').forEach((g) => {
       const los = () => setzen(g.dataset.punkt as Pkt);
@@ -136,20 +151,22 @@ const P = { A: [70, 60], B: [150, 60], C: [430, 60], D: [430, 240], E: [70, 240]
       const gleich = (p: Pkt, q: Pkt) => (a.genau ? p === q : NETZ[p] === NETZ[q]);
       const vorwaerts = gleich(rot, x) && gleich(schwarz, y);
       const rueckwaerts = gleich(rot, y) && gleich(schwarz, x);
-      if (!vorwaerts && !rueckwaerts) return;
-      const umgekehrt = !vorwaerts && pot[x] !== pot[y];
       const wert = (pot[rot!] - pot[schwarz!] + 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      rot = null; schwarz = null;
+      if (!vorwaerts && !rueckwaerts) {
+        rueck(`Gemessen: ${wert} V zwischen ${rot} (Rot) und ${schwarz} (Schwarz). Das ist nicht die gesuchte Spannung. Für ein Bauteil setzt du die Spitzen auf die Punkte direkt davor und dahinter, „gegen Masse“ heißt Schwarz auf E. Tippe erneut.`, 'warnung');
+        return;
+      }
+      const umgekehrt = !vorwaerts && pot[x] !== pot[y];
       schritt++;
-      if (schritt >= aufgaben.length) { s.bestehen(`Richtig: ${wert} V. Alle Messaufgaben geschafft.`); }
-      else s.melden(umgekehrt ? `Richtig gemessen: ${wert} V. Das Minus zeigt, dass Rot und Schwarz vertauscht sind. Der Betrag stimmt trotzdem.` : `Richtig gemessen: ${wert} V. Nächste Aufgabe.`, 'gut');
+      if (schritt >= aufgaben.length) { rueck(`Richtig: ${wert} V. Alle Messaufgaben geschafft.`); s.bestehen(`Richtig: ${wert} V. Alle Messaufgaben geschafft.`); }
+      else rueck(umgekehrt ? `Richtig gemessen: ${wert} V. Das Minus zeigt, dass Rot und Schwarz vertauscht sind. Der Betrag stimmt trotzdem.` : `Richtig gemessen: ${wert} V. Nächste Aufgabe.`, 'gut');
       aufgabeZeigen();
     }
 
     // --- Modus Fehler ---
     function fallZeigen() {
       const f = faelle[schritt];
-      pot = f.pot; rot = null; schwarz = null; messungen = 0;
+      pot = f.pot; rot = null; schwarz = null; messungen = 0; komplett = false;
       (box.querySelector('input[value=rot]') as HTMLInputElement).checked = true;
       $('[data-mp-szenario]').textContent = `Fall ${schritt + 1} von ${faelle.length}: ${f.symptom} Miss nach und stelle eine Diagnose.`;
       const sel = box.querySelector<HTMLSelectElement>('[data-mp-wahl]')!;
@@ -157,7 +174,7 @@ const P = { A: [70, 60], B: [150, 60], C: [430, 60], D: [430, 240], E: [70, 240]
       anzeigen();
     }
 
-    if (modus === 'aufgaben') aufgabeZeigen();
+    if (modus === 'aufgaben') { if (s.bestanden()) schritt = aufgaben.length; aufgabeZeigen(); }
     else {
       faelle = mischen(SZENARIEN).slice(0, anzahl);
       $('[data-mp-diagnose]').hidden = false;
@@ -185,11 +202,13 @@ const P = { A: [70, 60], B: [150, 60], C: [430, 60], D: [430, 240], E: [70, 240]
   .draht path, .bauteil line, .bauteil rect, .bauteil path { stroke: var(--text); }
   .beschr { fill: var(--leise); font-size: 15px; }
   .punkt { cursor: pointer; }
-  .punkt circle { fill: var(--tief); stroke: var(--akzent); stroke-width: 2.5; }
+  .punkt:focus { outline: none; }
+  .punkt circle.treffer { fill: transparent; stroke: none; }
+  .punkt circle:not(.treffer) { fill: var(--tief); stroke: var(--akzent); stroke-width: 2.5; }
   .punkt text { fill: var(--text); font-size: 14px; font-weight: 700; pointer-events: none; }
-  .punkt:hover circle, .punkt:focus-visible circle { stroke-width: 4; }
-  .punkt.ist-rot circle { fill: #7d3a4e; stroke: #f38ba8; }
-  .punkt.ist-schwarz circle { fill: #222; stroke: var(--text); }
+  .punkt:hover circle:not(.treffer), .punkt:focus-visible circle:not(.treffer) { stroke-width: 4; }
+  .punkt.ist-rot circle:not(.treffer) { fill: #7d3a4e; stroke: #f38ba8; }
+  .punkt.ist-schwarz circle:not(.treffer) { fill: #222; stroke: var(--text); }
   .geraet { background: #1f1f1f; border-radius: 14px; padding: 1rem; border: 2px solid #333333; }
   .anzeige { background: #d4d4d4; color: #111111; font-size: 2.2rem; font-weight: 700; text-align: right; padding: 0.3rem 0.8rem; border-radius: 6px; font-variant-numeric: tabular-nums; margin-bottom: 0.8rem; }
   .einheit { font-size: 1.2rem; margin-left: 0.4rem; }
@@ -199,7 +218,11 @@ const P = { A: [70, 60], B: [150, 60], C: [430, 60], D: [430, 240], E: [70, 240]
   .rot { color: #f38ba8; font-weight: 700; }
   .schwarz { color: var(--text); font-weight: 700; }
   .szenario { font-weight: 700; }
+  .info { margin: 0.5rem 0 0; font-size: 0.95rem; }
+  .info:empty { display: none; }
+  .info.gut { color: var(--gut, #a6e3a1); }
+  .info.warnung { color: var(--warnung, #f9e2af); }
   .szenario:empty { display: none; }
   .diagnose { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin-top: 1rem; }
-  :global(.aufgabe-text) { margin-top: 1rem; font-weight: 700; }
+  :global(.aufgabe-text) { margin: 0 0 0.8rem; font-weight: 700; }
 </style>

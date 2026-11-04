@@ -1,0 +1,96 @@
+---
+// Einfacher Taschenrechner zum Ausklappen. Rechnet nur, löst nichts.
+// Mit ziel="<css-selektor>" kann das Ergebnis in ein Eingabefeld übernommen werden.
+interface Props { ziel?: string; }
+const { ziel = '' } = Astro.props;
+const TASTEN = ['7', '8', '9', '÷', '4', '5', '6', '×', '1', '2', '3', '−', '0', ',', '(', ')', 'C', '⌫', '+', '='];
+---
+<details class="rechner" data-kw-rechner data-ziel={ziel}>
+  <summary>Taschenrechner</summary>
+  <div class="koerper">
+    <input type="text" inputmode="decimal" autocomplete="off" aria-label="Rechnung, z. B. (5 - 1,8) / 0,02" placeholder="z. B. (5 − 1,8) / 0,02" data-tr-eingabe />
+    <p class="ergebnis" aria-live="polite" data-tr-ergebnis>&nbsp;</p>
+    <div class="tasten">
+      {TASTEN.map((t) => <button type="button" class:list={['taste', { op: '÷×−+='.includes(t), weg: t === 'C' || t === '⌫' }]} data-taste={t}>{t}</button>)}
+    </div>
+    <button type="button" class="knopf zweit uebernehmen" data-tr-uebernehmen hidden>Ergebnis ins Antwortfeld</button>
+    <p class="leise klein">Tipp: Milliampere erst in Ampere umrechnen, 20 mA = 0,02 A.</p>
+  </div>
+</details>
+
+<script>
+  // Kleiner Parser für + − × ÷ und Klammern. Kein eval.
+  function rechnen(text: string): number {
+    const s = text.replace(/\s+/g, '').replace(/,/g, '.').replace(/[×*]/g, '*').replace(/[÷/:]/g, '/').replace(/[−–]/g, '-');
+    let i = 0;
+    const zahl = (): number => {
+      if (s[i] === '(') { i++; const v = summe(); if (s[i] !== ')') throw new Error('Klammer fehlt'); i++; return v; }
+      if (s[i] === '-') { i++; return -zahl(); }
+      if (s[i] === '+') { i++; return zahl(); }
+      const m = /^\d*\.?\d+(e[+-]?\d+)?/i.exec(s.slice(i)) || /^\d+\.?/.exec(s.slice(i));
+      if (!m) throw new Error('Zahl erwartet');
+      i += m[0].length; return parseFloat(m[0]);
+    };
+    const produkt = (): number => {
+      let v = zahl();
+      while (s[i] === '*' || s[i] === '/') { const op = s[i++]; const w = zahl(); v = op === '*' ? v * w : v / w; }
+      return v;
+    };
+    const summe = (): number => {
+      let v = produkt();
+      while (s[i] === '+' || s[i] === '-') { const op = s[i++]; const w = produkt(); v = op === '+' ? v + w : v - w; }
+      return v;
+    };
+    if (!s) throw new Error('leer');
+    const v = summe();
+    if (i < s.length) throw new Error('Unerwartetes Zeichen');
+    return v;
+  }
+  const zeigen = (v: number) => Number.isFinite(v) ? v.toLocaleString('de-DE', { maximumFractionDigits: 6 }) : 'Division durch 0';
+
+  document.querySelectorAll<HTMLElement>('[data-kw-rechner]').forEach((box) => {
+    const ein = box.querySelector<HTMLInputElement>('[data-tr-eingabe]')!;
+    const aus = box.querySelector<HTMLElement>('[data-tr-ergebnis]')!;
+    const uebern = box.querySelector<HTMLButtonElement>('[data-tr-uebernehmen]')!;
+    const zielSel = box.dataset.ziel;
+    const ziel = () => (zielSel ? (box.closest('form, section, .karte') ?? document).querySelector<HTMLInputElement>(zielSel) : null);
+    let letztes: number | null = null;
+
+    function auswerten() {
+      try { letztes = rechnen(ein.value); aus.textContent = `= ${zeigen(letztes)}`; aus.classList.remove('fehler'); }
+      catch { letztes = null; aus.textContent = ein.value.trim() ? 'Rechnung unvollständig' : ' '; aus.classList.toggle('fehler', !!ein.value.trim()); }
+      uebern.hidden = !(letztes !== null && Number.isFinite(letztes) && ziel());
+    }
+    ein.addEventListener('input', auswerten);
+    ein.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); auswerten(); } });
+    box.querySelectorAll<HTMLButtonElement>('[data-taste]').forEach((b) => b.addEventListener('click', () => {
+      const t = b.dataset.taste!;
+      if (t === 'C') ein.value = '';
+      else if (t === '⌫') ein.value = ein.value.slice(0, -1);
+      else if (t === '=') { auswerten(); if (letztes !== null && Number.isFinite(letztes)) ein.value = zeigen(letztes).replace(/\./g, ''); }
+      else ein.value += ['÷', '×', '−', '+'].includes(t) ? ` ${t} ` : t;
+      auswerten();
+    }));
+    uebern.addEventListener('click', () => {
+      const z = ziel();
+      if (!z || letztes === null) return;
+      z.value = letztes.toLocaleString('de-DE', { maximumFractionDigits: 4, useGrouping: false });
+      z.focus();
+    });
+  });
+</script>
+
+<style>
+  .rechner { margin: 0.4rem 0 1rem; border: 1px solid var(--rand, #333); border-radius: var(--radius-klein, 8px); padding: 0.5rem 0.8rem; background: var(--grund); }
+  .rechner summary { cursor: pointer; font-weight: 600; }
+  .koerper { margin-top: 0.7rem; max-width: 20rem; }
+  .koerper input { width: 100%; font-variant-numeric: tabular-nums; }
+  .ergebnis { font-size: 1.3rem; font-weight: 700; text-align: right; margin: 0.4rem 0; font-variant-numeric: tabular-nums; }
+  .ergebnis.fehler { color: var(--warnung); font-size: 1rem; font-weight: 400; }
+  .tasten { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.35rem; margin-bottom: 0.6rem; }
+  .taste { min-height: 2.75rem; font-size: 1.1rem; border-radius: 6px; border: 1px solid #3a3a3a; background: #262626; color: var(--text); cursor: pointer; }
+  .taste:hover, .taste:focus-visible { border-color: var(--akzent); }
+  .taste.op { color: var(--akzent); font-weight: 700; }
+  .taste.weg { color: var(--leise); }
+  .uebernehmen { width: 100%; margin-bottom: 0.5rem; }
+</style>

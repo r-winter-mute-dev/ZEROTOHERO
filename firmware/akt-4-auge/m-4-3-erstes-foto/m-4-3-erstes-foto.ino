@@ -54,7 +54,7 @@ void setup() {
 
   unsigned long roh = (unsigned long)fb->width * fb->height * 2;   // so groß wäre es roh (RGB565)
   Serial.printf("Foto: %u × %u Pixel\n", (unsigned)fb->width, (unsigned)fb->height);
-  Serial.printf("JPEG-Größe: %u Byte (%.1f KB)\n", (unsigned)fb->len, fb->len / 1024.0);
+  Serial.printf("JPEG-Größe: %u Byte (%.1f KiB)\n", (unsigned)fb->len, fb->len / 1024.0);
   Serial.printf("Roh wären es %lu Byte, also etwa %.0f-mal so viel.\n", roh, (double)roh / fb->len);
   Serial.printf("KW-CHECK:m-4-3:%012llX:%ux%u:%u\n", (unsigned long long)ESP.getEfuseMac(), (unsigned)fb->width, (unsigned)fb->height, (unsigned)fb->len);
   esp_camera_fb_return(fb);       // Puffer zurückgeben, sonst ist der Speicher weg

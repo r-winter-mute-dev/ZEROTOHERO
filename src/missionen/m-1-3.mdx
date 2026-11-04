@@ -71,14 +71,28 @@ Widerstände tragen ihren Wert als Farbringe. Bei vier Ringen gilt: 1. Ring = er
 ]} />
 
 <Karte nr={4} titel="Normwerte">
-Widerstände gibt es nicht in jedem Wert, sondern in Normreihen. Die Reihe E12 kennt pro Zehnerstufe nur 10, 12, 15, 18, 22, 27, 33, 39, 47, 56, 68 und 82. Ergibt deine Rechnung 195 Ω, nimmst du den **nächstgrößeren** Wert, also 220 Ω. Dann fließt etwas weniger Strom als geplant, und das ist sicher.
+Widerstände gibt es nicht in jedem Wert, sondern in Normreihen. Die Reihe E12 kennt pro Zehnerstufe nur 10, 12, 15, 18, 22, 27, 33, 39, 47, 56, 68 und 82. Ergibt die Rechnung für einen LED-Vorwiderstand 195 Ω, nimmst du den **nächstgrößeren** Wert, also 220 Ω. Dann fließt etwas weniger Strom als geplant, und die LED bleibt sicher unter ihrem Maximalstrom. Das ist eine Faustregel für Vorwiderstände, keine allgemeine Regel: Beim Spannungsteiler in Mission 1.5 zählt zum Beispiel das Verhältnis zweier Widerstände.
 </Karte>
 
-<Merke>Passt kein Normwert, nimm den nächstgrößeren.</Merke>
+<Merke>LED-Vorwiderstand: Passt kein Normwert, nimm den nächstgrößeren.</Merke>
 
 <Quiz id="k4" titel="Kurzcheck: Normwerte" fragen={[
   { frage: 'Deine Rechnung ergibt 150 Ω. Du hast 120 Ω und 180 Ω. Welchen nimmst du?', richtig: '180 Ω', falsch: ['120 Ω', 'Egal'], erklaerung: 'Immer den nächstgrößeren Wert, sonst fließt mehr Strom als geplant.' },
 ]} />
+
+<details>
+<summary><strong>Vertiefung: Der ungünstigste Fall</strong></summary>
+
+Die Rechnung mit den Nennwerten stimmt nur ungefähr. Drei Dinge weichen ab: Frische Alkali-Batterien liefern etwa 1,6 V pro Zelle statt 1,5 V. Die Durchlassspannung einer roten LED liegt je nach Exemplar irgendwo zwischen etwa 1,8 und 2,2 V. Und ein Widerstand mit Goldring darf 5 % vom Aufdruck abweichen.
+
+Fachleute rechnen deshalb den **ungünstigsten Fall**: alles so, dass der Strom am größten wird. Für deinen Kreis heißt das 3,2 V Batterie, 1,8 V an der LED und 220 Ω − 5 % = 209 Ω:
+
+I = (3,2 V − 1,8 V) / 209 Ω = 0,0067 A = 6,7 mA
+
+Das liegt weit unter den 20 mA, die viele 5-mm-LEDs laut Datenblatt dauerhaft vertragen. Schau trotzdem ins Datenblatt deiner LED, der Wert unterscheidet sich je nach Typ.
+
+Zum Schluss die **Leistung** am Widerstand: P = I² × R = 0,0067² × 209 Ω ≈ 0,009 W. Ein normaler Widerstand verträgt 0,25 W. Mehr dazu in Mission 1.6.
+</details>
 
 <Rechnen id="rechnen" typ="vorwiderstand,strom,vorwiderstand" anzahl={3} />
 

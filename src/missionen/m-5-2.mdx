@@ -63,10 +63,17 @@ In einer 18650-Zelle stecken rund 10 Wh (Mission 5.1). Bei einem **Kurzschluss**
 ]} />
 
 <Karte nr={3} titel="Die Schutzschaltung">
-Viele fertige Akkus haben eine eingebaute **Schutzschaltung**. Die BAK-Zelle aus der Einkaufsliste hat keine. Deshalb hängt sie im Kurs immer an einem Lademodul mit dem Schutzchip **DW01**. Er trennt die Zelle ab, wenn sie über 4,2 V geladen würde, wenn sie unter etwa 2,5 V fällt und wenn zu viel Strom fließt. Die Zelle wird nie direkt an den ESP32-CAM angeschlossen, immer nur über die Schutzschaltung.
+Viele fertige Akkus haben eine eingebaute **Schutzschaltung**. Die BAK-Zelle aus der Einkaufsliste hat keine. Deshalb hängt sie im Kurs immer an einem Lademodul, auf dem **zwei verschiedene Chips** sitzen:
+
+| Chip | Aufgabe | Wann er eingreift |
+|---|---|---|
+| **TP4056** (Ladechip) | Lädt die Zelle richtig: begrenzt den Strom und hört bei 4,2 V auf | Bei jedem Ladevorgang, das ist sein normaler Betrieb |
+| **DW01** (Schutzchip) | Trennt die Zelle über zwei kleine Schalter (MOSFETs) ab | Nur im Notfall: Überladen, Tiefentladen, Überstrom, Kurzschluss |
+
+Der Schutzchip ist also die **letzte Sicherung**, nicht der Normalbetrieb. Laut Datenblatt trennt ein DW01A bei etwa **4,3 V** (Überladung) und bei etwa **2,4 V** (Tiefentladung) [Fachquelle: Fortune Semiconductor, DW01A-Datenblatt]. Die genauen Schwellen hängen von der Chip-Variante und vom Hersteller ab, es gibt viele Nachbauten. Weil 2,4 V schon unter dem Entladeschluss der BAK-Zelle liegt, soll später deine Firmware die Klingel früher schlafen legen (Akt 6). Die Zelle wird nie direkt an den ESP32-CAM angeschlossen, immer nur über die Schutzschaltung.
 </Karte>
 
-<Merke>Diese Zelle hat keinen eigenen Schutz. Sie hängt immer an einem Lademodul mit DW01, nie direkt am Verbraucher.</Merke>
+<Merke>TP4056 lädt, DW01 schützt im Notfall. Die Zelle hängt immer an diesem Modul, nie direkt am Verbraucher.</Merke>
 
 <Quiz id="k3" titel="Kurzcheck: Schutz" fragen={[
   { frage: 'Was tut die Schutzschaltung DW01, wenn die Zelle zu leer wird?', richtig: 'Sie trennt die Zelle vom Verbraucher, bevor sie Schaden nimmt.', falsch: ['Sie lädt die Zelle automatisch nach.', 'Nichts, sie schützt nur beim Laden.'], erklaerung: 'Der DW01 schützt vor Überladen, Tiefentladen und Überstrom.' },

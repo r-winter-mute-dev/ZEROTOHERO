@@ -19,7 +19,7 @@ spick:
   - t: "Im Bildpuffer"
     v: "fb->buf (Daten), fb->len (Byte), fb->width, fb->height"
   - t: "Rohbild VGA (RGB565)"
-    v: "600 KB"
+    v: "600 KiB"
 ---
 import Karte from '../components/Karte.astro';
 import Merke from '../components/Merke.astro';
@@ -53,7 +53,7 @@ Der Bildsensor stellt Belichtung und Weißabgleich automatisch ein. Das braucht 
 ]} />
 
 <Karte nr={3} titel="Wie viel spart JPEG?">
-In Mission 4.2 hast du gerechnet: Ein VGA-Rohbild in RGB565 braucht 600 KB. Das Programm gibt aus, wie groß das JPEG wirklich ist, und um welchen Faktor es kleiner ist. Die Zahl hängt vom Motiv ab: Eine weiße Wand lässt sich viel stärker zusammenpressen als ein Bücherregal mit vielen Kanten.
+In Mission 4.2 hast du gerechnet: Ein VGA-Rohbild in RGB565 braucht 600 KiB. Das Programm gibt aus, wie groß das JPEG wirklich ist, und um welchen Faktor es kleiner ist. Die Zahl hängt vom Motiv ab: Eine weiße Wand lässt sich viel stärker zusammenpressen als ein Bücherregal mit vielen Kanten.
 </Karte>
 
 <Merke>Wie stark JPEG spart, hängt vom Motiv ab. Viele Details = größere Datei.</Merke>
@@ -123,7 +123,7 @@ void setup() {
 
   unsigned long roh = (unsigned long)fb->width * fb->height * 2;   // so groß wäre es roh (RGB565)
   Serial.printf("Foto: %u × %u Pixel\n", (unsigned)fb->width, (unsigned)fb->height);
-  Serial.printf("JPEG-Größe: %u Byte (%.1f KB)\n", (unsigned)fb->len, fb->len / 1024.0);
+  Serial.printf("JPEG-Größe: %u Byte (%.1f KiB)\n", (unsigned)fb->len, fb->len / 1024.0);
   Serial.printf("Roh wären es %lu Byte, also etwa %.0f-mal so viel.\n", roh, (double)roh / fb->len);
   Serial.printf("KW-CHECK:m-4-3:%012llX:%ux%u:%u\n", (unsigned long long)ESP.getEfuseMac(), (unsigned)fb->width, (unsigned)fb->height, (unsigned)fb->len);
   esp_camera_fb_return(fb);       // Puffer zurückgeben, sonst ist der Speicher weg
@@ -136,9 +136,9 @@ void loop() {}
 Dann findet der Chip die Kamera nicht. Fast immer sitzt das Flachbandkabel nicht richtig. Stecker vom Strom trennen, Lasche öffnen, Kabel gerade bis zum Anschlag einschieben, Lasche schließen. Mehr dazu im Bosskampf.
 </Hinweis>
 
-<Zahl id="groesse" titel="Messwert: Größe deines Fotos" frage="Wie viele KB hat dein JPEG laut seriellem Monitor?" einheit="KB" min={3} max={200} vorlaeufig hilfe={[
+<Zahl id="groesse" titel="Messwert: Größe deines Fotos" frage="Wie viele KiB hat dein JPEG laut seriellem Monitor?" einheit="KiB" min={3} max={200} vorlaeufig hilfe={[
   { unter: 3, text: 'Sehr klein. Ist das Bild fast schwarz? Zeigt die Kamera vielleicht auf den Tisch, oder ist die Schutzfolie noch auf der Linse?' },
-  { ueber: 200, text: 'Ungewöhnlich groß für VGA mit Qualität 12. Hast du die Byte-Zahl eingetragen statt der KB? Teile durch 1024.' },
+  { ueber: 200, text: 'Ungewöhnlich groß für VGA mit Qualität 12. Hast du die Byte-Zahl eingetragen statt der KiB? Teile durch 1024.' },
 ]} />
 
 ## Gerätenachweis

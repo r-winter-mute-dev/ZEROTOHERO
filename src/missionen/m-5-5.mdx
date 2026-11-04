@@ -5,6 +5,7 @@ checks:
   - id: k1
   - id: k2
   - id: k3
+  - id: rechnen
   - id: geraet
     hardware: true
 spick:
@@ -27,6 +28,7 @@ import Quiz from '../components/Quiz.astro';
 import Seriell from '../components/Seriell.astro';
 import Hinweis from '../components/Hinweis.astro';
 import Checkliste from '../components/Checkliste.astro';
+import Rechnen from '../components/Rechnen.astro';
 import { url as seitenUrl } from '../config';
 
 Die Klingel läuft am Akku. Aber läuft sie auch zuverlässig, wenn WLAN und Blitz gleichzeitig Strom ziehen? Solche Spitzen dauern nur Millisekunden, doch genau dann kann die Spannung kurz einknicken. **Deine Mission: Bau einen Kondensator als Puffer ein und beweise mit einem Belastungstest, dass die Klingel nicht mehr neu startet.**
@@ -48,6 +50,23 @@ Ein **Kondensator** speichert elektrische Ladung, ähnlich wie ein kleiner Eimer
 </Karte>
 
 <Merke>Ein Kondensator überbrückt kurze Stromspitzen. Er ersetzt keinen Akku, er glättet nur.</Merke>
+
+<details>
+<summary><strong>Vertiefung: Wie groß muss der Kondensator sein?</strong></summary>
+
+Ein Kondensator gibt Ladung ab, und dabei sinkt seine Spannung. Wie stark, sagt die Formel **ΔU = I × Δt / C**. Umgestellt nach der Kapazität:
+
+**C = I × Δt / ΔU**
+
+Dabei ist I der zusätzliche Strom der Spitze, Δt die Zeit, die der Kondensator allein überbrücken muss, und ΔU, wie weit die Spannung höchstens sinken darf. Δt ist nicht die ganze Sendezeit, sondern nur die Zeit, bis der Wandler nachgeregelt hat. Ein Schaltregler braucht dafür typischerweise Mikrosekunden bis wenige hundert Mikrosekunden.
+
+Beispiel: 450 mA Spitze, 200 µs bis zum Nachregeln, höchstens 0,3 V Einbruch (von 3,3 auf 3,0 V):
+C = 0,45 A × 0,0002 s / 0,3 V = 0,0003 F = **300 µF**. Die 1000 µF aus der Einkaufsliste haben also Reserve.
+
+Zwei Dinge macht die Formel nicht sichtbar. Erstens hat jeder Kondensator einen kleinen Innenwiderstand, den **ESR** (englisch equivalent series resistance). An ihm fällt sofort U = ESR × I ab. Wäre der ESR 0,1 Ω, kämen bei 0,45 A schon 0,045 V Einbruch dazu, bevor der Kondensator überhaupt Ladung abgibt. Den echten Wert findest du im Datenblatt. Zweitens zählen die Leitungen aus Karte 1: Ein Kondensator am falschen Ende eines langen Kabels hilft wenig. Deshalb sitzt er so nah wie möglich an der ESP32-CAM.
+</details>
+
+<Rechnen id="rechnen" typ="puffer" anzahl={2} titel="Rechenaufgaben: Puffer dimensionieren" />
 
 <Quiz id="k2" titel="Kurzcheck: Kondensator" fragen={[
   { frage: 'Wozu dient der Kondensator an der Klingel?', richtig: 'Er liefert bei kurzen Stromspitzen Ladung nach, damit die Spannung nicht einknickt.', falsch: ['Er ersetzt den Akku, wenn der leer ist.', 'Er macht aus 3,3 V mehr Spannung.'], erklaerung: 'Er ist ein Puffer für Millisekunden, kein Energiespeicher für Stunden.' },

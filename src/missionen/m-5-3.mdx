@@ -61,6 +61,18 @@ Bei 1 A Ladestrom ist eine 2900-mAh-Zelle rechnerisch nach knapp 3 Stunden voll.
 
 <Merke>Rote LED: lädt. Blaue oder grüne LED: voll. Rechne mit 3 bis 4 Stunden.</Merke>
 
+<details>
+<summary><strong>Vertiefung: Wer den Ladestrom festlegt und wohin die Wärme geht</strong></summary>
+
+Die „1 A“ sind keine Eigenschaft des Chips, sondern werden mit einem kleinen Widerstand am Anschluss PROG eingestellt. Laut Datenblatt gilt **I = 1200 V / R<sub>PROG</sub>** [Fachquelle: TP4056-Datenblatt, NanJing Top Power]. Auf den meisten Modulen sitzt dort 1,2 kΩ: 1200 V / 1200 Ω = 1 A. Ein größerer Widerstand ergibt weniger Strom, mit 2,4 kΩ sind es 0,5 A. Ist die Zelle sehr leer (unter etwa 2,9 V), lädt der Chip zuerst nur mit einem Zehntel davon, bis sie sich erholt hat.
+
+Der TP4056 ist ein **Linearlader**: Die Spannung zwischen Netzteil und Zelle verheizt er. Die Wärme rechnest du so aus:
+
+P = (U<sub>Netzteil</sub> − U<sub>Zelle</sub>) × I
+
+Bei 5 V Netzteil, 3,6 V Zelle und 1 A sind das (5 V − 3,6 V) × 1 A = **1,4 W** auf einem winzigen Chip. Bei leerer Zelle (3,0 V) sind es sogar 2 W. Deshalb wird das Modul spürbar warm. Damit es nicht überhitzt, hat der Chip eine **Temperaturregelung**: Wird er zu heiß (das Datenblatt nennt etwa 145 °C im Chip), senkt er den Ladestrom von selbst. Das Laden dauert dann länger, ist aber kein Fehler. Leg das Modul zum Laden frei hin, nicht in eine Schachtel oder auf Stoff.
+</details>
+
 <Quiz id="k3" titel="Kurzcheck: Ladezeit" fragen={[
   { frage: 'Warum dauert das Laden länger als Kapazität geteilt durch Ladestrom?', richtig: 'Weil der Strom in der zweiten Phase immer kleiner wird', falsch: ['Weil das Modul Pausen macht', 'Weil die Zelle beim Laden kleiner wird'], erklaerung: 'In der CV-Phase sinkt der Strom bis auf ein Zehntel.' },
 ]} />
