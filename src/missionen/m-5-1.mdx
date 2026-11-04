@@ -1,0 +1,75 @@
+---
+id: m-5-1
+abzeichen: Energiebuchhalter
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: k4
+  - id: rechnen
+spick:
+  - t: "Leistung"
+    v: "P = U × I, in Watt (W)"
+  - t: "Energie"
+    v: "Leistung × Zeit, in Wattstunden (Wh)"
+  - t: "Kapazität"
+    v: "Strom × Zeit, in Milliamperestunden (mAh)"
+  - t: "mAh → Wh"
+    v: "mAh / 1000 × Nennspannung"
+  - t: "Laufzeit"
+    v: "Kapazität / Strom, zum Beispiel 2900 mAh / 100 mA = 29 h"
+  - t: "1 mAh"
+    v: "3600 mAs"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Rechnen from '../components/Rechnen.astro';
+
+Klingel v1 hängt noch am USB-Kabel. An der Haustür gibt es aber keine Steckdose, also muss ein Akku her. Wie lange hält der? Das kann man ausrechnen, bevor man ihn kauft. **Deine Mission: Rechne mit Kapazität und Energie und finde heraus, wo die Energie der Klingel wirklich hingeht.** Für diese Mission brauchst du keine Hardware.
+
+## Theorie
+
+<Karte nr={1} titel="Leistung und Energie">
+In Mission 1.6 hast du die **Leistung** kennengelernt: P = U × I, gemessen in Watt. Sie sagt, wie viel Energie **pro Sekunde** umgesetzt wird. Die **Energie** ist Leistung mal Zeit, gemessen in **Wattstunden** (Wh). Eine Lampe mit 10 W braucht in zwei Stunden 20 Wh. Ein Akku speichert Energie, er ist also wie ein Tank, die Leistung ist der Durchfluss.
+</Karte>
+
+<Merke>Leistung (W) ist der Durchfluss, Energie (Wh) ist der Tankinhalt. Energie = Leistung × Zeit.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Leistung und Energie" fragen={[
+  { frage: 'Ein Gerät mit 2 W läuft 3 Stunden. Wie viel Energie braucht es?', richtig: '6 Wh', falsch: ['6 W', '1,5 Wh'], erklaerung: 'Energie = Leistung × Zeit = 2 W × 3 h = 6 Wh.' },
+]} />
+
+<Karte nr={2} titel="Kapazität in mAh">
+Auf Akkus steht meist die **Kapazität** in Milliamperestunden, zum Beispiel 2900 mAh. Das heißt: Der Akku kann 2900 mA eine Stunde lang liefern, oder 100 mA für 29 Stunden, oder 10 mA für 290 Stunden. Daraus folgt die einfachste Rechnung des ganzen Akts: **Laufzeit = Kapazität / Strom**. In der Praxis ist es etwas weniger, weil kein Akku ganz leer werden darf.
+</Karte>
+
+<Merke>Laufzeit = Kapazität / Strom. 2900 mAh bei 100 mA reichen etwa 29 Stunden.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Kapazität" fragen={[
+  { frage: 'Ein 2000-mAh-Akku versorgt ein Gerät mit 50 mA. Wie lange hält er ungefähr?', richtig: '40 Stunden', falsch: ['100 Stunden', '4 Stunden'], erklaerung: '2000 mAh / 50 mA = 40 h.' },
+]} />
+
+<Karte nr={3} titel="Von mAh zu Wh">
+mAh sagt nur, wie viel **Ladung** im Akku steckt, nicht wie viel Energie. Dafür fehlt die Spannung. Ein Li-Ion-Akku hat eine **Nennspannung** von etwa 3,6 bis 3,7 V. Also: 2900 mAh = 2,9 Ah, mal 3,6 V = rund **10,4 Wh**. Mit Wh kannst du Akkus mit verschiedener Spannung vergleichen, mit mAh nicht.
+</Karte>
+
+<Merke>Wh = mAh / 1000 × Nennspannung. Nur Wh lassen sich zwischen Akkus mit verschiedener Spannung vergleichen.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Wh" fragen={[
+  { frage: 'Welcher Akku speichert mehr Energie: 2000 mAh bei 3,7 V oder 2000 mAh bei 1,2 V?', richtig: 'Der mit 3,7 V', falsch: ['Beide gleich viel', 'Der mit 1,2 V'], erklaerung: 'Gleiche Ladung, aber dreimal so viel Spannung ergibt dreimal so viel Energie.' },
+]} />
+
+<Karte nr={4} titel="Wohin die Energie wirklich geht">
+Ein Klingeln ist laut, aber kurz: ein paar Sekunden mit einigen hundert mA. Danach wartet die Klingel, vielleicht tagelang. Laut AI-Thinker zieht das ESP32-CAM-Board selbst im Tiefschlaf noch etwa 6 mA [Fachquelle: AI-Thinker, Datenblatt ESP32-CAM, bei 5 V]. Das klingt wenig, ergibt aber 144 mAh pro Tag. Zehnmal Klingeln mit 300 mA für je 8 Sekunden sind dagegen nur knapp 7 mAh. **Die Wartezeit frisst den Akku, nicht das Klingeln.**
+</Karte>
+
+<Merke>Ein kleiner Strom über lange Zeit kostet mehr als ein großer Strom über kurze Zeit. Bei der Klingel ist das Warten das Problem.</Merke>
+
+<Quiz id="k4" titel="Kurzcheck: Wartezeit" fragen={[
+  { frage: 'Ein 2900-mAh-Akku, die Klingel zieht im Warten dauerhaft 6 mA. Wie lange hält er ungefähr, ohne ein einziges Klingeln?', richtig: 'Etwa 20 Tage', falsch: ['Etwa ein Jahr', 'Etwa 2 Tage'], erklaerung: '2900 mAh / 6 mA ≈ 483 h, das sind rund 20 Tage. Darum geht es in Akt 6 und 7: den Wartestrom fast auf null zu drücken.' },
+]} />
+
+## Rechnen
+
+<Rechnen id="rechnen" titel="Rechenaufgaben: Akku und Klingel" typ="laufzeit,energie,klingeln" anzahl={3} />

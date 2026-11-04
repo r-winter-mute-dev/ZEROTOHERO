@@ -1,0 +1,156 @@
+---
+// Versorgungs-Simulator: Welche Spannung kommt bei der ESP32-CAM an, wenn der Akku leerer wird?
+// Modell: Board-Regler AMS1117 mit 1,1 V Dropout (Datenblatt, typisch bei 800 mA),
+// Buck-Boost mit fest 3,3 V und 90 % Wirkungsgrad (Modellwert).
+// Brownout-Schwelle 2,43 V (ESP-IDF-Standard), Betriebsbereich ab 3,0 V (Espressif-Datenblatt).
+import Station from './Station.astro';
+interface Props { id: string; titel: string; }
+const { id, titel } = Astro.props;
+---
+<Station id={id} titel={titel} art="Simulator">
+  <div class="vs" data-kw-versorgung>
+    <p class="vs-aufgabe" data-vs-aufgabe aria-live="polite"></p>
+
+    <fieldset>
+      <legend>Weg vom Akku zur ESP32-CAM</legend>
+      <label><input type="radio" name={`${id}-weg`} value="ams" checked /> Akku an den <strong>5V-Pin</strong>, der Regler auf dem Board (AMS1117) macht 3,3 V daraus</label>
+      <label><input type="radio" name={`${id}-weg`} value="bb" /> Akku an den <strong>Buck-Boost-Wandler</strong>, der liefert 3,3 V an den 3V3-Pin</label>
+    </fieldset>
+
+    <label class="vs-regler">
+      <span>Akkuspannung: <strong data-vs-uakku>4,20 V</strong> <span class="leise klein" data-vs-ladung></span></span>
+      <input type="range" min="2.8" max="4.2" step="0.05" value="4.2" data-vs-akku />
+    </label>
+
+    <fieldset>
+      <legend>Was die Klingel gerade tut</legend>
+      <label><input type="radio" name={`${id}-last`} value="100" checked /> Kamera bereit (etwa 100 mA)</label>
+      <label><input type="radio" name={`${id}-last`} value="300" /> WLAN sendet (etwa 300 mA)</label>
+      <label><input type="radio" name={`${id}-last`} value="450" /> Senden mit Blitz (etwa 450 mA)</label>
+    </fieldset>
+
+    <div class="vs-anzeige">
+      <div class="vs-balken" aria-hidden="true">
+        <div class="vs-zone rot" style="height: 28.7%"><span>Brownout</span></div>
+        <div class="vs-zone gelb" style="height: 38%"><span>unsicher</span></div>
+        <div class="vs-zone gruen" style="height: 33.3%"><span>läuft</span></div>
+        <div class="vs-marke" data-vs-marke></div>
+      </div>
+      <dl class="vs-werte">
+        <dt>Spannung an der ESP32-CAM</dt><dd data-vs-uout>3,30 V</dd>
+        <dt>Zustand</dt><dd data-vs-zustand>läuft</dd>
+        <dt>Strom aus dem Akku</dt><dd data-vs-iakku>0 mA</dd>
+        <dt>Wärme im Wandler</dt><dd data-vs-waerme>0 mW</dd>
+      </dl>
+    </div>
+    <p class="vs-erkl" data-vs-erkl aria-live="polite"></p>
+    <p class="leise klein">Modellwerte: AMS1117 mit 1,1 V Dropout laut Datenblatt, Buck-Boost mit 90 % Wirkungsgrad, Brownout bei 2,43 V (ESP-IDF-Standard), sicherer Betrieb ab 3,0 V. Die Ströme sind gerundete Richtwerte.</p>
+  </div>
+</Station>
+
+<script>
+  import { fmt, station } from '../scripts/station';
+
+  const DROPOUT = 1.1, ETA = 0.9, BROWNOUT = 2.43, MIN_OK = 3.0;
+
+  document.querySelectorAll<HTMLElement>('[data-kw-versorgung]').forEach((box) => {
+    const s = station(box.closest('[data-kw-check]') as HTMLElement);
+    const wert = (n: string) => box.querySelector<HTMLInputElement>(`input[name="${s.cid}-${n}"]:checked`)!.value;
+    const regler = box.querySelector<HTMLInputElement>('[data-vs-akku]')!;
+    const $ = (sel: string) => box.querySelector<HTMLElement>(sel)!;
+
+    interface Z { weg: string; ua: number; last: number; uout: number; zustand: 'ok' | 'unsicher' | 'brownout'; iakku: number; waerme: number; }
+    const aufgaben = [
+      { text: 'Weg 1 (5V-Pin): Ab welcher Akkuspannung bricht die Klingel beim Senden mit Blitz zusammen? Schieb den Regler, bis ein Brownout kommt.', pruef: (z: Z) => z.weg === 'ams' && z.last === 450 && z.zustand === 'brownout' },
+      { text: 'Finde einen Weg, mit dem die Klingel beim Senden mit Blitz auch bei 3,0 V Akkuspannung sicher läuft.', pruef: (z: Z) => z.last === 450 && z.ua <= 3.01 && z.zustand === 'ok' },
+    ];
+    let nr = 0;
+
+    function rechnen(): Z {
+      const weg = wert('weg'), ua = Number(regler.value), last = Number(wert('last'));
+      let uout: number, iakku: number, waerme: number;
+      if (weg === 'ams') {
+        uout = Math.min(3.3, ua - DROPOUT);
+        iakku = last;                                   // linear: was rausgeht, kommt rein
+        waerme = (ua - uout) * last;                    // mW
+      } else {
+        uout = 3.3;
+        const pout = 3.3 * last;                        // mW
+        iakku = pout / ETA / ua;
+        waerme = pout / ETA - pout;
+      }
+      const zustand = uout < BROWNOUT ? 'brownout' : uout < MIN_OK ? 'unsicher' : 'ok';
+      return { weg, ua, last, uout, zustand, iakku, waerme };
+    }
+
+    function ladung(u: number) {
+      if (u >= 4.1) return '(voll)';
+      if (u >= 3.7) return '(gut gefüllt)';
+      if (u >= 3.4) return '(halb leer)';
+      if (u >= 3.1) return '(fast leer)';
+      return '(leer, die Schutzschaltung trennt bald)';
+    }
+
+    function zeichnen() {
+      const z = rechnen();
+      $('[data-vs-uakku]').textContent = `${fmt(z.ua, 2)} V`;
+      $('[data-vs-ladung]').textContent = ladung(z.ua);
+      $('[data-vs-uout]').textContent = `${fmt(Math.max(0, z.uout), 2)} V`;
+      $('[data-vs-zustand]').textContent = z.zustand === 'ok' ? 'läuft' : z.zustand === 'unsicher' ? 'unsicher, kann abstürzen' : 'Brownout: Neustart';
+      $('[data-vs-zustand]').className = z.zustand;
+      $('[data-vs-iakku]').textContent = `${fmt(z.iakku, 0)} mA`;
+      $('[data-vs-waerme]').textContent = `${fmt(z.waerme, 0)} mW`;
+      // Marke: 2,0 V unten bis 3,5 V oben
+      const p = Math.max(0, Math.min(1, (z.uout - 2.0) / 1.5));
+      $('[data-vs-marke]').style.bottom = `calc(${p * 100}% - 2px)`;
+
+      let text: string;
+      if (z.weg === 'ams') {
+        text = z.zustand === 'ok'
+          ? `Der Regler braucht etwa ${fmt(DROPOUT, 1)} V Abstand. Bei ${fmt(z.ua, 2)} V Akkuspannung bleiben ${fmt(z.uout, 2)} V. Das reicht gerade noch.`
+          : `Akku ${fmt(z.ua, 2)} V minus ${fmt(DROPOUT, 1)} V Dropout ergibt nur ${fmt(z.uout, 2)} V. ${z.zustand === 'brownout' ? 'Der Brownout-Detektor startet den Chip neu.' : 'Unter 3,0 V arbeitet der Chip nicht mehr zuverlässig.'}`;
+      } else {
+        text = `Der Buck-Boost-Wandler hält 3,3 V, egal ob der Akku ${fmt(z.ua, 2)} V hat. Ist der Akku höher, wandelt er herunter, ist er niedriger, wandelt er hoch. Dafür zieht er bei leerem Akku mehr Strom (${fmt(z.iakku, 0)} mA).`;
+      }
+      const erkl = $('[data-vs-erkl]');
+      erkl.textContent = text;
+      erkl.className = `vs-erkl ${z.zustand}`;
+
+      if (nr < aufgaben.length && aufgaben[nr].pruef(z) && !s.gesperrt()) {
+        nr++;
+        if (nr >= aufgaben.length) s.bestehen('Simulator geschafft: Mit dem Buck-Boost-Wandler hängt die Klingel nicht mehr vom Ladestand ab.');
+        else s.melden(`Gefunden: Schon bei etwa ${fmt(z.ua, 2)} V Akkuspannung ist Schluss. Ein voller Akku hat 4,2 V, ein halb leerer etwa 3,6 V.`, 'gut');
+      }
+      $('[data-vs-aufgabe]').textContent = nr < aufgaben.length ? `Aufgabe ${nr + 1} von ${aufgaben.length}: ${aufgaben[nr].text}` : 'Geschafft. Vergleich ruhig weiter: Welcher Weg wird wärmer?';
+    }
+
+    box.addEventListener('input', zeichnen);
+    box.addEventListener('change', zeichnen);
+    zeichnen();
+  });
+</script>
+
+<style>
+  .vs-aufgabe { font-weight: 700; }
+  .vs fieldset { border: 1px solid var(--flaeche); border-radius: var(--radius-klein); margin: 0 0 0.8rem; padding: 0.4rem 0.8rem; }
+  .vs legend { font-weight: 700; padding: 0 0.3rem; }
+  .vs fieldset label { display: block; padding: 0.2rem 0; cursor: pointer; }
+  .vs input[type='radio'] { accent-color: var(--akzent); }
+  .vs-regler { display: block; margin: 0 0 0.9rem; }
+  .vs-regler input { width: 100%; accent-color: var(--akzent); margin-top: 0.4rem; }
+  .vs-anzeige { display: grid; grid-template-columns: 5.5rem 1fr; gap: 1rem; align-items: stretch; }
+  .vs-balken { position: relative; display: flex; flex-direction: column-reverse; border-radius: var(--radius-klein); overflow: hidden; min-height: 11rem; }
+  .vs-zone { display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--tief); font-weight: 700; }
+  .vs-zone.rot { background: color-mix(in srgb, var(--fehler) 70%, var(--tief)); }
+  .vs-zone.gelb { background: color-mix(in srgb, var(--warnung) 70%, var(--tief)); }
+  .vs-zone.gruen { background: color-mix(in srgb, var(--gut) 70%, var(--tief)); }
+  .vs-marke { position: absolute; left: 0; right: 0; height: 4px; background: #fff; box-shadow: 0 0 0 2px var(--tief); transition: bottom 0.15s; }
+  .vs-werte { margin: 0; }
+  .vs-werte dt { color: var(--leise); font-size: 0.85rem; }
+  .vs-werte dd { margin: 0 0 0.45rem; font-weight: 700; }
+  .vs-werte dd.ok { color: var(--gut); }
+  .vs-werte dd.unsicher { color: var(--warnung); }
+  .vs-werte dd.brownout { color: var(--fehler); }
+  .vs-erkl { margin: 0.8rem 0 0.5rem; padding: 0.6rem 0.8rem; border-radius: var(--radius-klein); background: rgba(255,255,255,0.04); }
+  .vs-erkl.ok { color: var(--gut); } .vs-erkl.unsicher { color: var(--warnung); } .vs-erkl.brownout { color: var(--fehler); }
+</style>

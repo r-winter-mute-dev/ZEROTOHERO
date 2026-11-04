@@ -1,0 +1,116 @@
+---
+id: m-5-loeten
+abzeichen: Lötlehrling
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: k4
+  - id: durchgang
+    hardware: true
+  - id: kein-kurzschluss
+    hardware: true
+spick:
+  - t: "Temperatur"
+    v: "etwa 350–370 °C"
+  - t: "Reihenfolge"
+    v: "Spitze an Pad und Draht, 1–2 s warten, Zinn an die Stelle, Zinn weg, Spitze weg"
+  - t: "Gute Lötstelle"
+    v: "Glänzender kleiner Kegel, Zinn umschließt den Draht"
+  - t: "Kalte Lötstelle"
+    v: "Grau, krümelig, Kugel auf dem Pad"
+  - t: "Pause"
+    v: "Lötkolben immer in die Ablage"
+  - t: "Nie"
+    v: "Direkt an der Akkuzelle löten"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Bestaetigung from '../components/Bestaetigung.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+
+Das Lademodul und der Spannungswandler haben keine Steckbeine, nur kleine Metallflächen, die **Lötpads**. Damit sie aufs Steckbrett passen, brauchen sie Kabel. Die befestigst du mit Lötzinn. Löten sieht schwieriger aus, als es ist, und du brauchst es ab jetzt immer wieder. **Deine Mission: Löte Kabel an Lademodul und Wandler und prüf jede Lötstelle mit dem Multimeter.**
+
+<Hinweis art="sicherheit" titel="Bevor du den Lötkolben einschaltest">
+Die Spitze wird über 300 °C heiß. Arbeite an einem aufgeräumten, nicht brennbaren Tisch, trag eine **Schutzbrille**, lüfte den Raum und leg den Lötkolben in jeder Pause in die **Ablage**. Kein Akku in der Nähe, und **niemals direkt an der Akkuzelle löten**. Wasch dir danach die Hände. Wenn du unter 16 bist, lötest du mit einer erwachsenen Person zusammen.
+</Hinweis>
+
+## Theorie
+
+<Karte nr={1} titel="Was beim Löten passiert">
+Lötzinn ist ein Metall, das schon bei gut 200 °C schmilzt. Der Lötkolben erhitzt Pad und Draht, das flüssige Zinn fließt dazwischen und verbindet beide, wenn es erstarrt. Im Zinn steckt **Flussmittel**. Es löst den dünnen Schmutz- und Oxidfilm auf den Metallen, sonst bliebe das Zinn nicht haften. Der Rauch beim Löten kommt vom Flussmittel, deshalb lüften.
+</Karte>
+
+<Merke>Löten verbindet Metalle mit geschmolzenem Zinn. Flussmittel macht die Oberflächen sauber, sein Rauch ist der Grund zum Lüften.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Löten" fragen={[
+  { frage: 'Wozu dient das Flussmittel im Lötzinn?', richtig: 'Es löst den Oxidfilm, damit das Zinn am Metall haftet.', falsch: ['Es macht das Zinn härter.', 'Es kühlt die Lötstelle.'], erklaerung: 'Ohne Flussmittel perlt das Zinn ab.' },
+]} />
+
+<Karte nr={2} titel="Werkzeug und Temperatur">
+Für Einsteiger empfiehlt der Händler eine temperaturgeregelte Lötstation mit 30 bis 60 W, eingestellt auf etwa **350 bis 370 °C**, und bleifreies Lötzinn mit 0,5 bis 1 mm Durchmesser und Flussmittelseele [Fachquelle: Roboter-Bausatz, Lötanleitung für Anfänger]. Die nasse Schwamm- oder Messingwolle in der Ablage hält die Spitze sauber. Eine saubere Spitze glänzt silbrig. Ist sie schwarz, nimmt sie kein Zinn an.
+</Karte>
+
+<Merke>Etwa 350–370 °C, dünnes Lötzinn mit Flussmittel, Spitze sauber halten.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Werkzeug" fragen={[
+  { frage: 'Die Lötspitze ist schwarz, und das Zinn perlt einfach ab. Was hilft?', richtig: 'Die Spitze an Schwamm oder Messingwolle reinigen und frisch verzinnen', falsch: ['Die Temperatur auf 450 °C stellen', 'Fester auf das Pad drücken'], erklaerung: 'Eine verschmutzte Spitze überträgt die Wärme schlecht.' },
+]} />
+
+<Karte nr={3} titel="Die richtige Reihenfolge">
+Der häufigste Anfängerfehler: das Zinn auf die Spitze tropfen und dann auf die Lötstelle schmieren. Richtig ist: **Erst die Lötstelle heiß machen**, dann das Zinn **an die Lötstelle** halten, nicht an die Spitze. Also Spitze gleichzeitig an Pad und Draht, ein bis zwei Sekunden warten, Zinn zuführen, bis es fließt, Zinn wegnehmen, Spitze wegnehmen, nicht wackeln, bis es erstarrt ist.
+</Karte>
+
+<Merke>Erst Pad und Draht erhitzen, dann Zinn an die Stelle. Nicht das Zinn auf die Spitze tropfen.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Reihenfolge" fragen={[
+  { frage: 'Wohin hältst du das Lötzinn?', richtig: 'An die heiße Stelle zwischen Pad und Draht', falsch: ['Direkt an die Lötspitze, dann auf das Pad', 'Auf das kalte Pad, dann kommt der Kolben'], erklaerung: 'Das Zinn soll schmelzen, weil Pad und Draht heiß sind. Dann verbindet es beide.' },
+]} />
+
+<Karte nr={4} titel="Gut oder kalt?">
+Eine **gute Lötstelle** ist glänzend und hat die Form eines kleinen Kegels oder Vulkans: Das Zinn umschließt den Draht und ist sauber ins Pad geflossen. Eine **kalte Lötstelle** ist grau, krümelig oder sitzt als Kugel auf dem Pad. Sie hält schlecht und leitet unzuverlässig. Eine **Zinnbrücke** verbindet zwei Pads, die nicht verbunden sein sollen. Beides findest du mit dem Durchgangsprüfer.
+</Karte>
+
+<Merke>Glänzender Kegel: gut. Graue Kugel: kalt, noch mal erhitzen. Zinn zwischen zwei Pads: Brücke, sofort entfernen.</Merke>
+
+<Quiz id="k4" titel="Kurzcheck: Lötstelle" fragen={[
+  { frage: 'Eine Lötstelle sieht grau und krümelig aus. Was tust du?', richtig: 'Noch einmal erhitzen, bis das Zinn glänzend fließt', falsch: ['So lassen, Hauptsache es hält', 'Mehr Zinn darüberkleben, ohne zu erhitzen'], erklaerung: 'Eine kalte Lötstelle leitet unzuverlässig, das gibt später schwer zu findende Fehler.' },
+]} />
+
+## Löten
+
+Du brauchst acht Kabel: vier für das Lademodul (B+, B−, OUT+, OUT−) und vier für den Wandler (Eingang plus und minus, Ausgang plus und minus). Am einfachsten nimmst du Steckbrücken mit festem Draht aus Akt 0, schneidest sie in der Mitte durch und lötest das offene Ende an. Das andere Ende passt ins Steckbrett.
+
+<Checkliste id="loeten" punkte={[
+  'Platz vorbereiten: Schutzbrille auf, Fenster auf, Schwamm anfeuchten, Lötstation auf etwa 350 °C stellen.',
+  'Farben festlegen: <strong>rot</strong> für Plus, <strong>schwarz</strong> für Minus. Steckbrücken in der Mitte durchschneiden.',
+  'Etwa 3 mm Isolierung am offenen Ende entfernen. Den blanken Draht kurz verzinnen: Spitze dran, Zinn dran, fertig.',
+  'Das Modul in die dritte Hand klemmen. Den verzinnten Draht auf das Pad legen.',
+  'Spitze an Pad und Draht halten, kurz warten, Zinn zuführen, bis es fließt. Zinn weg, Spitze weg, nicht wackeln.',
+  'Lötkolben in die Ablage. Lötstelle ansehen: glänzender Kegel?',
+  'So alle acht Kabel löten. Am Wandler steht neben den Pads meist <code>VIN</code>, <code>VOUT</code> und <code>GND</code>.',
+  'Lötstation ausschalten. Abkühlen lassen, Hände waschen.',
+]} />
+
+<Hinweis titel="Welches Pad ist welches?">
+Auf dem Lademodul sind die Pads beschriftet: <strong>B+</strong> und <strong>B−</strong> für den Akku, <strong>OUT+</strong> und <strong>OUT−</strong> für den Verbraucher. Die Pads <strong>IN+</strong> und <strong>IN−</strong> brauchst du nicht, denn dort kommt die USB-Buchse an. Ist dein Modul anders beschriftet, frag lieber nach, bevor du etwas anschließt.
+</Hinweis>
+
+## Prüfen
+
+Jetzt kommt der Durchgangsprüfer aus Mission 0.4. Kein Akku angeschlossen, alles stromlos.
+
+<Checkliste id="pruefen" punkte={[
+  'Multimeter auf Durchgang (das Lautsprecher-Symbol) stellen.',
+  'Für jedes Kabel: eine Spitze an das freie Kabelende, die andere an das Pad. Es muss piepen.',
+  'Für jedes Kabelpaar: eine Spitze an das Plus-Kabel, die andere an das Minus-Kabel desselben Paares. Es darf <strong>nicht dauerhaft</strong> piepen. Ein ganz kurzes Piepen am Wandler ist möglich, weil seine Kondensatoren sich aufladen.',
+  'Lötstellen mit einem leichten Zug am Kabel testen. Sie dürfen sich nicht lösen.',
+]} />
+
+<Bestaetigung id="durchgang" titel="Jedes Kabel hat Kontakt" text="Bei allen acht Kabeln piept der Durchgangsprüfer zwischen Kabelende und Pad, und keine Lötstelle löst sich beim leichten Ziehen." />
+
+<Bestaetigung id="kein-kurzschluss" titel="Keine Zinnbrücke" text="Zwischen Plus und Minus jedes Paares piept es nicht dauerhaft. Ich habe keine Zinnbrücke zwischen zwei Pads gefunden." />
+
+<Merke>Jede Lötstelle wird geprüft, bevor Strom drankommt. Durchgang ja, Kurzschluss nein.</Merke>
