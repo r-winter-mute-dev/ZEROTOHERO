@@ -3,11 +3,11 @@
 </p>
 
 <p align="center">
-  <a href="https://r-winter-mute-dev.github.io/zerotohero/"><img src="https://img.shields.io/badge/Zum_Kurs-starten-cba6f7?style=for-the-badge&labelColor=1a1a1a" alt="Zum Kurs"></a>
+  <a href="https://r-winter-mute-dev.github.io/ZEROTOHERO/"><img src="https://img.shields.io/badge/Zum_Kurs-starten-cba6f7?style=for-the-badge&labelColor=1a1a1a" alt="Zum Kurs"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/r-winter-mute-dev/zerotohero/actions/workflows/deploy.yml"><img src="https://github.com/r-winter-mute-dev/zerotohero/actions/workflows/deploy.yml/badge.svg" alt="Veröffentlichung"></a>
+  <a href="https://github.com/r-winter-mute-dev/ZEROTOHERO/actions/workflows/deploy.yml"><img src="https://github.com/r-winter-mute-dev/ZEROTOHERO/actions/workflows/deploy.yml/badge.svg" alt="Veröffentlichung"></a>
   <img src="https://img.shields.io/badge/spielbar-Akt_0–5-a6e3a1?labelColor=2a2a2a" alt="Spielbar: Akt 0 bis 5">
   <img src="https://img.shields.io/badge/kostenlos-ohne_Anmeldung-cba6f7?labelColor=2a2a2a" alt="Kostenlos, ohne Anmeldung">
   <img src="https://img.shields.io/badge/Inhalte-CC_BY--SA_4.0-a0a0a0?labelColor=2a2a2a" alt="Inhalte: CC BY-SA 4.0">
@@ -90,7 +90,7 @@ Am meisten hilft gerade:
 - **Kennzeichnung:** Werte, die nicht aus einem Datenblatt oder einer Messung stammen, sind im Kurs als vorläufig oder als Richtwert markiert.
 - **Lernpsychologie:** Der Aufbau der Missionen (kurze Schritte, Merksätze, Fragen direkt nach jeder Erklärung, Spickzettel, wenig Ablenkung) folgt der Forschung zu Arbeitsgedächtnis, Segmentierung und ADHS. Wo es keine direkte Studie zu einem Elektronikkurs gibt, ist das eine begründete Übertragung, kein Nachweis.
 
-Die Idee, die Ziele und die Entscheidungen kommen von einem Menschen. Texte, Übungen und Firmware schreibt die KI, ein Mensch prüft sie und gibt sie frei. Auch so können Fehler drinstecken. Wenn dir etwas falsch vorkommt, [öffne ein Issue](https://github.com/r-winter-mute-dev/zerotohero/issues). Hinweise mit Quelle helfen am meisten.
+Die Idee, die Ziele und die Entscheidungen kommen von einem Menschen. Texte, Übungen und Firmware schreibt die KI, ein Mensch prüft sie und gibt sie frei. Auch so können Fehler drinstecken. Wenn dir etwas falsch vorkommt, [öffne ein Issue](https://github.com/r-winter-mute-dev/ZEROTOHERO/issues). Hinweise mit Quelle helfen am meisten.
 
 ## DISCLAIMER
 
