@@ -23,7 +23,7 @@ Die Seite ist komplett statisch. Es gibt keinen Server, keine Anmeldung und kein
    git add .
    git commit -m "Klingelwerk: erste Version"
    git branch -M main
-   git remote add origin https://github.com/DEIN-NAME/klingelwerk.git
+   git remote add origin https://github.com/r-winter-mute-dev/klingelwerk.git
    git push -u origin main
    ```
 3. Im Repository: **Settings → Pages → Build and deployment → Source: GitHub Actions** wählen.
