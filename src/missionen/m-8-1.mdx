@@ -1,0 +1,87 @@
+---
+id: m-8-1
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: fehler
+  - id: fertig
+    hardware: true
+spick:
+  - t: "Gute Lötstelle"
+    v: "Glänzend, kegelförmig, umschließt Draht und Pad"
+  - t: "Kalte Lötstelle"
+    v: "Matt, kugelig, sitzt nur auf dem Pad"
+  - t: "Brücke"
+    v: "Zinn verbindet zwei Pads, die getrennt sein sollen"
+  - t: "Reihenfolge"
+    v: "Niedrige Bauteile zuerst, hohe zuletzt"
+  - t: "Temperatur"
+    v: "Etwa 350–370 °C, wie in Mission 5.3"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Bestaetigung from '../components/Bestaetigung.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+import TeileListe from '../components/TeileListe.astro';
+
+Bisher steckt die Klingel auf dem Steckbrett. An der Tür würde sie dort nicht lange halten: Erschütterungen, Feuchtigkeit, ein loser Draht, und sie ist stumm. Deshalb wird sie verlötet. Bevor es an die echte Schaltung geht, übst du an einer Übungsplatine, auf der Fehler nichts kosten. **Deine Mission: Löte die Übungsplatine vollständig und lerne, gute und schlechte Lötstellen zu unterscheiden.**
+
+<TeileListe akte={[8]} />
+
+## Theorie
+
+<Karte nr={1} titel="Wie eine gute Lötstelle aussieht">
+In Mission 5.3 hast du Kabel an Module gelötet. Auf einer Platine kommt das Bauteilbein durch ein Loch, und auf der Rückseite liegt ein Kupferring, das **Pad**. Eine gute Lötstelle verbindet Bein und Pad vollständig. Sie glänzt, und sie bildet einen kleinen Kegel, dessen Rand flach in das Pad übergeht. Das Zinn ist ins Loch gezogen.
+</Karte>
+
+<Merke>Gut: glänzend, kegelförmig, Zinn umschließt Bein und Pad.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Gute Lötstelle" fragen={[
+  { frage: 'Woran erkennst du eine gute Lötstelle?', richtig: 'Sie glänzt und läuft wie ein kleiner Kegel flach ins Pad aus.', falsch: ['Sie ist eine dicke Kugel, je mehr Zinn, desto besser.', 'Sie ist matt und grau.'], erklaerung: 'Der flache Übergang zeigt, dass das Zinn das Pad benetzt hat.' },
+]} />
+
+<Karte nr={2} titel="Die drei häufigsten Fehler">
+Die **kalte Lötstelle** ist matt, oft kugelig, und sitzt nur oben auf. Pad oder Bein waren nicht heiß genug, das Zinn hat sich nicht verbunden. Die **Lötbrücke** verbindet zwei Pads, die getrennt bleiben sollen, meist durch zu viel Zinn. Und das **verbrannte Pad**: Wer zu lange heizt, löst den Kupferring von der Platine. Die Abhilfe ist immer dieselbe Reihenfolge: erst Pad und Bein gleichzeitig erhitzen, dann Zinn an die Stelle, nach zwei bis drei Sekunden alles weg.
+</Karte>
+
+<Merke>Kalt, Brücke, verbranntes Pad. Dagegen hilft: erst heizen, dann Zinn, dann schnell weg.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Fehler" fragen={[
+  { frage: 'Zwischen zwei Nachbarpads liegt ein Tropfen Zinn. Was ist das?', richtig: 'Eine Lötbrücke, sie verbindet zwei getrennte Leitungen', falsch: ['Eine besonders stabile Lötstelle', 'Eine kalte Lötstelle'], erklaerung: 'Eine Brücke ist ein ungewollter Kurzschluss. Mit Entlötlitze oder heißer, sauberer Spitze entfernen.' },
+]} />
+
+<Karte nr={3} titel="Reihenfolge auf der Platine">
+Gelötet wird von niedrig nach hoch: erst Widerstände und Dioden, dann kleine Kondensatoren, dann Taster und Chips, zuletzt große Teile wie Elkos und Klemmen. So liegt die Platine beim Umdrehen flach auf dem Tisch, und jedes Bauteil wird vom Tisch an seinen Platz gedrückt. Nach dem Löten kürzt du die Beine mit dem Seitenschneider knapp über der Lötstelle. Halt dabei das Beinende fest, damit es nicht durch den Raum fliegt.
+</Karte>
+
+<Merke>Von niedrig nach hoch löten. Beine kürzen und dabei das Ende festhalten.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Reihenfolge" fragen={[
+  { frage: 'Was lötest du zuerst?', richtig: 'Die Widerstände, weil sie am flachsten sind', falsch: ['Den großen Elko', 'Die Schraubklemme'], erklaerung: 'Niedrige Bauteile zuerst, sonst kippelt die Platine beim Umdrehen.' },
+]} />
+
+<Quiz id="fehler" titel="Prüfung: Lötstellen erkennen" fragen={[
+  { frage: 'Eine Lötstelle ist matt und grau, das Zinn bildet eine Kugel, die das Pad kaum berührt. Was tust du?', richtig: 'Nachlöten: Pad und Bein heiß machen, etwas frisches Zinn dazu', falsch: ['So lassen, Hauptsache es hält', 'Mehr Zinn obendrauf, bis es glänzt'], erklaerung: 'Eine kalte Lötstelle leitet unzuverlässig. Frisches Zinn bringt neues Flussmittel und benetzt das Pad.' },
+  { frage: 'Ein Pad hat sich nach langem Heizen von der Platine gelöst. Was ist jetzt?', richtig: 'Die Verbindung muss mit einem Draht zum nächsten Punkt derselben Leitung ersetzt werden.', falsch: ['Nichts, das Zinn hält das Pad', 'Einfach noch länger heizen'], erklaerung: 'Das Kupfer ist abgerissen. Ein kurzer Draht überbrückt die Stelle.' },
+  { frage: 'Warum glänzt eine gute Lötstelle mit bleifreiem Zinn oft etwas weniger als mit bleihaltigem?', richtig: 'Bleifreies Zinn sieht von Natur aus etwas matter aus, das allein ist kein Fehler.', falsch: ['Bleifreies Zinn leitet keinen Strom', 'Das zeigt immer eine kalte Lötstelle'], erklaerung: 'Bei bleifreiem Zinn zählt vor allem die Form: flach auslaufender Kegel statt Kugel.' },
+]} />
+
+## Löten
+
+<Hinweis art="sicherheit" titel="Wie in Mission 5.3">
+Schutzbrille auf, Raum lüften, Lötkolben in jeder Pause in die Ablage, Hände nach dem Löten waschen.
+</Hinweis>
+
+<Checkliste id="loeten" punkte={[
+  'Die Anleitung der Übungsplatine bereitlegen und die Teile nach Art sortieren.',
+  'Bauteile von niedrig nach hoch einlöten, wie in der Anleitung beschrieben.',
+  'Nach jeder Reihe mit Licht von der Seite auf die Lötstellen schauen: Kegel oder Kugel? Brücken?',
+  'Beine kürzen.',
+  'Die beiden Brücken setzen, die laut Shop für den Betrieb nötig sind (Anleitung).',
+  'An der Schraubklemme mit der Spannung aus der Anleitung testen (laut Shop 5 V). Erst alles prüfen, dann Strom an.',
+]} />
+
+<Bestaetigung id="fertig" titel="Übungsplatine fertig" text="Meine Übungsplatine ist vollständig gelötet und funktioniert laut Anleitung. Ich habe jede Lötstelle angeschaut und kalte Stellen nachgelötet." />

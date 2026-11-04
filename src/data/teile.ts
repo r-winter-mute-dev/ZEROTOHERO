@@ -58,6 +58,11 @@ export const TEILE: Record<number, Teil[]> = {
   ],
   8: [
     { teil: 'Übungsplatine zum Löten', zweck: 'Löten lernen', produkt: 'Bausatz Übungsplatine zum Löten', url: `${RB}/p/bausatz-uebungsplatine-zum-loeten` },
-    { teil: 'Lochrasterplatine', zweck: 'Endmontage', hinweis: 'Folgt mit Akt 8. Lötkolben und Lötzinn hast du seit Akt 5.' },
+    { teil: 'Lochrasterplatine', zweck: 'Die Schaltung dauerhaft verlöten (Mission 8.2)', produkt: 'Kein fester Link: Punktraster, Rastermaß 2,54 mm, etwa 7 × 9 cm', hinweis: 'Punktraster heißt: jedes Loch hat sein eigenes Kupferpad. Die Verbindungen ziehst du mit Draht und Lötzinn.' },
+    { teil: 'Buchsenleisten 2,54 mm', zweck: 'Steckplatz für ESP32-CAM, Wandler, Lademodul und Schaltmodul', produkt: '20x Buchsenleiste 40-polig 2,54 mm (Artikel RBS18642)', url: `${RB}/datasheet/RBS18642.pdf`, hinweis: 'Der Link führt zum Datenblatt im Shop. Die Leisten lassen sich mit dem Seitenschneider auf die richtige Länge kürzen. So bleibt die ESP32-CAM zum Programmieren abnehmbar.' },
+    { teil: 'Schaltdraht', zweck: 'Verbindungen auf der Lochrasterplatine', produkt: 'Kein fester Link: isolierter Draht, etwa 0,5 mm Durchmesser', hinweis: 'Für die Leitungen vom Akku und vom Wandler etwas dicker nehmen, sie tragen den größten Strom.' },
+    { teil: 'Gehäuse', zweck: 'Schutz vor Regen und Staub (Mission 8.3)', produkt: 'Kein fester Link: Kunststoffgehäuse, Schutzart IP65, innen mindestens etwa 100 × 70 × 50 mm', hinweis: 'Kunststoff, kein Metall: Metall schirmt das WLAN ab. Jedes Loch, das du bohrst, verschlechtert die Schutzart, deshalb jedes Loch abdichten.' },
+    { teil: 'Wasserdichter Drucktaster', zweck: 'Der Klingelknopf außen am Gehäuse', produkt: 'Kein fester Link: Drucktaster 12 oder 16 mm, tastend (nicht rastend), Schließer, mit Dichtung', hinweis: '„Tastend“ ist wichtig: Er springt nach dem Drücken zurück. Ein rastender Schalter bliebe gedrückt.' },
+    { teil: 'Klare Scheibe für die Kamera', zweck: 'Kamerafenster', produkt: 'Kein fester Link: Acrylglas oder Polycarbonat, 1–2 mm, plus Silikon oder Heißkleber', hinweis: 'Reste aus dem Baumarkt reichen. Die Scheibe muss sauber und kratzfrei sein, sonst wird das Foto milchig.' },
   ],
 };

@@ -8,14 +8,14 @@ import TeileListe from '../components/TeileListe.astro';
     <p>
       Du musst nicht alles auf einmal kaufen. Die Teile sind nach Akten sortiert: Für Akt 0 und 1 reicht ein kleines
       Einsteigerset, der Mikrocontroller kommt erst in Akt 2 dazu. Die Links führen zu <a href="https://www.roboter-bausatz.de" rel="nofollow noopener" target="_blank">Roboter-Bausatz.de</a>.
-      Gleichwertige Teile aus anderen Shops funktionieren genauso.
+      Gleichwertige Teile aus anderen Shops funktionieren genauso. Zwei Ausnahmen: Das Schaltmodul in Akt 7 gibt es dort nicht,
+      der Link führt zum Hersteller. Für Gehäuse, Lochraster und Außentaster in Akt 8 steht statt eines Links, worauf du achten musst.
     </p>
     <p class="leise klein">
       Stand der Links: November 2026. Verfügbarkeit und Preise ändern sich, bitte vor dem Kauf im Shop prüfen.
-      Teile mit „noch offen“ werden erst festgelegt, wenn der Prototyp vermessen ist.
     </p>
-    <TeileListe akte={[0, 1, 2, 4, 5, 7, 8]} />
-    <p class="leise">Akt 3 und Akt 6 brauchen keine neuen Teile: Dort kommen WLAN und Software, das ESP32 hast du schon.</p>
+    <TeileListe akte={[0, 1, 2, 4, 5, 6, 7, 8]} />
+    <p class="leise">Akt 3 braucht keine neuen Teile: Dort kommen WLAN und Software, das ESP32 hast du schon. In Akt 6 nutzt du nur Teile, die du schon hast.</p>
   </section>
 </Basis>
 

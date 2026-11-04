@@ -1,0 +1,90 @@
+---
+id: m-8-3
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: k4
+  - id: gehaeuse
+    hardware: true
+spick:
+  - t: "IP65"
+    v: "Staubdicht und geschützt gegen Strahlwasser, solange nichts angebohrt ist"
+  - t: "Jedes Loch"
+    v: "Abdichten: Taster mit Dichtung, Fenster mit Silikon"
+  - t: "Material"
+    v: "Kunststoff, kein Metall (WLAN)"
+  - t: "Unten"
+    v: "Kleines Loch gegen Kondenswasser"
+  - t: "Laden"
+    v: "Nur drinnen, zwischen 0 und 45 °C"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Bestaetigung from '../components/Bestaetigung.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+
+Die Platine ist fertig. Draußen muss sie Regen, Staub, Kälte und Sommersonne aushalten. Ein Gehäuse schützt sie, aber nur, wenn es richtig vorbereitet ist: Die Kamera muss hinaussehen, der Knopf muss erreichbar sein, und trotzdem darf kein Wasser hinein. **Deine Mission: Bau das Gehäuse für deine Klingel, mit Kamerafenster, Klingelknopf und Platz für den Akku.**
+
+## Theorie
+
+<Karte nr={1} titel="Was IP65 bedeutet">
+Die Schutzart wird mit zwei Ziffern angegeben. Die erste steht für Fremdkörper und Staub, die zweite für Wasser. **IP65** heißt: staubdicht und geschützt gegen Strahlwasser aus jeder Richtung, zum Beispiel Regen mit Wind [Fachquelle: DIN EN 60529, Schutzarten durch Gehäuse]. Wichtig: Das gilt nur für das unveränderte Gehäuse. Jedes Loch, das du bohrst, verschlechtert den Schutz. Deshalb wird jedes Loch wieder abgedichtet.
+</Karte>
+
+<Merke>IP65 heißt staubdicht und strahlwassergeschützt. Jedes Loch muss wieder dicht werden.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: IP65" fragen={[
+  { frage: 'Du bohrst ein Loch für den Taster in ein IP65-Gehäuse. Ist es danach noch IP65?', richtig: 'Nur, wenn der Taster selbst dicht ist und mit Dichtung eingebaut wird', falsch: ['Ja, die Schutzart gilt für immer', 'Ja, solange das Loch klein ist'], erklaerung: 'Die Schutzart gilt für das Gehäuse so, wie es geliefert wird. Jede Änderung muss wieder abgedichtet werden.' },
+]} />
+
+<Karte nr={2} titel="Kamerafenster und Knopf">
+Für die Kamera bohrst du ein Loch etwas größer als die Linse und klebst innen eine klare Scheibe davor. Silikon oder Heißkleber rundherum macht es dicht. Die Linse sitzt direkt hinter der Scheibe, sonst spiegelt das Innenleben. Der Klingelknopf ist ein **wasserdichter Drucktaster** mit Dichtung und Mutter. Er muss **tastend** sein: Nach dem Drücken springt er zurück. Seine zwei Kabel kommen an KNOPF und GND auf der Platine.
+</Karte>
+
+<Merke>Linse direkt hinter eine klare Scheibe, rundum abgedichtet. Knopf: wasserdicht und tastend.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Knopf" fragen={[
+  { frage: 'Warum darf der Klingelknopf nicht rastend sein?', richtig: 'Ein rastender Schalter bleibt gedrückt. Das Schaltmodul braucht nur einen kurzen Druck.', falsch: ['Rastende Schalter sind nicht wasserdicht', 'Weil die Kamera sonst wackelt'], erklaerung: 'Tastend heißt: Er schließt nur, solange man drückt. Genau das erwartet Eingang A.' },
+]} />
+
+<Karte nr={3} titel="Kunststoff und Kondenswasser">
+Ein Metallgehäuse würde das WLAN abschirmen. Nimm deshalb Kunststoff. Und rechne mit **Kondenswasser**: Kühlt warme, feuchte Luft im Gehäuse nachts ab, schlägt sich Wasser an den Wänden nieder. Ein winziges Loch an der tiefsten Stelle lässt es ablaufen. Die Platine sitzt so, dass kein Tropfen auf sie fallen kann, am besten mit Abstandshaltern, nicht auf dem Boden.
+</Karte>
+
+<Merke>Kunststoff statt Metall. Ein kleines Loch ganz unten gegen Kondenswasser.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Kondenswasser" fragen={[
+  { frage: 'Wo bohrst du das kleine Loch gegen Kondenswasser?', richtig: 'An der tiefsten Stelle des Gehäuses', falsch: ['Oben, damit Luft herauskommt', 'Gar nicht, es soll ja dicht sein'], erklaerung: 'Wasser läuft nach unten. Unten kann es ablaufen, ohne dass Regen hineinkommt.' },
+]} />
+
+<Karte nr={4} titel="Kälte, Hitze und der Akku">
+Laut Datenblatt darf die BAK-Zelle zwischen −20 und 60 °C entladen, aber nur zwischen **0 und 45 °C geladen** werden [Fachquelle: BAK, Datenblatt N18650CL-29]. Bei −20 °C liefert sie laut Datenblatt noch mindestens 70 % der Kapazität. Die Klingel funktioniert also im Winter, nur kürzer. Laden ist dagegen nur drinnen erlaubt: Klingel abnehmen, ins Warme bringen, warten bis sie Raumtemperatur hat, dann laden. Verlass dich nicht darauf, dass das Lademodul die Temperatur der Zelle prüft. Und häng das Gehäuse nicht in die pralle Sonne, ein dunkles Gehäuse kann im Sommer sehr heiß werden.
+</Karte>
+
+<Merke>Draußen bei −20 bis 60 °C betreiben, nur drinnen bei 0 bis 45 °C laden.</Merke>
+
+<Quiz id="k4" titel="Kurzcheck: Laden im Winter" fragen={[
+  { frage: 'Es hat −5 °C. Der Akku ist fast leer. Was tust du?', richtig: 'Die Klingel hereinholen, auf Raumtemperatur kommen lassen und dann laden', falsch: ['Draußen ein Ladekabel anschließen', 'Den Akku mit dem Föhn aufwärmen und sofort laden'], erklaerung: 'Unter 0 °C darf die Zelle laut Datenblatt nicht geladen werden. Langsam aufwärmen lassen.' },
+]} />
+
+## Bauen
+
+<Hinweis art="sicherheit" titel="Bohren">
+Gehäuse festklemmen, nie in der Hand halten. Platine und Akku sind beim Bohren draußen. Späne vor dem Einbau gründlich entfernen: Ein Metallspan auf der Platine kann einen Kurzschluss machen.
+</Hinweis>
+
+<Checkliste id="bauen" punkte={[
+  'Platine, Akkuhalter und Taster ins leere Gehäuse legen und die Anordnung planen. Die Kamera zeigt nach vorne, der Knopf ist gut erreichbar.',
+  'Loch für den Taster bohren, Taster mit Dichtung und Mutter einbauen.',
+  'Loch für die Kamera bohren, klare Scheibe innen davor kleben und rundum abdichten.',
+  'Ein kleines Loch (etwa 2 mm) an der tiefsten Stelle bohren.',
+  'Späne entfernen. Platine mit Abstandshaltern oder doppelseitigem Schaumklebeband befestigen, nicht lose im Gehäuse.',
+  'Akkuhalter befestigen, Taster an KNOPF und GND anlöten.',
+  'Kamera so ausrichten, dass die Linse direkt hinter der Scheibe sitzt.',
+  'Deckel schließen und einmal klingeln: Kommt das Foto, ist es scharf?',
+]} />
+
+<Bestaetigung id="gehaeuse" titel="Im Gehäuse" text="Die Klingel ist im geschlossenen Gehäuse. Ein Druck auf den äußeren Knopf bringt ein scharfes Foto durch das Fenster in meinen Chat." />
