@@ -12,12 +12,12 @@ spick:
     v: "Breite × Höhe"
   - t: "Rohbild"
     v: "Pixel × Byte pro Pixel"
-  - t: "1 KB"
+  - t: "1 KiB"
     v: "1024 Byte"
   - t: "RGB565"
     v: "2 Byte pro Pixel"
   - t: "Interner Speicher"
-    v: "520 KB für alles zusammen"
+    v: "520 KiB für alles zusammen"
   - t: "JPEG-Qualität (ESP32-CAM)"
     v: "10 = sehr gut, 63 = sehr schlecht"
   - t: "VGA"
@@ -43,20 +43,22 @@ Ein Digitalfoto besteht aus winzigen Bildpunkten, den **Pixeln**, in Zeilen und 
 ]} />
 
 <Karte nr={2} titel="Farbe kostet Bytes">
-Jedes Pixel speichert seine Farbe als Zahl. Ein Graustufenbild braucht **1 Byte** pro Pixel. Das Format **RGB565** speichert Rot, Grün und Blau zusammen in **2 Byte**, RGB888 in 3 Byte. Ein Rohbild braucht also: Pixel × Byte pro Pixel. Ein VGA-Bild in RGB565 sind 640 × 480 × 2 = 614 400 Byte, geteilt durch 1024 sind das **600 KB**.
+Jedes Pixel speichert seine Farbe als Zahl. Ein Graustufenbild braucht **1 Byte** pro Pixel. Das Format **RGB565** speichert Rot, Grün und Blau zusammen in **2 Byte**, RGB888 in 3 Byte. Ein Rohbild braucht also: Pixel × Byte pro Pixel. Ein VGA-Bild in RGB565 sind 640 × 480 × 2 = 614 400 Byte, geteilt durch 1024 sind das **600 KiB**.
+
+Warum KiB und nicht kB? Nach den SI-Regeln heißt „kilo“ immer 1000, also 1 kB = 1000 Byte. Für 1024 Byte gibt es eine eigene Einheit, das **Kibibyte (KiB)**. Viele Programme und Datenblätter schreiben trotzdem „KB“ und meinen 1024. In diesem Kurs steht KiB, wenn durch 1024 geteilt wird.
 </Karte>
 
-<Merke>Rohbild = Breite × Höhe × Byte pro Pixel. Durch 1024 teilen ergibt KB.</Merke>
+<Merke>Rohbild = Breite × Höhe × Byte pro Pixel. Durch 1024 teilen ergibt KiB, 1 kB sind dagegen 1000 Byte.</Merke>
 
 <Quiz id="k2" titel="Kurzcheck: Bytes" fragen={[
-  { frage: 'Ein VGA-Rohbild in RGB565 braucht 600 KB. Der ESP32 hat intern 520 KB. Was folgt daraus?', richtig: 'Es passt nicht in den internen Speicher, deshalb gibt es das PSRAM.', falsch: ['Es passt knapp hinein.', 'Das spielt keine Rolle, Bilder liegen auf dem Server.'], erklaerung: 'Schon ein einziges VGA-Rohbild ist größer als der ganze interne Speicher.' },
+  { frage: 'Ein VGA-Rohbild in RGB565 braucht 600 KiB. Der ESP32 hat intern 520 KiB. Was folgt daraus?', richtig: 'Es passt nicht in den internen Speicher, deshalb gibt es das PSRAM.', falsch: ['Es passt knapp hinein.', 'Das spielt keine Rolle, Bilder liegen auf dem Server.'], erklaerung: 'Schon ein einziges VGA-Rohbild ist größer als der ganze interne Speicher.' },
 ]} />
 
 <Karte nr={3} titel="JPEG schrumpft das Bild">
-Zum Glück muss niemand Rohbilder verschicken. Die Kamera kann ein Bild sofort als **JPEG** ausgeben. Das Verfahren lässt Details weg, die das Auge kaum bemerkt, und spart so den Großteil der Bytes. Beim ESP32-CAM stellst du die **Qualität** als Zahl von 10 bis 63 ein. Achtung, umgekehrt: **Kleiner heißt besser** und größer [Fachquelle: Espressif, esp32-camera]. Wie stark es schrumpft, misst du in Mission 4.3 selbst.
+Zum Glück muss niemand Rohbilder verschicken. Die Kamera kann ein Bild sofort als **JPEG** ausgeben. Das Verfahren lässt Details weg, die das Auge kaum bemerkt, und spart so den Großteil der Bytes. Beim ESP32-CAM stellst du die **Qualität** als Zahl von 10 bis 63 ein. Achtung, umgekehrt: **Kleiner heißt besser** und größer [Fachquelle: Espressif, esp32-camera]. Wie groß ein JPEG wird, kannst du nicht aus den Pixeln ausrechnen: Es hängt vom Bildinhalt ab. Eine weiße Wand schrumpft stark, ein Baum mit vielen Blättern kaum. Deshalb misst du es in Mission 4.3 selbst.
 </Karte>
 
-<Merke>JPEG spart viele Bytes. Qualität beim ESP32-CAM: kleine Zahl = besseres, größeres Bild.</Merke>
+<Merke>JPEG spart viele Bytes, wie viele hängt vom Motiv ab. Qualität beim ESP32-CAM: kleine Zahl = besseres, größeres Bild.</Merke>
 
 <Quiz id="k3" titel="Kurzcheck: JPEG" fragen={[
   { frage: 'Du stellst die JPEG-Qualität von 12 auf 30. Was passiert?', richtig: 'Das Bild wird kleiner und etwas schlechter.', falsch: ['Das Bild wird größer und besser.', 'Nur die Auflösung ändert sich.'], erklaerung: 'Beim ESP32-CAM heißt eine größere Zahl stärkere Kompression.' },

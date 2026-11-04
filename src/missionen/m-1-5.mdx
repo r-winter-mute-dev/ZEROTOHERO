@@ -46,7 +46,7 @@ R1 liegt oben (an Plus), R2 unten (an Masse). Die Spannung am Mittelpunkt gegen 
 ]} />
 
 <Karte nr={3} titel="Wofür du das brauchst">
-Mit einem Spannungsteiler kannst du eine Spannung messbar machen, die eigentlich zu groß ist. Ein Li-Ion-Akku hat bis zu 4,2 V, der Mikrocontroller misst höchstens etwa 3,3 V. Ein Teiler im Verhältnis 1:1 macht daraus 2,1 V. Das baust du in Mission 6.4.
+Mit einem Spannungsteiler kannst du eine Spannung messbar machen, die eigentlich zu groß ist. Ein Li-Ion-Akku hat bis zu 4,2 V. Der Messeingang (ADC) des ESP32 misst laut Hersteller nur etwa 0,15 bis 2,45 V verlässlich, und das erst mit der höchsten Dämpfungsstufe [Espressif ESP-IDF, ADC]. Ein Teiler im Verhältnis 1:1 macht aus 4,2 V gerade 2,1 V, das passt. Das baust du in Mission 6.4.
 </Karte>
 
 <Merke>Ein Spannungsteiler macht eine zu große Spannung messbar, versorgt aber nichts.</Merke>
@@ -68,4 +68,8 @@ Mit einem Spannungsteiler kannst du eine Spannung messbar machen, die eigentlich
 <summary><strong>Vertiefung: Der belastete Teiler</strong></summary>
 
 Die Formel gilt nur, solange am Mittelpunkt kaum Strom abfließt. Hängst du dort ein Bauteil an, das viel Strom zieht, liegt es parallel zu R2 und verkleinert ihn. Die Spannung sinkt. Ein Mikrocontroller-Eingang oder dein Multimeter ziehen fast keinen Strom, deshalb funktioniert der Teiler dort gut. Zum Versorgen einer LED oder eines Motors taugt er nicht.
+
+Ganz ohne Einfluss ist auch der ADC nicht: Er lädt bei jeder Messung kurz einen winzigen internen Kondensator. Bei sehr großen Teiler-Widerständen (zum Beispiel 2 × 100 kΩ) hilft ein Kondensator von 100 nF zwischen Messpunkt und Masse, die Werte zu beruhigen.
+
+Und der ADC selbst ist kein Präzisionsinstrument. Seine Referenzspannung schwankt von Chip zu Chip zwischen etwa 1,0 und 1,2 V, und an den Rändern des Messbereichs wird er ungenau [Espressif ESP-IDF, ADC]. Deshalb vergleichst du in Mission 6.4 den ADC-Wert mit deinem Multimeter und rechnest eine Korrektur ein. Das nennt man **Kalibrieren**.
 </details>

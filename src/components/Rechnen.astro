@@ -1,6 +1,7 @@
 ---
 // Rechenaufgaben mit zufälligen Werten. typ: kommagetrennte Liste von Aufgabenarten.
 import Station from './Station.astro';
+import Taschenrechner from './Taschenrechner.astro';
 interface Props { id: string; titel?: string; typ: string; anzahl?: number; }
 const { id, titel = 'Rechenaufgaben', typ, anzahl = 3 } = Astro.props;
 ---
@@ -8,7 +9,8 @@ const { id, titel = 'Rechenaufgaben', typ, anzahl = 3 } = Astro.props;
   <form class="rechnen" data-kw-rechnen data-typ={typ} data-anzahl={anzahl}>
     <p class="fortschritt leise klein" data-r-fortschritt></p>
     <p class="aufgabe" data-r-aufgabe></p>
-    <label class="antwort"><span data-r-frage></span> <input type="text" inputmode="decimal" autocomplete="off" required /> <span data-r-einheit></span></label>
+    <label class="antwort"><span data-r-frage></span> <input type="text" inputmode="decimal" autocomplete="off" required data-r-antwort /> <span data-r-einheit></span></label>
+    <Taschenrechner ziel="[data-r-antwort]" />
     <div class="knoepfe">
       <button class="knopf" type="submit">Ergebnis prüfen</button>
       <button class="knopf zweit" type="button" data-r-loesung>Lösungsweg zeigen</button>
@@ -92,6 +94,12 @@ const { id, titel = 'Rechenaufgaben', typ, anzahl = 3 } = Astro.props;
       return { text: `Ein Akku mit ${kap} mAh versorgt ein Gerät, das dauerhaft ${i} mA zieht.`, frage: 'Laufzeit =', einheit: 'h', loesung: h,
         weg: `Laufzeit = Kapazität / Strom = ${kap} mAh / ${i} mA = ${fmt(h, 2)} h. Das ist der ideale Wert, in der Praxis ist es etwas weniger.` };
     },
+    puffer() {
+      const i = pick([200, 300, 450, 500]), t = pick([50, 100, 200]), du = pick([0.1, 0.2, 0.3]);
+      const c = (i / 1000) * (t / 1e6) / du * 1e6;
+      return { text: `Beim Senden zieht die Klingel kurz zusätzlich ${i} mA. Bis der Wandler nachregelt, vergehen ${t} µs. In dieser Zeit soll allein der Kondensator liefern, und die Spannung darf höchstens um ${fmt(du)} V sinken.`, frage: 'Kapazität C =', einheit: 'µF', loesung: c,
+        weg: `C = I × Δt / ΔU. Erst in Grundeinheiten: ${i} mA = ${fmt(i / 1000, 3)} A, ${t} µs = ${fmt(t / 1e6, 6)} s. C = ${fmt(i / 1000, 3)} A × ${fmt(t / 1e6, 6)} s / ${fmt(du)} V = ${fmt(c / 1e6, 6)} F = ${fmt(c, 0)} µF. Elkos haben große Toleranzen und verlieren mit dem Alter Kapazität. Deshalb wählst du mit kräftiger Reserve, oft das Doppelte oder mehr.` };
+    },
     energie() {
       const kap = pick([1000, 2000, 2500, 2900, 3400]), u = pick([3.6, 3.7]);
       const wh = (kap / 1000) * u;
@@ -108,8 +116,8 @@ const { id, titel = 'Rechenaufgaben', typ, anzahl = 3 } = Astro.props;
       const f = pick([{ n: 'QVGA', b: 320, h: 240 }, { n: 'VGA', b: 640, h: 480 }, { n: 'SVGA', b: 800, h: 600 }, { n: 'XGA', b: 1024, h: 768 }, { n: 'UXGA', b: 1600, h: 1200 }]);
       const fmtx = pick([{ n: 'Graustufen', byte: 1 }, { n: 'RGB565', byte: 2 }, { n: 'RGB888', byte: 3 }]);
       const px = f.b * f.h, bytes = px * fmtx.byte, kb = bytes / 1024;
-      return { text: `Ein Rohbild in ${f.n} (${f.b} × ${f.h} Pixel) im Format ${fmtx.n} (${fmtx.byte} Byte pro Pixel).`, frage: 'Speicherbedarf =', einheit: 'KB', loesung: kb,
-        weg: `${f.b} × ${f.h} = ${fmt(px, 0)} Pixel. Mal ${fmtx.byte} Byte = ${fmt(bytes, 0)} Byte. Geteilt durch 1024 = ${fmt(kb, 1)} KB. Zum Vergleich: Der ESP32 hat intern 520 KB Arbeitsspeicher für alles zusammen.` };
+      return { text: `Ein Rohbild in ${f.n} (${f.b} × ${f.h} Pixel) im Format ${fmtx.n} (${fmtx.byte} Byte pro Pixel).`, frage: 'Speicherbedarf =', einheit: 'KiB', loesung: kb,
+        weg: `${f.b} × ${f.h} = ${fmt(px, 0)} Pixel. Mal ${fmtx.byte} Byte = ${fmt(bytes, 0)} Byte. Geteilt durch 1024 = ${fmt(kb, 1)} KiB. Zum Vergleich: Der ESP32 hat intern 520 KiB Arbeitsspeicher für alles zusammen.` };
     },
   };
 
@@ -118,7 +126,7 @@ const { id, titel = 'Rechenaufgaben', typ, anzahl = 3 } = Astro.props;
     const arten = form.dataset.typ!.split(',').map((x) => x.trim());
     const anzahl = Number(form.dataset.anzahl);
     const $ = (sel: string) => form.querySelector<HTMLElement>(sel)!;
-    const input = form.querySelector('input')!;
+    const input = form.querySelector<HTMLInputElement>('[data-r-antwort]')!;
     let n = 0, a: Aufgabe, gezeigt = false;
 
     function neu() {

@@ -47,10 +47,16 @@ In Mission 3.2 hast du gesehen: Wer deine Webhook-Adresse kennt, kann in deinem 
 ]} />
 
 <Karte nr={2} titel="Die Vertrauenskette">
-Wer stellt den Ausweis aus? Eine **Zertifizierungsstelle**. Das Zertifikat von discord.com ist von einer Zwischenstelle unterschrieben, und die wiederum von einer **Wurzel** (Root). Dein Handy und dein Browser kennen weit über hundert solcher Wurzeln von Haus aus. Dem ESP32 musst du sie selbst mitgeben. Stimmt die Kette bis zu einer bekannten Wurzel, gilt der Server als echt.
+Wer stellt den Ausweis aus? Eine **Zertifizierungsstelle**. Das Zertifikat von discord.com ist von einer Zwischenstelle unterschrieben, und die wiederum von einer **Wurzel** (Root). Dein Handy und dein Browser kennen weit über hundert solcher Wurzeln von Haus aus. Dem ESP32 musst du sie selbst mitgeben. Beim Verbindungsaufbau prüft der ESP32 drei Dinge:
+
+1. **Kette:** Führen die Unterschriften lückenlos bis zu einer Wurzel, die er kennt?
+2. **Name:** Steht im Zertifikat genau die Adresse, die er aufgerufen hat, also discord.com? Ein echtes Zertifikat für eine andere Seite zählt nicht.
+3. **Zeitraum:** Ist das Zertifikat heute gültig? Dazu gleich mehr.
+
+Nur wenn alle drei stimmen, gilt der Server als echt. Die Bibliothek WiFiClientSecure erledigt das für dich, sobald du ihr die Wurzeln gibst.
 </Karte>
 
-<Merke>Server → Zwischenstelle → Wurzel. Der ESP32 vertraut nur Wurzeln, die du ihm mitgibst.</Merke>
+<Merke>Geprüft werden Kette bis zur Wurzel, Name und Zeitraum. Der ESP32 vertraut nur Wurzeln, die du ihm mitgibst.</Merke>
 
 <Quiz id="k2" titel="Kurzcheck: Kette" fragen={[
   { frage: 'Warum musst du dem ESP32 Wurzelzertifikate mitgeben, deinem Handy aber nicht?', richtig: 'Das Handy bringt eine Liste mit, der ESP32 hat dafür keinen Platz eingebaut.', falsch: ['Weil der ESP32 kein WLAN hat', 'Weil Discord nur mit Handys spricht'], erklaerung: 'Betriebssysteme und Browser bringen einen Zertifikatsspeicher mit. Auf dem ESP32 entscheidest du selbst.' },
@@ -67,7 +73,7 @@ Jedes Zertifikat gilt nur in einem bestimmten Zeitraum. Um das zu prüfen, brauc
 ]} />
 
 <Karte nr={4} titel="Die Abkürzung, die du nicht nimmst">
-In vielen Anleitungen steht `client.setInsecure()`. Damit verschlüsselt der ESP32 zwar, prüft aber den Ausweis nicht mehr. Jeder kann sich dann als Discord ausgeben und deinen Token abgreifen. Zum kurzen Ausprobieren mag das gehen. In deiner Klingel hat es nichts zu suchen.
+In vielen Anleitungen steht `client.setInsecure()`. Damit verschlüsselt der ESP32 zwar, prüft aber den Ausweis nicht mehr. Jeder kann sich dann als Discord ausgeben und deinen Token abgreifen. Merke dir: **Verschlüsselt heißt nicht automatisch echt.** Eine verschlüsselte Verbindung zu einem Betrüger ist genauso verschlüsselt. Zum kurzen Ausprobieren mag `setInsecure()` gehen. In deiner Klingel hat es nichts zu suchen.
 </Karte>
 
 <Merke>setInsecure() schaltet die Ausweisprüfung ab. Nicht in der fertigen Klingel.</Merke>

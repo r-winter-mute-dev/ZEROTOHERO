@@ -11,9 +11,9 @@ void setup() {
   Serial.println();
   Serial.print("Chip: ");
   Serial.println(ESP.getChipModel());
-  Serial.printf("Flash-Speicher: %u KB\n", (unsigned)(ESP.getFlashChipSize() / 1024));
+  Serial.printf("Flash-Speicher: %u KiB\n", (unsigned)(ESP.getFlashChipSize() / 1024));
   if (psramFound()) {
-    Serial.printf("PSRAM gefunden: %u KB\n", (unsigned)(ESP.getPsramSize() / 1024));
+    Serial.printf("PSRAM gefunden: %u KiB\n", (unsigned)(ESP.getPsramSize() / 1024));
   } else {
     Serial.println("Kein PSRAM gefunden. Ist als Board \"AI Thinker ESP32-CAM\" gewählt?");
   }

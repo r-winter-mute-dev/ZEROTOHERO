@@ -9,7 +9,7 @@ checks:
   - id: spaeter
 spick:
   - t: Regel 1
-    v: Nur Kleinspannung, höchstens 5 V
+    v: Nur Kleinspannung aus Quellen bis 5 V
   - t: Regel 2
     v: Plus nie direkt mit Minus verbinden
   - t: Regel 3
@@ -35,14 +35,20 @@ Die Regeln kommen im Kurs wieder, sobald sie wichtig werden, zum Beispiel beim A
 
 ## Regel 1: Keine Netzspannung
 
-Alles in diesem Kurs läuft mit Batterien, USB oder einem Akku. Das sind **höchstens 5 Volt**. Diese kleinen Spannungen spürst du nicht einmal, wenn du beide Pole anfasst.
+Alles in diesem Kurs läuft mit Batterien, einem Akku oder einem einfachen USB-Netzteil mit **5 Volt**. Solche Kleinspannungen sind beim Berühren mit trockener Haut ungefährlich, meist spürst du nichts.
+
+Gefährlich werden sie auf andere Art: Bei einem **Kurzschluss** fließt sehr viel Strom, Drähte und Akkus werden heiß, im schlimmsten Fall brennt es. Darum geht es in den nächsten Regeln.
+
+<Hinweis titel="USB-C-Schnellladegeräte">
+Ein Schnellladegerät (USB Power Delivery) kann 9 bis 20 V liefern, aber nur, wenn das angeschlossene Gerät das ausdrücklich anfordert. Deine Module tun das nicht und bekommen 5 V. Sicherer und einfacher ist trotzdem ein normales 5-V-Netzteil: Schau auf das Typenschild, dort steht „Output 5 V“.
+</Hinweis>
 
 Die Steckdose hat **230 Volt**. Das ist fast fünfzigmal so viel. Dort kann Strom durch deinen Körper fließen und das Herz aus dem Takt bringen. Deshalb fasst du Steckdosen, das Innere von Netzteilen und die vorhandene Klingelanlage im Haus nicht an.
 
-<Merke>Dieser Kurs nutzt nur Kleinspannung bis 5 V. An 230 V arbeitest du nie.</Merke>
+<Merke>Dieser Kurs nutzt nur Kleinspannung aus Quellen bis 5 V. An 230 V arbeitest du nie. Die Gefahr bei Kleinspannung heißt Kurzschluss und Hitze.</Merke>
 
 <Quiz id="netz" titel="Kurzcheck: Netzspannung" fragen={[
-  { frage: 'Welche Spannungen nutzt dieser Kurs?', richtig: 'Nur Kleinspannung aus Batterie, USB oder Akku (höchstens 5 V)', falsch: ['Auch 230 V, aber nur kurz', 'Jede Spannung, wenn man vorsichtig ist'], erklaerung: 'Netzspannung ist tabu.' },
+  { frage: 'Welche Spannungen nutzt dieser Kurs?', richtig: 'Nur Kleinspannung aus Batterie, USB oder Akku (Quellen bis 5 V)', falsch: ['Auch 230 V, aber nur kurz', 'Jede Spannung, wenn man vorsichtig ist'], erklaerung: 'Netzspannung ist tabu.' },
 ]} />
 
 ## Regel 2: Nie kurzschließen

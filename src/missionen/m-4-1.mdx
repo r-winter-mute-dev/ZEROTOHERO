@@ -56,7 +56,7 @@ Die Kamera belegt viele Pins: 15 Stück für Bilddaten, Takt und Steuerung. Weit
 ]} />
 
 <Karte nr={3} titel="PSRAM: Platz für Bilder">
-Ein Foto braucht viel Speicher, mehr als die 520 KB, die der ESP32 intern hat. Deshalb sitzt auf dem ESP32-CAM ein zusätzlicher Speicherchip, das **PSRAM**. Laut AI-Thinker sind es 4 MB [Fachquelle: AI-Thinker, Produktangaben]. Die Arduino IDE schaltet es nur ein, wenn du das richtige Board auswählst: **AI Thinker ESP32-CAM**. Mit „ESP32 Dev Module“ läuft das Programm, aber die Kamera hat keinen Platz.
+Ein Foto braucht viel Speicher, mehr als die 520 KiB, die der ESP32 intern hat. Deshalb sitzt auf dem ESP32-CAM ein zusätzlicher Speicherchip, das **PSRAM**. Laut AI-Thinker sind es 4 MB [Fachquelle: AI-Thinker, Produktangaben]. Die Arduino IDE schaltet es nur ein, wenn du das richtige Board auswählst: **AI Thinker ESP32-CAM**. Mit „ESP32 Dev Module“ läuft das Programm, aber die Kamera hat keinen Platz.
 </Karte>
 
 <Merke>Board „AI Thinker ESP32-CAM“ wählen. Nur dann ist das PSRAM für die Bilder eingeschaltet.</Merke>
@@ -91,9 +91,9 @@ void setup() {
   Serial.println();
   Serial.print("Chip: ");
   Serial.println(ESP.getChipModel());
-  Serial.printf("Flash-Speicher: %u KB\n", (unsigned)(ESP.getFlashChipSize() / 1024));
+  Serial.printf("Flash-Speicher: %u KiB\n", (unsigned)(ESP.getFlashChipSize() / 1024));
   if (psramFound()) {
-    Serial.printf("PSRAM gefunden: %u KB\n", (unsigned)(ESP.getPsramSize() / 1024));
+    Serial.printf("PSRAM gefunden: %u KiB\n", (unsigned)(ESP.getPsramSize() / 1024));
   } else {
     Serial.println("Kein PSRAM gefunden. Ist als Board \"AI Thinker ESP32-CAM\" gewählt?");
   }
