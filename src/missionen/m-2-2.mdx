@@ -1,10 +1,20 @@
 ---
 id: m-2-2
 checks:
-  - id: quiz
+  - id: k1
+  - id: k2
+  - id: k3
   - id: geraet
     hardware: true
+spick:
+  - t: "Start"
+    v: "Serial.begin(115200);"
+  - t: "Ausgabe"
+    v: "Serial.println(\"Text\");"
+  - t: "Monitor"
+    v: "Gleiche Baudrate einstellen"
 ---
+import Merke from '../components/Merke.astro';
 import Karte from '../components/Karte.astro';
 import Quiz from '../components/Quiz.astro';
 import Seriell from '../components/Seriell.astro';
@@ -17,13 +27,31 @@ Wenn deine Klingel später nicht tut, was sie soll, musst du in sie hineinschaue
 Über das USB-Kabel kann das ESP32 nicht nur Programme empfangen, sondern auch Text senden. Die Zeichen werden nacheinander, also **seriell**, übertragen. In der Arduino IDE liest du sie im **seriellen Monitor** mit (Lupe oben rechts).
 </Karte>
 
+<Merke>Der serielle Monitor ist dein Fenster in das laufende Programm.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Serielle Schnittstelle" fragen={[
+  { frage: 'Warum ist die serielle Ausgabe für die Klingel wichtig?', richtig: 'Damit du sehen kannst, was im Programm passiert, und Fehler findest.', falsch: ['Damit die Klingel Fotos verschicken kann.', 'Ohne sie startet das Programm nicht.'], erklaerung: 'Sie zeigt dir, was im Programm passiert.' },
+]} />
+
 <Karte nr={2} titel="Die Baudrate">
 Sender und Empfänger müssen sich auf eine Geschwindigkeit einigen, die **Baudrate**. `Serial.begin(115200)` heißt: 115 200 Zeichenschritte pro Sekunde. Stellst du im seriellen Monitor einen anderen Wert ein, siehst du nur Zeichensalat.
 </Karte>
 
+<Merke>Programm und Monitor brauchen dieselbe Baudrate: 115200.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Baudrate" fragen={[
+  { frage: 'Im seriellen Monitor erscheinen nur seltsame Zeichen. Was ist die wahrscheinlichste Ursache?', richtig: 'Die Baudrate im Monitor passt nicht zu Serial.begin().', falsch: ['Der Name ist zu lang.', 'Das USB-Kabel ist zu kurz.'], erklaerung: 'Beide Seiten müssen gleich schnell „sprechen“.' },
+]} />
+
 <Karte nr={3} titel="print und println">
 `Serial.print("Text")` schreibt Text ohne Zeilenumbruch, `Serial.println("Text")` mit. Texte stehen in Anführungszeichen. Mit `+` hängst du Texte aneinander. `Serial.printf` ist eine Variante, die Zahlen in vorgegebener Form einsetzt. Die nutzen wir für den Gerätenachweis.
 </Karte>
+
+<Merke>print schreibt weiter in derselben Zeile, println beginnt danach eine neue.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: print und println" fragen={[
+  { frage: 'Was ist der Unterschied zwischen print und println?', richtig: 'println beginnt danach eine neue Zeile.', falsch: ['println ist schneller.', 'print funktioniert nur mit Zahlen.'], erklaerung: 'ln steht für „line“, also Zeile.' },
+]} />
 
 ## Dein Programm
 
@@ -43,10 +71,5 @@ void loop() {
 }
 ```
 
-<Quiz id="quiz" titel="Quiz: Serielle Ausgabe" fragen={[
-  { frage: 'Im seriellen Monitor erscheinen nur seltsame Zeichen. Was ist die wahrscheinlichste Ursache?', richtig: 'Die Baudrate im Monitor passt nicht zu Serial.begin().', falsch: ['Der Name ist zu lang.', 'Das USB-Kabel ist zu kurz.'], erklaerung: 'Karte 2.' },
-  { frage: 'Was ist der Unterschied zwischen print und println?', richtig: 'println beginnt danach eine neue Zeile.', falsch: ['println ist schneller.', 'print funktioniert nur mit Zahlen.'], erklaerung: 'Karte 3.' },
-  { frage: 'Warum ist die serielle Ausgabe für die Klingel wichtig?', richtig: 'Damit du sehen kannst, was im Programm passiert, und Fehler findest.', falsch: ['Damit die Klingel Fotos verschicken kann.', 'Ohne sie startet das Programm nicht.'], erklaerung: 'Sie ist dein Fenster in das laufende Programm.' },
-]} />
 
 <Seriell id="geraet" titel="Gerätenachweis: Deine Klingel stellt sich vor" muster="^KW-CHECK:m-2-2:[0-9A-F]{12}:(?!DEIN NAME$).+$" hinweis="Der Nachweis klappt nur, wenn du deinen eigenen Namen eingetragen hast." />

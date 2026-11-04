@@ -20,6 +20,8 @@ const fm = datei?.frontmatter ?? {};
 const checks: { id: string; hardware?: boolean }[] = fm.checks ?? [];
 const hatHardware = checks.some((c) => c.hardware);
 const meta = { id, xp: mission.xp, checks, abzeichen: fm.abzeichen };
+// Spickzettel: Formeln und Werte, die man in dieser Mission braucht. Steht im Frontmatter unter "spick".
+const spick: { t: string; v: string }[] = fm.spick ?? [];
 ---
 <Basis titel={`${mission.nr} ${mission.titel}`} beschreibung={mission.kurz}>
   <article class="huelle mission" data-mission={id} data-meta={JSON.stringify(meta)}>
@@ -30,11 +32,11 @@ const meta = { id, xp: mission.xp, checks, abzeichen: fm.abzeichen };
       <p class="mnr">{mission.boss ? `Bosskampf ${akt.nr}` : `Mission ${mission.nr}`}</p>
       <h1>{mission.titel}</h1>
       <p class="mkurz">{mission.kurz}</p>
-      <p class="leise klein">{mission.xp} XP{checks.length ? `, +10 XP wenn alles im ersten Versuch klappt` : ''}{fm.abzeichen ? `. Abzeichen: ${fm.abzeichen}` : ''}</p>
+      <p class="leise klein"><span data-kw-dauer></span>{mission.xp} XP{checks.length ? `, +10 XP wenn alles im ersten Versuch klappt` : ''}{fm.abzeichen ? `. Abzeichen: ${fm.abzeichen}` : ''}</p>
     </header>
 
     <div class="sperre" data-kw-sperre hidden>
-      <p>Diese Mission ist noch gesperrt. Du kannst alles lesen, aber die Prüfungen zählen erst, wenn du
+      <p>Diese Mission ist noch gesperrt. Du kannst alles lesen, aber die Prüfungen zählen erst, wenn du{' '}
         {vor && <a href={url(`mission/${vor.id}`)}>{vor.nr} {vor.titel}</a>} abgeschlossen hast.</p>
     </div>
 
@@ -45,7 +47,18 @@ const meta = { id, xp: mission.xp, checks, abzeichen: fm.abzeichen };
       </label>
     )}
 
-    <div class="inhalt text">
+    <div class={spick.length ? 'raster mit-spick' : 'raster'}>
+    <div class="spalte">
+    <div class="schrittleiste" data-kw-schrittleiste hidden>
+      <div class="sl-kopf">
+        <p class="sl-titel" aria-live="polite"><span data-sl-nr></span> <strong data-sl-name></strong></p>
+        <p class="sl-rest leise klein" data-sl-rest></p>
+      </div>
+      <ol class="sl-segmente" data-sl-segmente aria-label="Schritte dieser Mission"></ol>
+    </div>
+    <p class="wieder" data-kw-wieder hidden>Du warst zuletzt hier. <button type="button" class="linkknopf" data-kw-von-vorne>Von vorne beginnen</button></p>
+
+    <div class="inhalt text" data-kw-inhalt>
       {Inhalt ? <Inhalt /> : (
         <section class="entwurf">
           <p><strong>Diese Mission wird gerade geschrieben.</strong> So ist sie geplant:</p>
@@ -59,6 +72,24 @@ const meta = { id, xp: mission.xp, checks, abzeichen: fm.abzeichen };
           <p class="leise">Bis dahin kannst du die bisherigen Missionen wiederholen oder deinen Fortschritt sichern.</p>
         </section>
       )}
+    </div>
+    <nav class="schritt-nav" data-kw-schritt-nav hidden aria-label="Schritte">
+      <button type="button" class="knopf zweit" data-sn-zurueck>Zurück</button>
+      <span class="sn-lob" data-sn-lob aria-live="polite"></span>
+      <button type="button" class="knopf" data-sn-weiter>Weiter</button>
+    </nav>
+    </div>
+    {spick.length > 0 && (
+      <aside class="spick" aria-label="Spickzettel">
+        <details data-kw-spick open>
+          <summary>Spickzettel</summary>
+          <dl>
+            {spick.map((e) => (<><dt>{e.t}</dt><dd set:html={e.v} /></>))}
+          </dl>
+          <p class="leise klein">Alles, was du hier brauchst. Du musst dir nichts merken.</p>
+        </details>
+      </aside>
+    )}
     </div>
 
     <section class="belohnung" data-kw-belohnung hidden aria-live="polite">
@@ -111,6 +142,158 @@ const meta = { id, xp: mission.xp, checks, abzeichen: fm.abzeichen };
     if (d.id === meta.id) belohnungZeigen(true, d);
   });
   beiAenderung(() => { sperre.hidden = istFreigeschaltet(meta.id); });
+
+  // ---------- Schritt für Schritt ----------
+  import { einstellungen, letzterSchritt, schrittMerken, wenigBewegung } from '../../scripts/einstellungen';
+  import { checkBestanden } from '../../scripts/engine';
+
+  const inhalt = document.querySelector<HTMLElement>('[data-kw-inhalt]')!;
+  const leiste = document.querySelector<HTMLElement>('[data-kw-schrittleiste]')!;
+  const snav = document.querySelector<HTMLElement>('[data-kw-schritt-nav]')!;
+  const wieder = document.querySelector<HTMLElement>('[data-kw-wieder]')!;
+  const weiterK = snav.querySelector<HTMLButtonElement>('[data-sn-weiter]')!;
+  const zurueckK = snav.querySelector<HTMLButtonElement>('[data-sn-zurueck]')!;
+  const lob = snav.querySelector<HTMLElement>('[data-sn-lob]')!;
+
+  // Inhalt in Abschnitte teilen: neuer Schritt bei jeder Zwischenüberschrift und jede Prüfung als eigener Schritt.
+  interface Schritt { el: HTMLElement; name: string; checks: string[]; minuten: number; karte?: boolean; }
+  const schritte: Schritt[] = [];
+  function neu(name: string) {
+    const el = document.createElement('section');
+    el.className = 'schritt';
+    el.tabIndex = -1;
+    schritte.push({ el, name, checks: [], minuten: 0 });
+    return schritte[schritte.length - 1];
+  }
+  const knoten = [...inhalt.childNodes];
+  let akt: Schritt | null = null;
+  for (const n of knoten) {
+    const el = n.nodeType === 1 ? (n as HTMLElement) : null;
+    const istStation = !!el?.matches('[data-kw-check]');
+    const istH2 = el?.tagName === 'H2';
+    const unsichtbar = el && ['SCRIPT', 'STYLE'].includes(el.tagName);
+    if (istStation) {
+      // Die Übung gehört zum Abschnitt davor (Erklärung und Frage auf einem Bildschirm).
+      // Hat der Abschnitt schon eine Übung, bekommt die neue einen eigenen Schritt.
+      if (!akt || akt.checks.length) akt = neu(el!.querySelector('h3')?.textContent?.trim() ?? 'Prüfung');
+      akt.checks.push(el!.dataset.kwCheck!);
+      akt.el.append(n);
+      continue;
+    }
+    if (el?.matches('.karte')) {
+      // Jede Theorie-Karte ist ein eigener Gedanke und bekommt einen eigenen Bildschirm.
+      const name = el.querySelector('h3')?.textContent?.replace(/^\d+/, '').trim() ?? 'Theorie';
+      if (akt && !akt.karte && !akt.checks.length) akt.name = name;
+      else akt = neu(name);
+      akt.karte = true;
+      akt.el.append(n);
+      continue;
+    }
+    if (istH2) akt = neu(el!.textContent?.trim() ?? '');
+    else if (akt?.checks.length && !unsichtbar && (el || n.textContent?.trim())) akt = null; // nach einer Übung geht es auf einem neuen Bildschirm weiter
+    if (!akt) {
+      if (!el && !n.textContent?.trim()) { inhalt.append(n); continue; }
+      if (unsichtbar) { inhalt.append(n); continue; }
+      akt = neu(schritte.length ? (el?.querySelector('h3')?.textContent?.trim() || 'Fortsetzung') : 'Worum es geht');
+    }
+    akt.el.append(n);
+  }
+  // Kurze Restschnipsel (z. B. nur ein Satz nach einer Prüfung) an den vorigen Schritt hängen
+  for (let i = schritte.length - 1; i > 0; i--) {
+    const s = schritte[i];
+    if (!s.checks.length && !s.el.querySelector('h2') && (s.el.textContent ?? '').trim().split(/\s+/).length < 25) {
+      schritte[i - 1].el.append(...s.el.childNodes);
+      schritte.splice(i, 1);
+    }
+  }
+  inhalt.append(...schritte.map((s) => s.el));
+
+  // Zeitschätzung: 130 Wörter pro Minute (langsames, gründliches Lesen) plus 1 Minute pro Übung.
+  // Eine grobe Faustregel, keine Messung.
+  for (const s of schritte) {
+    const w = (s.el.textContent ?? '').trim().split(/\s+/).length;
+    s.minuten = w / 130 + s.checks.length;
+  }
+  const gesamt = Math.max(1, Math.round(schritte.reduce((a, s) => a + s.minuten, 0)));
+  document.querySelector('[data-kw-dauer]')!.textContent = `ca. ${gesamt} Min. · `;
+
+  const segmente = leiste.querySelector<HTMLOListElement>('[data-sl-segmente]')!;
+  schritte.forEach((s, i) => {
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'seg';
+    b.title = s.name;
+    b.setAttribute('aria-label', `Schritt ${i + 1}: ${s.name}`);
+    b.addEventListener('click', () => zeige(i, true));
+    li.append(b);
+    segmente.append(li);
+  });
+
+  let jetzt = 0;
+  const gesehen = new Set<number>();
+  const fertig = (s: Schritt) => s.checks.every((c) => checkBestanden(meta.id, c));
+
+  function aktualisieren() {
+    const s = schritte[jetzt];
+    leiste.querySelector('[data-sl-nr]')!.textContent = `Schritt ${jetzt + 1} von ${schritte.length}:`;
+    leiste.querySelector('[data-sl-name]')!.textContent = s.name;
+    const rest = Math.round(schritte.slice(jetzt).reduce((a, x) => a + x.minuten, 0));
+    leiste.querySelector('[data-sl-rest]')!.textContent = rest <= 1 ? 'Gleich geschafft' : `noch ca. ${rest} Min.`;
+    segmente.querySelectorAll<HTMLButtonElement>('.seg').forEach((b, i) => {
+      const x = schritte[i];
+      b.classList.toggle('jetzt', i === jetzt);
+      b.classList.toggle('ok', x.checks.length ? fertig(x) : gesehen.has(i) && i !== jetzt);
+      b.classList.toggle('pruefung', x.checks.length > 0);
+      if (i === jetzt) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
+    });
+    zurueckK.hidden = jetzt === 0;
+    const letzt = jetzt === schritte.length - 1;
+    weiterK.hidden = letzt;
+    if (!letzt) weiterK.textContent = `Weiter: ${schritte[jetzt + 1].name}`;
+    const geschafft = s.checks.length > 0 && fertig(s);
+    weiterK.classList.toggle('bereit', geschafft);
+    lob.textContent = geschafft ? 'Geschafft.' : '';
+  }
+
+  function zeige(i: number, scrollen: boolean) {
+    jetzt = Math.max(0, Math.min(schritte.length - 1, i));
+    gesehen.add(jetzt);
+    schritte.forEach((s, k) => (s.el.hidden = k !== jetzt));
+    schrittMerken(meta.id, jetzt);
+    wieder.hidden = true;
+    aktualisieren();
+    if (scrollen) {
+      schritte[jetzt].el.style.scrollMarginTop = `${leiste.offsetHeight + 16}px`;
+      schritte[jetzt].el.scrollIntoView({ behavior: wenigBewegung() ? 'auto' : 'smooth', block: 'start' });
+      schritte[jetzt].el.focus({ preventScroll: true });
+    }
+  }
+
+  function modus() {
+    const an = einstellungen().schritte && schritte.length > 1;
+    leiste.hidden = !an;
+    snav.hidden = !an;
+    if (an) {
+      const start = letzterSchritt(meta.id);
+      zeige(start < schritte.length ? start : 0, false);
+      if (start > 0 && start < schritte.length && !istFertig(meta.id)) wieder.hidden = false;
+    } else {
+      schritte.forEach((s) => (s.el.hidden = false));
+      wieder.hidden = true;
+    }
+  }
+
+  weiterK.addEventListener('click', () => zeige(jetzt + 1, true));
+  zurueckK.addEventListener('click', () => zeige(jetzt - 1, true));
+  document.querySelector('[data-kw-von-vorne]')!.addEventListener('click', () => zeige(0, true));
+  window.addEventListener('kw:einstellungen', modus);
+  beiAenderung(() => { if (!leiste.hidden) aktualisieren(); });
+  modus();
+
+  // Spickzettel auf kleinen Bildschirmen zugeklappt starten
+  const spick = document.querySelector<HTMLDetailsElement>('[data-kw-spick]');
+  if (spick && matchMedia('(max-width: 1000px)').matches) spick.open = false;
 </script>
 
 <style>
@@ -129,5 +312,37 @@ const meta = { id, xp: mission.xp, checks, abzeichen: fm.abzeichen };
   .belohnung h2 { margin-top: 0; }
   .belohnung.frisch { animation: aufleuchten 1.2s ease-out; }
   @keyframes aufleuchten { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--akzent-hell) 90%, transparent); } 100% { box-shadow: 0 0 0 18px color-mix(in srgb, var(--akzent-hell) 0%, transparent); } }
+  .raster.mit-spick { display: grid; grid-template-columns: minmax(0, var(--breite)) 17rem; gap: 2.5rem; align-items: start; }
+  .spalte { min-width: 0; max-width: var(--breite); }
+  .spick { position: sticky; top: 1rem; }
+  .spick details { background: var(--flaeche-leicht); border: 1px solid var(--flaeche); border-radius: var(--radius); padding: 0.8rem 1rem; }
+  .spick summary { font-weight: 700; cursor: pointer; color: var(--akzent-hell); }
+  .spick dl { margin: 0.7rem 0 0.6rem; }
+  .spick dt { color: var(--leise); font-size: 0.85rem; margin-top: 0.6rem; }
+  .spick dd { margin: 0.1rem 0 0; font-weight: 700; }
+  @media (max-width: 1000px) {
+    .raster.mit-spick { display: block; }
+    .spick { position: fixed; top: auto; right: 0.8rem; bottom: 0.8rem; left: auto; z-index: 5; max-width: min(22rem, calc(100vw - 1.6rem)); }
+    .spick details { box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6); max-height: 65vh; overflow-y: auto; }
+    .spick details:not([open]) { padding: 0.5rem 0.9rem; border-color: var(--akzent); }
+  }
+  .schrittleiste { position: sticky; top: 0; z-index: 4; background: var(--grund); padding: 0.7rem 0 0.8rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--flaeche); }
+  .sl-kopf { display: flex; justify-content: space-between; gap: 1rem; align-items: baseline; flex-wrap: wrap; }
+  .sl-titel, .sl-rest { margin: 0 0 0.5rem; }
+  .sl-segmente { display: flex; gap: 0.3rem; list-style: none; padding: 0; margin: 0; }
+  .sl-segmente :global(li) { flex: 1; margin: 0; }
+  :global(.seg) { display: block; width: 100%; height: 0.55rem; border-radius: 999px; border: 0; padding: 0; background: var(--flaeche); cursor: pointer; }
+  :global(.seg.pruefung) { background: repeating-linear-gradient(90deg, var(--flaeche) 0 6px, var(--leise-dunkel) 6px 8px); }
+  :global(.seg.ok) { background: var(--gut); }
+  :global(.seg.jetzt) { background: var(--akzent); outline: 2px solid var(--akzent-hell); outline-offset: 1px; }
+  :global(.seg:hover) { filter: brightness(1.25); }
+  .wieder { color: var(--leise); }
+  .linkknopf { font: inherit; color: var(--akzent-hell); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+  .inhalt :global(.schritt:focus) { outline: none; }
+  .inhalt :global(.schritt > h2:first-child) { margin-top: 0.4rem; }
+  .schritt-nav { display: flex; align-items: center; gap: 1rem; margin-top: 1.8rem; flex-wrap: wrap; }
+  .schritt-nav [data-sn-weiter] { margin-left: auto; }
+  .schritt-nav [data-sn-weiter].bereit { box-shadow: 0 0 0 3px color-mix(in srgb, var(--gut) 55%, transparent); }
+  .sn-lob { color: var(--gut); font-weight: 700; }
   .blaettern { max-width: var(--breite); display: flex; justify-content: space-between; gap: 1rem; margin-top: 2.5rem; padding-top: 1.2rem; border-top: 1px solid var(--flaeche); flex-wrap: wrap; }
 </style>

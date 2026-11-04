@@ -1,12 +1,23 @@
 ---
 id: m-2-7
 checks:
+  - id: k1
+  - id: k2
   - id: puzzle
   - id: geraet
     hardware: true
   - id: gezaehlt
     hardware: true
+spick:
+  - t: "Zeit"
+    v: "millis() = ms seit dem Start"
+  - t: "Idee"
+    v: "Pegel muss z. B. 30 ms stabil bleiben"
+  - t: "Merken"
+    v: "Letzten Zeitpunkt der Änderung speichern"
 ---
+import Quiz from '../components/Quiz.astro';
+import Merke from '../components/Merke.astro';
 import Karte from '../components/Karte.astro';
 import Lueckentext from '../components/Lueckentext.astro';
 import { PUZZLE_M27 } from '../data/puzzles';
@@ -22,13 +33,27 @@ Stell dir vor, jemand klingelt einmal, und du bekommst drei Fotos aufs Handy. Ge
 Prellen dauert nur ein paar Millisekunden. Die Idee: Ändert sich der Pegel, merkt sich das Programm den Zeitpunkt. Erst wenn der Pegel danach eine Weile **stabil** bleibt, zum Beispiel 30 ms, gilt die Änderung als echt.
 </Karte>
 
+<Merke>Eine Änderung zählt erst, wenn der Pegel eine Weile stabil bleibt.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Entprellen" fragen={[
+  { frage: 'Der Pegel wechselt und springt nach 2 ms zurück. Die Entprellzeit ist 30 ms. Zählt das als Druck?', richtig: 'Nein, der Pegel war nicht lange genug stabil', falsch: ['Ja, jede Änderung zählt', 'Ja, aber nur doppelt'], erklaerung: 'Erst nach 30 ms Ruhe gilt eine Änderung als echt.' },
+]} />
+
 <Karte nr={2} titel="millis() statt delay()">
 `millis()` liefert, wie viele Millisekunden seit dem Start vergangen sind. Mit `millis() - letzteAenderung` rechnest du aus, wie lange etwas her ist. Anders als `delay()` hält das das Programm nicht an. Es kann währenddessen weiterarbeiten.
 </Karte>
 
+<Merke>millis() misst Zeit, ohne das Programm anzuhalten. delay() hält alles an.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: millis()" fragen={[
+  { frage: 'Was liefert millis()?', richtig: 'Die Millisekunden seit dem Start', falsch: ['Die aktuelle Uhrzeit', 'Eine Pause von einer Millisekunde'], erklaerung: 'Mit der Differenz zweier millis()-Werte misst du, wie lange etwas her ist.' },
+]} />
+
 <Karte nr={3} titel="Zwei Zustände">
 Das Programm merkt sich zwei Dinge: den **zuletzt gelesenen Pegel** (der zuckt beim Prellen) und den **stabilen Zustand** (der ändert sich erst, wenn Ruhe ist). Gezählt wird nur, wenn der stabile Zustand auf LOW wechselt.
 </Karte>
+
+<Merke>Gelesener Pegel zuckt, stabiler Zustand nicht. Gezählt wird nur der stabile Wechsel auf LOW.</Merke>
 
 <Prellen />
 

@@ -39,6 +39,7 @@ const { id, titel, faelle, anzahl = 3 } = Astro.props;
     zeigen();
 
     box.querySelector('[data-ld-abgeben]')!.addEventListener('click', () => {
+      if (s.gesperrt()) return;
       const f = faelle[i];
       const a = wahl.querySelector<HTMLInputElement>('input:checked')?.value;
       if (!a) return s.melden('Wähle zuerst eine Ursache.', 'warnung');

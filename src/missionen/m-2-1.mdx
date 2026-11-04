@@ -2,10 +2,24 @@
 id: m-2-1
 abzeichen: Erstes Leben
 checks:
-  - id: quiz
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: werkstatt-q
   - id: geraet
     hardware: true
+spick:
+  - t: "Onboard-LED"
+    v: "GPIO 2"
+  - t: "Baudrate"
+    v: "115200"
+  - t: "Upload hängt?"
+    v: "BOOT gedrückt halten, bis „Connecting…“ erscheint"
+  - t: "Gerätenachweis"
+    v: "Zeile KW-CHECK:…"
 ---
+import Checkliste from '../components/Checkliste.astro';
+import Merke from '../components/Merke.astro';
 import Karte from '../components/Karte.astro';
 import Quiz from '../components/Quiz.astro';
 import Seriell from '../components/Seriell.astro';
@@ -24,20 +38,46 @@ Klingel v0 summt, aber sie ist dumm: Sie kann nur summen, solange jemand drückt
 Ein **Mikrocontroller** ist ein kleiner Computer: Prozessor, Speicher und Anschlüsse auf einem Chip. Er führt immer nur ein Programm aus, das sofort nach dem Einschalten startet. Der ESP32 hat zusätzlich WLAN und Bluetooth eingebaut. Genau deshalb steckt er später in deiner Klingel.
 </Karte>
 
+<Merke>Ein Mikrocontroller ist ein kleiner Computer für genau ein Programm. Der ESP32 hat WLAN dabei.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Mikrocontroller" fragen={[
+  { frage: 'Warum steckt in der Klingel ausgerechnet ein ESP32?', richtig: 'Er hat WLAN eingebaut und kann so Nachrichten verschicken.', falsch: ['Er ist der einzige Mikrocontroller, der LEDs schalten kann.', 'Er braucht keinen Strom.'], erklaerung: 'WLAN ist eingebaut, das braucht die Klingel für ihre Nachrichten.' },
+]} />
+
 <Karte nr={2} titel="Firmware">
 Das Programm auf einem Mikrocontroller heißt **Firmware**. Du schreibst es am Computer, ein **Compiler** übersetzt es in Maschinencode, und beim **Upload** wird es über das USB-Kabel in den Speicher des ESP32 geschrieben. Dort bleibt es, auch ohne Strom, bis du etwas Neues hochlädst.
 </Karte>
+
+<Merke>Firmware schreiben, übersetzen, hochladen. Sie bleibt auch ohne Strom gespeichert.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Firmware" fragen={[
+  { frage: 'Was passiert mit der Firmware, wenn du das ESP32 vom Strom trennst?', richtig: 'Sie bleibt gespeichert und startet beim nächsten Einschalten wieder.', falsch: ['Sie wird gelöscht.', 'Sie muss jedes Mal neu hochgeladen werden.'], erklaerung: 'Die Firmware liegt im Flash-Speicher, der ohne Strom erhalten bleibt.' },
+]} />
 
 <Karte nr={3} titel="Pins und GPIO">
 An den Seiten des Boards sitzen die **Pins**. Die meisten heißen **GPIO** (General Purpose Input/Output) mit einer Nummer, zum Beispiel GPIO 2. Ein GPIO kann etwas einschalten (Ausgang) oder etwas abfragen (Eingang). Viele DevKits haben an GPIO 2 eine kleine blaue LED, die du heute blinken lässt.
 </Karte>
 
+<Merke>Ein GPIO ist ein Pin, der schalten (Ausgang) oder abfragen (Eingang) kann.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: GPIO" fragen={[
+  { frage: 'Was kann ein GPIO?', richtig: 'Etwas einschalten oder etwas abfragen', falsch: ['Nur Strom liefern', 'Nur das WLAN steuern'], erklaerung: 'General Purpose Input/Output: Ein- oder Ausgang.' },
+]} />
+
 ## Werkstatt einrichten
 
-1. **Arduino IDE installieren:** von [arduino.cc/en/software](https://www.arduino.cc/en/software) die Version 2 für dein Betriebssystem laden und installieren.
-2. **ESP32-Unterstützung hinzufügen:** In der Arduino IDE links auf das Symbol **Boardverwalter** klicken, nach „esp32“ suchen und **esp32 by Espressif Systems** installieren. Taucht der Eintrag nicht auf: unter **Datei → Einstellungen** bei „Zusätzliche Boardverwalter-URLs“ `https://espressif.github.io/arduino-esp32/package_esp32_index.json` eintragen und die Suche wiederholen [Fachquelle: Espressif-Dokumentation zu arduino-esp32].
-3. **Board anschließen** und unter **Werkzeuge → Board → esp32** den Eintrag **ESP32 Dev Module** wählen.
-4. Unter **Werkzeuge → Port** den neuen Anschluss wählen (Windows: `COM3` oder ähnlich, Mac: `/dev/cu.usbserial…`, Linux: `/dev/ttyUSB0`). Erscheint kein neuer Port, fehlt meist ein Treiber für den USB-Chip deines Boards. Auf ihm steht `CP2102` oder `CH340`. Den passenden Treiber findest du beim Hersteller des Chips.
+<Checkliste id="werkstatt" punkte={[
+  '<strong>Arduino IDE installieren:</strong> von <a href="https://www.arduino.cc/en/software">arduino.cc/en/software</a> die Version 2 für dein Betriebssystem laden und installieren.',
+  '<strong>ESP32-Unterstützung hinzufügen:</strong> In der Arduino IDE links auf das Symbol <strong>Boardverwalter</strong> klicken, nach „esp32“ suchen und <strong>esp32 by Espressif Systems</strong> installieren. Taucht der Eintrag nicht auf: unter <strong>Datei → Einstellungen</strong> bei „Zusätzliche Boardverwalter-URLs“ <code>https://espressif.github.io/arduino-esp32/package_esp32_index.json</code> eintragen und die Suche wiederholen [Fachquelle: Espressif-Dokumentation zu arduino-esp32].',
+  '<strong>Board anschließen</strong> und unter <strong>Werkzeuge → Board → esp32</strong> den Eintrag <strong>ESP32 Dev Module</strong> wählen.',
+  'Unter <strong>Werkzeuge → Port</strong> den neuen Anschluss wählen (Windows: <code>COM3</code> oder ähnlich, Mac: <code>/dev/cu.usbserial…</code>, Linux: <code>/dev/ttyUSB0</code>). Erscheint kein neuer Port, fehlt meist ein Treiber für den USB-Chip deines Boards. Auf ihm steht <code>CP2102</code> oder <code>CH340</code>. Den passenden Treiber findest du beim Hersteller des Chips.',
+]} />
+
+<Merke>Findet der Computer das Board nicht, ist es meist ein reines Ladekabel.</Merke>
+
+<Quiz id="werkstatt-q" titel="Kurzcheck: Werkstatt" fragen={[
+  { frage: 'Der Computer findet dein Board nicht. Was prüfst du zuerst?', richtig: 'Ob das USB-Kabel Daten überträgt oder nur lädt', falsch: ['Ob die LED an GPIO 2 kaputt ist', 'Ob das WLAN eingeschaltet ist'], erklaerung: 'Reine Ladekabel sind die häufigste Ursache.' },
+]} />
 
 ## Das erste Programm
 
@@ -66,11 +106,6 @@ Unten erscheint nach einer Weile „Hard resetting via RTS pin…“. Dann ist d
 Bei manchen Boards musst du die Taste **BOOT** gedrückt halten, bis „Connecting…“ erscheint. Mehr typische Fehler kommen im Bosskampf am Ende dieses Akts.
 </Hinweis>
 
-<Quiz id="quiz" titel="Quiz: Mikrocontroller" fragen={[
-  { frage: 'Was passiert mit der Firmware, wenn du das ESP32 vom Strom trennst?', richtig: 'Sie bleibt gespeichert und startet beim nächsten Einschalten wieder.', falsch: ['Sie wird gelöscht.', 'Sie muss jedes Mal neu hochgeladen werden.'], erklaerung: 'Die Firmware liegt im Flash-Speicher, der ohne Strom erhalten bleibt (Karte 2).' },
-  { frage: 'Der Computer findet dein Board nicht. Was prüfst du zuerst?', richtig: 'Ob das USB-Kabel Daten überträgt oder nur lädt', falsch: ['Ob die LED an GPIO 2 kaputt ist', 'Ob das WLAN eingeschaltet ist'], erklaerung: 'Reine Ladekabel sind die häufigste Ursache.' },
-  { frage: 'Warum steckt in der Klingel ausgerechnet ein ESP32?', richtig: 'Er hat WLAN eingebaut und kann so Nachrichten verschicken.', falsch: ['Er ist der einzige Mikrocontroller, der LEDs schalten kann.', 'Er braucht keinen Strom.'], erklaerung: 'Karte 1.' },
-]} />
 
 ## Gerätenachweis
 

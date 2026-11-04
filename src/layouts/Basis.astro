@@ -15,6 +15,14 @@ const voll = titel ? `${titel} – ${SEITE.name}` : `${SEITE.name} – ${SEITE.u
     <meta name="description" content={beschreibung} />
     <meta name="theme-color" content="#121212" />
     <link rel="icon" href={url('favicon.svg')} type="image/svg+xml" />
+    <script is:inline>
+      // Anzeige-Einstellungen vor dem ersten Zeichnen setzen, damit nichts springt.
+      try {
+        var e = JSON.parse(localStorage.getItem('kw:einstellungen') || '{}'), d = document.documentElement.dataset;
+        d.schrift = e.schrift || 'normal'; d.abstand = e.abstand || 'normal'; d.bewegung = e.bewegung || 'system';
+        d.fokus = e.fokus ? 'an' : 'aus'; d.schritte = e.schritte === false ? 'aus' : 'an';
+      } catch (_) {}
+    </script>
   </head>
   <body>
     <a class="sprung" href="#inhalt">Zum Inhalt springen</a>
@@ -34,8 +42,41 @@ const voll = titel ? `${titel} – ${SEITE.name}` : `${SEITE.name} – ${SEITE.u
           <span data-kw-level>Lehrling</span>
           <span class="rang-xp"><span data-kw-xp>0</span> XP</span>
         </a>
+        <button class="fokus-aus" type="button" data-kw-fokus-aus>Fokus beenden</button>
+        <button class="anzeige-knopf" type="button" data-kw-anzeige aria-haspopup="dialog" aria-label="Anzeige einstellen">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="7" r="2.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="17" r="2.2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+          <span>Anzeige</span>
+        </button>
       </div>
     </header>
+    <dialog class="anzeige" data-kw-anzeige-dialog aria-labelledby="anzeige-titel">
+      <form method="dialog" class="anzeige-form">
+        <h2 id="anzeige-titel">Anzeige</h2>
+        <p class="leise klein">Wird nur in deinem Browser gespeichert.</p>
+        <fieldset>
+          <legend>Schriftgröße</legend>
+          <label><input type="radio" name="schrift" value="normal" /> Normal</label>
+          <label><input type="radio" name="schrift" value="gross" /> Groß</label>
+          <label><input type="radio" name="schrift" value="sehr-gross" /> Sehr groß</label>
+        </fieldset>
+        <fieldset>
+          <legend>Zeilenabstand</legend>
+          <label><input type="radio" name="abstand" value="normal" /> Normal</label>
+          <label><input type="radio" name="abstand" value="weit" /> Weit</label>
+        </fieldset>
+        <fieldset>
+          <legend>Bewegung</legend>
+          <label><input type="radio" name="bewegung" value="system" /> Wie im Betriebssystem eingestellt</label>
+          <label><input type="radio" name="bewegung" value="reduziert" /> Immer reduzieren</label>
+        </fieldset>
+        <fieldset>
+          <legend>Missionen</legend>
+          <label><input type="checkbox" name="schritte" /> Schritt für Schritt zeigen (ein Abschnitt pro Bildschirm)</label>
+          <label><input type="checkbox" name="fokus" /> Fokusmodus: Navigation und Fußzeile ausblenden</label>
+        </fieldset>
+        <button class="knopf" value="ok">Fertig</button>
+      </form>
+    </dialog>
     <main id="inhalt">
       <slot />
     </main>
@@ -57,6 +98,26 @@ const voll = titel ? `${titel} – ${SEITE.name}` : `${SEITE.name} – ${SEITE.u
       }
       zeigen();
       beiAenderung(zeigen);
+
+      import { einstellungen, setzen, type Einstellungen } from '../scripts/einstellungen';
+      const dlg = document.querySelector<HTMLDialogElement>('[data-kw-anzeige-dialog]')!;
+      const form = dlg.querySelector('form')!;
+      function formFuellen() {
+        const e = einstellungen();
+        for (const k of ['schrift', 'abstand', 'bewegung'] as const) {
+          form.querySelectorAll<HTMLInputElement>(`input[name="${k}"]`).forEach((r) => (r.checked = r.value === e[k]));
+        }
+        (form.elements.namedItem('schritte') as HTMLInputElement).checked = e.schritte;
+        (form.elements.namedItem('fokus') as HTMLInputElement).checked = e.fokus;
+      }
+      document.querySelector('[data-kw-anzeige]')!.addEventListener('click', () => { formFuellen(); dlg.showModal(); });
+      form.addEventListener('change', (ev) => {
+        const t = ev.target as HTMLInputElement;
+        const wert = t.type === 'checkbox' ? t.checked : t.value;
+        setzen({ [t.name]: wert } as Partial<Einstellungen>);
+      });
+      dlg.addEventListener('click', (ev) => { if (ev.target === dlg) dlg.close(); });
+      document.querySelector('[data-kw-fokus-aus]')!.addEventListener('click', () => setzen({ fokus: false }));
     </script>
   </body>
 </html>
@@ -73,7 +134,21 @@ const voll = titel ? `${titel} – ${SEITE.name}` : `${SEITE.name} – ${SEITE.u
   nav a:hover { color: var(--text); }
   .rang { display: inline-flex; gap: 0.6rem; align-items: baseline; text-decoration: none; color: var(--text); border: 1px solid var(--flaeche); border-radius: 999px; padding: 0.25rem 0.85rem; font-size: 0.95rem; }
   .rang-xp { color: var(--akzent-hell); font-weight: 700; }
+  .anzeige-knopf, .fokus-aus { display: inline-flex; align-items: center; gap: 0.4rem; font: inherit; font-size: 0.95rem; color: var(--leise); background: none; border: 1px solid var(--flaeche); border-radius: 999px; padding: 0.25rem 0.8rem; cursor: pointer; }
+  .anzeige-knopf:hover, .fokus-aus:hover { color: var(--text); border-color: var(--leise-dunkel); }
+  .fokus-aus { display: none; }
+  :global(html[data-fokus='an']) .fokus-aus { display: inline-flex; }
+  :global(html[data-fokus='an']) nav, :global(html[data-fokus='an']) .fuss, :global(html[data-fokus='an']) .rang { display: none; }
+  :global(html[data-fokus='an']) .fokus-aus { margin-left: auto; }
+  .anzeige { background: var(--flaeche-leicht); color: var(--text); border: 1px solid var(--flaeche); border-radius: var(--radius); padding: 0; max-width: min(30rem, 92vw); }
+  .anzeige::backdrop { background: rgba(0, 0, 0, 0.6); }
+  .anzeige-form { padding: 1.3rem 1.4rem; }
+  .anzeige h2 { margin: 0 0 0.2rem; font-size: 1.3rem; }
+  .anzeige fieldset { border: 0; padding: 0; margin: 0 0 1rem; }
+  .anzeige legend { font-weight: 700; margin-bottom: 0.3rem; }
+  .anzeige label { display: flex; gap: 0.55rem; align-items: flex-start; padding: 0.2rem 0; cursor: pointer; }
+  .anzeige input { accent-color: var(--akzent); margin-top: 0.3rem; flex: none; }
   main { padding-bottom: 4rem; }
   .fuss { border-top: 1px solid var(--flaeche); padding: 1.5rem 0; }
-  @media (max-width: 640px) { nav { order: 3; width: 100%; padding-bottom: 0.6rem; } .rang { margin-left: auto; } }
+  @media (max-width: 640px) { nav { order: 3; width: 100%; padding-bottom: 0.6rem; } .rang { margin-left: auto; } .anzeige-knopf span { position: absolute; left: -999px; } }
 </style>

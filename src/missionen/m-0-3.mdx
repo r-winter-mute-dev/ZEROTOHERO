@@ -1,8 +1,22 @@
 ---
 id: m-0-3
 checks:
+  - id: k1
+  - id: k2
+  - id: k3
   - id: trainer
+spick:
+  - t: "Fünfergruppen"
+    v: "In jeder Spalte sind a–e verbunden, ebenso f–j"
+  - t: "Mittelrinne"
+    v: "Trennt a–e von f–j"
+  - t: "Schienen"
+    v: "Rot (+) und blau (−), der Länge nach verbunden"
+  - t: "Zwei Beine verbunden?"
+    v: "Nur wenn sie in derselben Fünfergruppe stecken"
 ---
+import Quiz from '../components/Quiz.astro';
+import Merke from '../components/Merke.astro';
 import Karte from '../components/Karte.astro';
 import Steckbrett from '../components/Steckbrett.astro';
 import Hinweis from '../components/Hinweis.astro';
@@ -15,13 +29,31 @@ Auf dem Steckbrett baust du alle Schaltungen bis Akt 7, ganz ohne Löten. Damit 
 Die Spalten sind durchnummeriert (1, 2, 3 …), die Zeilen haben Buchstaben (a bis j). In jeder Spalte sind die fünf Löcher **a bis e** innen durch eine Metallklammer verbunden. Ebenso die fünf Löcher **f bis j**. Steckst du zwei Bauteilbeine in dieselbe Fünfergruppe, sind sie verbunden.
 </Karte>
 
+<Merke>In jeder Spalte sind a–e verbunden und f–j verbunden.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Fünfergruppen" fragen={[
+  { frage: 'Sind die Löcher a3 und d3 miteinander verbunden?', richtig: 'Ja, sie liegen in derselben Fünfergruppe', falsch: ['Nein, nur Löcher in derselben Zeile sind verbunden', 'Nur wenn ein Draht dazwischen steckt'], erklaerung: 'a bis e einer Spalte sind innen verbunden.' },
+]} />
+
 <Karte nr={2} titel="Die Mittelrinne trennt">
 Zwischen e und f verläuft eine Rinne. Sie trennt die obere von der unteren Hälfte. Darüber setzt man später Bauteile mit zwei Beinreihen, wie Taster oder Chips, damit ihre Beine nicht kurzgeschlossen sind.
 </Karte>
 
+<Merke>Die Mittelrinne trennt oben und unten. a3 und f3 sind nicht verbunden.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Mittelrinne" fragen={[
+  { frage: 'Sind e7 und f7 verbunden?', richtig: 'Nein, die Mittelrinne liegt dazwischen', falsch: ['Ja, es ist dieselbe Spalte', 'Ja, aber nur bei großen Steckbrettern'], erklaerung: 'e gehört zur oberen, f zur unteren Fünfergruppe.' },
+]} />
+
 <Karte nr={3} titel="Versorgungsschienen">
 Am Rand liegen lange Reihen mit roter (+) und blauer (−) Linie. Jede Schiene ist der Länge nach verbunden. Dort schließt du die Stromquelle an, und von dort holst du dir Plus und Minus an jede Stelle des Bretts.
 </Karte>
+
+<Merke>Die Schienen am Rand laufen der Länge nach: Rot ist Plus, Blau ist Minus.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Schienen" fragen={[
+  { frage: 'Wozu sind die langen Schienen am Rand?', richtig: 'Für Plus und Minus, damit du die Versorgung überall abgreifen kannst', falsch: ['Für Bauteile mit vielen Beinen', 'Sie sind nur Dekoration'], erklaerung: 'Dort hängt die Stromquelle.' },
+]} />
 
 <Hinweis titel="Achtung bei langen Steckbrettern">
 Bei manchen großen Steckbrettern sind die Versorgungsschienen in der Mitte unterbrochen, erkennbar an einer Lücke in der roten oder blauen Linie. Ob das bei deinem Brett so ist, prüfst du in Mission 0.4 mit dem Durchgangsprüfer.

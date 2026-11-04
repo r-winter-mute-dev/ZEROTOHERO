@@ -1,5 +1,6 @@
 // Gemeinsame Logik für alle Prüfungs-Stationen auf einer Missionsseite.
 import { beiAenderung, checkBestanden, checkBestehen, fehlversuch, istFreigeschaltet, laden } from './engine';
+import { vorherige } from '../data/kampagne';
 
 export interface Station {
   el: HTMLElement;
@@ -11,6 +12,8 @@ export interface Station {
   fehl(text: string): void;
   melden(text: string, art?: 'gut' | 'fehler' | 'warnung' | ''): void;
   darf(): boolean;
+  /** Meldet die Sperre und gibt true zurück, wenn die Mission noch gesperrt ist. */
+  gesperrt(): boolean;
 }
 
 export function station(el: HTMLElement): Station {
@@ -27,7 +30,7 @@ export function station(el: HTMLElement): Station {
       meldungEl.className = `meldung ${art}`;
     },
     bestehen(text = 'Bestanden.') {
-      if (!s.darf()) { s.melden('Diese Mission ist noch gesperrt. Schließe zuerst die vorherige Mission ab.', 'warnung'); return; }
+      if (s.gesperrt()) return;
       checkBestehen(mid, cid);
       s.melden(text, 'gut');
       markieren(el);
@@ -37,6 +40,14 @@ export function station(el: HTMLElement): Station {
       s.melden(text, 'fehler');
     },
     darf: () => !mid || istFreigeschaltet(mid),
+    gesperrt() {
+      if (s.darf()) return false;
+      const v = vorherige(mid);
+      s.melden(v
+        ? `Noch gesperrt: Schließe zuerst Mission ${v.nr} „${v.titel}“ ab. Hast du dort Prüfungen mit Hardware übersprungen, setze dort den Haken „ohne Hardware“.`
+        : 'Diese Mission ist noch gesperrt.', 'warnung');
+      return true;
+    },
   };
   return s;
 }

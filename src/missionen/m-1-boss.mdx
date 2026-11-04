@@ -3,7 +3,17 @@ id: m-1-boss
 abzeichen: Fehlerjäger
 checks:
   - id: boss
+spick:
+  - t: "Reihenfolge"
+    v: "Quelle → Weg → Bauteil"
+  - t: "Erst messen"
+    v: "Spannung an der Quelle"
+  - t: "Dann"
+    v: "Spannung Punkt für Punkt gegen Minus"
+  - t: "Durchgang"
+    v: "Nur ohne Strom"
 ---
+import Merke from '../components/Merke.astro';
 import Messplatz from '../components/Messplatz.astro';
 import Hinweis from '../components/Hinweis.astro';
 
@@ -16,6 +26,8 @@ Irgendwann funktioniert jede Schaltung einmal nicht. Anfänger stecken dann wahl
 3. **Spannung an jedem Bauteil messen**, eins nach dem anderen.
 4. **Mit den Sollwerten vergleichen.** Wo weicht etwas ab?
 5. **Erst dann eine Ursache benennen.** Eine Diagnose ohne Messung ist geraten.
+
+<Merke>Erst messen, dann urteilen. Immer bei der Quelle anfangen.</Merke>
 
 ## Sollwerte der intakten Schaltung
 
@@ -31,5 +43,7 @@ So sieht der Kreis aus Mission 1.1 aus, wenn alles stimmt. Die Punkte heißen wi
 <Hinweis titel="Zwei Faustregeln">
 Fließt **kein Strom**, fällt an einem Widerstand **keine Spannung** ab. Und an einer **offenen Stelle** im Kreis liegt die **volle Spannung** an, weil dort der ganze „Druck“ ansteht, ohne dass etwas fließt.
 </Hinweis>
+
+<Merke>Volle Spannung über einer Stelle heißt: Dort ist der Kreis offen.</Merke>
 
 <Messplatz id="boss" titel="Bosskampf: Die LED bleibt dunkel" modus="fehler" anzahl={3} />

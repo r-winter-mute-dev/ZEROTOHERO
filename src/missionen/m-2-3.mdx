@@ -1,11 +1,23 @@
 ---
 id: m-2-3
 checks:
+  - id: k1
+  - id: k2
+  - id: k3
   - id: puzzle
-  - id: quiz
   - id: geraet
     hardware: true
+spick:
+  - t: "Variable"
+    v: "int pause = 500;"
+  - t: "Bedingung"
+    v: "if (x &gt; 3) { … } else { … }"
+  - t: "Vergleich"
+    v: "== gleich, != ungleich"
+  - t: "Zuweisung"
+    v: "= (ein Gleichheitszeichen)"
 ---
+import Merke from '../components/Merke.astro';
 import Karte from '../components/Karte.astro';
 import Lueckentext from '../components/Lueckentext.astro';
 import { PUZZLE_M23 } from '../data/puzzles';
@@ -20,13 +32,32 @@ Deine Klingel muss sich später Dinge merken („Wie oft wurde heute geklingelt?
 Eine **Variable** ist ein benannter Speicherplatz. `int zaehler = 0;` legt eine Variable namens `zaehler` an und setzt sie auf 0. Mit `zaehler = zaehler + 1;` erhöhst du sie um eins. Kurzform: `zaehler++;`. Jede Anweisung endet mit einem Semikolon.
 </Karte>
 
+<Merke>Eine Variable ist ein Speicherplatz mit Namen. Jede Anweisung endet mit ;</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Variablen" fragen={[
+  { frage: 'zaehler steht auf 3. Danach läuft zaehler++; Welchen Wert hat zaehler jetzt?', richtig: '4', falsch: ['3', '1'], erklaerung: '++ erhöht um eins.' },
+]} />
+
 <Karte nr={2} titel="Datentypen">
 Vor dem Namen steht, was in der Variable liegt: `int` für ganze Zahlen (5, −12), `float` für Kommazahlen (3.3, im Code mit Punkt), `bool` für wahr oder falsch (`true`, `false`), `String` für Text. `const` davor heißt: Dieser Wert ändert sich nie, zum Beispiel eine Pin-Nummer.
 </Karte>
 
+<Merke>int für ganze Zahlen, float für Kommazahlen, bool für wahr/falsch, String für Text.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Datentypen" fragen={[
+  { frage: 'Welcher Datentyp passt für die Akkuspannung 3,7 V?', richtig: 'float', falsch: ['int', 'bool'], erklaerung: 'Kommazahlen brauchen float.' },
+]} />
+
 <Karte nr={3} titel="Bedingungen">
 `if (zaehler >= 5) { … }` führt den Code in den geschweiften Klammern nur aus, wenn die Bedingung stimmt. Vergleiche: `==` gleich, `!=` ungleich, `<` kleiner, `>` größer, `<=` und `>=`. Achtung: `=` (ein Zeichen) weist einen Wert zu, `==` (zwei Zeichen) vergleicht. Mit `else { … }` legst du fest, was sonst passiert.
 </Karte>
+
+<Merke>= weist zu, == vergleicht.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Bedingungen" fragen={[
+  { frage: 'Was ist der Unterschied zwischen = und ==?', richtig: '= weist einen Wert zu, == vergleicht zwei Werte.', falsch: ['Es gibt keinen.', '== ist eine schnellere Zuweisung.'], erklaerung: 'Ein häufiger Fehler: if (x = 5) setzt x auf 5, statt zu vergleichen.' },
+  { frage: 'Die Variable zaehler steht auf 4. Wird der Code in if (zaehler >= 5) { … } ausgeführt?', richtig: 'Nein', falsch: ['Ja', 'Nur jedes zweite Mal'], erklaerung: '4 ist nicht größer oder gleich 5.' },
+]} />
 
 <Lueckentext id="puzzle" titel="Code-Puzzle: Erst langsam, dann schnell" aufgabe="Die LED soll mit 1000 ms Pause starten. Nach jedem Blinken wird der Zähler um eins erhöht. Ab dem fünften Blinken soll die Pause nur noch 200 ms betragen." code={PUZZLE_M23} luecken={[
   { loesungen: ['1000'], tipp: 'Die Startpause steht in der Aufgabe, in Millisekunden.' },
@@ -71,10 +102,5 @@ void loop() {
 
 **Probier selbst:** Ändere die Zahlen. Was passiert mit `if (zaehler > 8)`? Und was, wenn du `pause = 200;` durch `pause = pause - 100;` ersetzt? Vorsicht: Wird die Pause negativ, gibt es Ärger. Wie würdest du das mit einer zweiten Bedingung verhindern?
 
-<Quiz id="quiz" titel="Quiz: Variablen und Bedingungen" fragen={[
-  { frage: 'Welcher Datentyp passt für die Akkuspannung 3,7 V?', richtig: 'float', falsch: ['int', 'bool'], erklaerung: 'Kommazahlen brauchen float (Karte 2).' },
-  { frage: 'Was ist der Unterschied zwischen = und ==?', richtig: '= weist einen Wert zu, == vergleicht zwei Werte.', falsch: ['Es gibt keinen.', '== ist eine schnellere Zuweisung.'], erklaerung: 'Karte 3. Ein häufiger Fehler: if (x = 5) setzt x auf 5, statt zu vergleichen.' },
-  { frage: 'Die Variable zaehler steht auf 4. Wird der Code in if (zaehler >= 5) { … } ausgeführt?', richtig: 'Nein', falsch: ['Ja', 'Nur jedes zweite Mal'], erklaerung: '4 ist nicht größer oder gleich 5.' },
-]} />
 
 <Seriell id="geraet" titel="Gerätenachweis: Zehnmal geblinkt" muster="^KW-CHECK:m-2-3:[0-9A-F]{12}$" hinweis="Die Nachweis-Zeile erscheint nach dem zehnten Blinken." />

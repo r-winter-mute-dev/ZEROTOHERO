@@ -2,11 +2,33 @@
 id: m-1-3
 abzeichen: Ohms Lehrling
 checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: k4
   - id: rechnen
-  - id: farbcode
   - id: protokoll
     hardware: true
+spick:
+  - t: "Ohmsches Gesetz"
+    v: "U = R × I"
+  - t: "Umgestellt"
+    v: "I = U / R &nbsp;·&nbsp; R = U / I"
+  - t: "Vorwiderstand"
+    v: "R = (U<sub>Quelle</sub> − U<sub>LED</sub>) / I"
+  - t: "LED rot"
+    v: "etwa 1,8–2 V"
+  - t: "Einheiten"
+    v: "20 mA = 0,02 A"
+  - t: "E12"
+    v: "10 12 15 18 22 27 33 39 47 56 68 82"
+  - t: "Kein passender Wert?"
+    v: "Den nächstgrößeren nehmen"
+  - t: "Farbcode"
+    v: "Ziffer, Ziffer, Nullen, Toleranz"
 ---
+import Checkliste from '../components/Checkliste.astro';
+import Merke from '../components/Merke.astro';
 import Karte from '../components/Karte.astro';
 import Rechnen from '../components/Rechnen.astro';
 import Quiz from '../components/Quiz.astro';
@@ -21,36 +43,58 @@ In Mission 1.1 war der Widerstand vorgegeben. Aber warum gerade 220 Ω? Später 
 Spannung, Strom und Widerstand hängen fest zusammen: **U = R × I**. Daraus folgen die zwei anderen Formen: **I = U / R** und **R = U / I**. Rechne immer in Grundeinheiten: Volt, Ampere, Ohm. 20 mA sind 0,02 A.
 </Karte>
 
+<Merke>U = R × I. Rechne immer in Volt, Ampere und Ohm.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Ohmsches Gesetz" fragen={[
+  { frage: 'An einem 100-Ω-Widerstand liegen 2 V. Wie groß ist der Strom?', richtig: '0,02 A, also 20 mA', falsch: ['200 A', '0,2 A'], erklaerung: 'I = U / R = 2 V / 100 Ω = 0,02 A.' },
+]} />
+
 <Karte nr={2} titel="Der Vorwiderstand einer LED">
 An der LED fällt ihre **Durchlassspannung** ab: bei Rot etwa 1,8–2 V, bei Blau oder Weiß etwa 3 V [typische Datenblattwerte]. Den Rest der Spannung muss der Widerstand aufnehmen. Also: **R = (U<sub>Batterie</sub> − U<sub>LED</sub>) / I<sub>gewünscht</sub>**. Beispiel: (3 V − 1,9 V) / 0,005 A = 220 Ω.
 </Karte>
+
+<Merke>Vorwiderstand = (Batteriespannung − LED-Spannung) / Strom.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Vorwiderstand" fragen={[
+  { frage: 'Warum liegt an einer leuchtenden roten LED nicht die volle Batteriespannung?', richtig: 'Der Rest fällt am Vorwiderstand ab', falsch: ['Die LED verbraucht den Rest', 'Die Batterie ist schwach'], erklaerung: 'Die Spannung teilt sich zwischen LED und Widerstand auf.' },
+]} />
 
 <Karte nr={3} titel="Der Farbcode">
 Widerstände tragen ihren Wert als Farbringe. Bei vier Ringen gilt: 1. Ring = erste Ziffer, 2. Ring = zweite Ziffer, 3. Ring = Anzahl der Nullen, 4. Ring = Toleranz (Gold = ±5 %). Die Farben: Schwarz 0, Braun 1, Rot 2, Orange 3, Gelb 4, Grün 5, Blau 6, Violett 7, Grau 8, Weiß 9. **Rot-Rot-Braun** heißt 2, 2 und eine Null: 220 Ω.
 </Karte>
 
+<Merke>Ziffer, Ziffer, Anzahl Nullen. Rot-Rot-Braun = 220 Ω.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Farbcode" fragen={[
+  { frage: 'Welchen Wert hat ein Widerstand mit den Ringen Braun-Schwarz-Rot-Gold?', richtig: '1 kΩ (1000 Ω)', falsch: ['102 Ω', '10 Ω'], erklaerung: 'Braun 1, Schwarz 0, Rot = zwei Nullen: 1000 Ω.' },
+  { frage: 'Welche Farben hat ein 2,2-kΩ-Widerstand?', richtig: 'Rot-Rot-Rot', falsch: ['Rot-Rot-Braun', 'Rot-Rot-Orange'], erklaerung: '2, 2 und zwei Nullen: 2200 Ω.' },
+]} />
+
 <Karte nr={4} titel="Normwerte">
 Widerstände gibt es nicht in jedem Wert, sondern in Normreihen. Die Reihe E12 kennt pro Zehnerstufe nur 10, 12, 15, 18, 22, 27, 33, 39, 47, 56, 68 und 82. Ergibt deine Rechnung 195 Ω, nimmst du den **nächstgrößeren** Wert, also 220 Ω. Dann fließt etwas weniger Strom als geplant, und das ist sicher.
 </Karte>
 
+<Merke>Passt kein Normwert, nimm den nächstgrößeren.</Merke>
+
+<Quiz id="k4" titel="Kurzcheck: Normwerte" fragen={[
+  { frage: 'Deine Rechnung ergibt 150 Ω. Du hast 120 Ω und 180 Ω. Welchen nimmst du?', richtig: '180 Ω', falsch: ['120 Ω', 'Egal'], erklaerung: 'Immer den nächstgrößeren Wert, sonst fließt mehr Strom als geplant.' },
+]} />
+
 <Rechnen id="rechnen" typ="vorwiderstand,strom,vorwiderstand" anzahl={3} />
 
-<Quiz id="farbcode" titel="Quiz: Farbcode" fragen={[
-  { frage: 'Welchen Wert hat ein Widerstand mit den Ringen Braun-Schwarz-Rot-Gold?', richtig: '1 kΩ (1000 Ω)', falsch: ['102 Ω', '10 Ω'], erklaerung: 'Braun 1, Schwarz 0, Rot = zwei Nullen: 1 0 00.' },
-  { frage: 'Welche Farben hat ein 2,2-kΩ-Widerstand?', richtig: 'Rot-Rot-Rot', falsch: ['Rot-Rot-Braun', 'Rot-Rot-Orange'], erklaerung: '2, 2 und zwei Nullen: 2200 Ω.' },
-  { frage: 'Deine Rechnung ergibt 150 Ω. Du hast 120 Ω und 180 Ω. Welchen nimmst du?', richtig: '180 Ω', falsch: ['120 Ω', 'Egal'], erklaerung: 'Immer den nächstgrößeren Wert, sonst fließt zu viel Strom (Karte 4).' },
-]} />
 
 ## Strom messen
 
 Strom misst du **in Reihe**: Der Strom muss durch das Multimeter hindurchfließen.
 
-1. Batterie aus dem Halter nehmen.
-2. Das schwarze Kabel des Batteriehalters aus dem Steckbrett ziehen. Jetzt ist der Kreis offen.
-3. Multimeter auf **mA⎓** stellen, rote Leitung in **VΩmA** (bei manchen Geräten gibt es eine eigene mA-Buchse).
-4. Rote Spitze an das kurze Bein der LED (bzw. an die Spalte, in der es steckt), schwarze Spitze an das lose schwarze Kabel des Batteriehalters. Das Multimeter schließt jetzt den Kreis.
-5. Batterie einlegen. Die LED leuchtet, und das Multimeter zeigt den Strom.
-6. Miss danach mit V⎓ die Batteriespannung und die LED-Spannung wie in Mission 1.2. Den Widerstandswert kennst du vom Farbcode.
+<Checkliste id="strom" punkte={[
+  'Batterie aus dem Halter nehmen.',
+  'Das schwarze Kabel des Batteriehalters aus dem Steckbrett ziehen. Jetzt ist der Kreis offen.',
+  'Multimeter auf <strong>mA⎓</strong> stellen, rote Leitung in <strong>VΩmA</strong> (bei manchen Geräten gibt es eine eigene mA-Buchse).',
+  'Rote Spitze an das kurze Bein der LED (bzw. an die Spalte, in der es steckt), schwarze Spitze an das lose schwarze Kabel des Batteriehalters. Das Multimeter schließt jetzt den Kreis.',
+  'Batterie einlegen. Die LED leuchtet, und das Multimeter zeigt den Strom.',
+  'Miss danach mit V⎓ die Batteriespannung und die LED-Spannung wie in Mission 1.2. Den Widerstandswert kennst du vom Farbcode.',
+]} />
 
 <Hinweis art="sicherheit" titel="Nach dem Messen zurückstellen">
 Stell das Multimeter nach der Strommessung sofort wieder auf V⎓ und die rote Leitung zurück. Wer später im Strombereich eine Spannung misst, schließt die Batterie kurz.
