@@ -10,6 +10,7 @@ const { id, titel, art = 'Prüfung', hardware = false } = Astro.props;
   </div>
   <slot />
   <p class="meldung" data-kw-meldung role="status" aria-live="polite"></p>
+  <p class="skip"><button type="button" class="linkknopf klein" data-kw-skip>Hängt hier etwas? Prüfung überspringen</button></p>
 </section>
 <script>
   import '../scripts/station';

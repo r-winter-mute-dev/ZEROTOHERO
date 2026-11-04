@@ -1,5 +1,5 @@
 // Gemeinsame Logik für alle Prüfungs-Stationen auf einer Missionsseite.
-import { beiAenderung, checkBestanden, checkBestehen, fehlversuch, istFreigeschaltet, laden } from './engine';
+import { beiAenderung, checkBestanden, checkBestehen, checkUebersprungen, checkUeberspringen, fehlversuch, istFreigeschaltet, laden } from './engine';
 import { vorherige } from '../data/kampagne';
 
 export interface Station {
@@ -56,12 +56,19 @@ export function markieren(el: HTMLElement) {
   const s = station(el);
   const status = el.querySelector<HTMLElement>('[data-kw-status]');
   const ok = s.bestanden();
+  const geskippt = ok && checkUebersprungen(s.mid, s.cid);
   const skip = !ok && s.hardware && laden().ohneHardware;
+  const knopf = el.querySelector<HTMLButtonElement>('[data-kw-skip]');
+  if (knopf) {
+    knopf.hidden = ok || !s.darf();
+    if (knopf.hidden) { knopf.dataset.sicher = ''; knopf.textContent = 'Hängt hier etwas? Prüfung überspringen'; }
+  }
   el.classList.toggle('bestanden', ok);
   el.classList.toggle('uebersprungen', skip);
   el.classList.toggle('gesperrt', !ok && !s.darf());
   if (status) {
-    status.textContent = ok ? 'Bestanden'
+    status.textContent = geskippt ? 'Übersprungen'
+      : ok ? 'Bestanden'
       : skip ? 'Übersprungen (ohne Hardware)'
       : !s.darf() ? 'Gesperrt'
       : (status.dataset.art ?? 'Prüfung');
@@ -76,6 +83,21 @@ if (typeof window !== 'undefined') {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', alleMarkieren);
   else queueMicrotask(alleMarkieren);
   beiAenderung(alleMarkieren);
+  // Überspringen in zwei Schritten, damit niemand aus Versehen tippt.
+  document.addEventListener('click', (e) => {
+    const knopf = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-kw-skip]');
+    if (!knopf) return;
+    const el = knopf.closest<HTMLElement>('[data-kw-check]')!;
+    const s = station(el);
+    if (s.gesperrt()) return;
+    if (knopf.dataset.sicher !== '1') {
+      knopf.dataset.sicher = '1';
+      knopf.textContent = 'Wirklich überspringen? Noch einmal tippen.';
+      return;
+    }
+    checkUeberspringen(s.mid, s.cid);
+    s.melden('Übersprungen. Die Mission zählt dann als „im Simulator geschafft“. Du kannst die Prüfung jederzeit nachholen.', 'warnung');
+  });
 }
 
 export function mischen<T>(a: T[]): T[] {

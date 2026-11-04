@@ -136,3 +136,9 @@ html[data-fokus='an'] .pfad { display: none; }
 .checkliste li { display: flex; gap: 0.7rem; align-items: flex-start; padding: 0.35rem 0; }
 .checkliste input { width: 1.15rem; height: 1.15rem; margin-top: 0.25rem; accent-color: var(--gut); flex: none; }
 .checkliste li.erledigt span { color: var(--leise); text-decoration: line-through; text-decoration-color: var(--leise-dunkel); }
+/* Überspringen-Knopf in Prüfungen (Testhilfe) */
+.station .skip { margin: 0.6rem 0 0; text-align: right; }
+.station .skip button { font: inherit; font-size: 0.85rem; color: var(--leise); background: none; border: 0; padding: 0.4rem 0; text-decoration: underline; cursor: pointer; }
+.station .skip button:hover, .station .skip button:focus-visible { color: var(--akzent-hell); }
+.station .skip button[data-sicher="1"] { color: var(--warnung); }
+.station .skip:has(button[hidden]) { display: none; }
