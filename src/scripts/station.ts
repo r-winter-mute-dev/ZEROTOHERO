@@ -1,5 +1,5 @@
 // Gemeinsame Logik für alle Prüfungs-Stationen auf einer Missionsseite.
-import { beiAenderung, checkBestanden, checkBestehen, checkUebersprungen, checkUeberspringen, fehlversuch, istFreigeschaltet, laden } from './engine';
+import { beiAenderung, checkBestanden, checkBestehen, checkUebersprungen, checkUeberspringen, fehlversuch, istFreigeschaltet, laden, setOhneHardware } from './engine';
 import { vorherige } from '../data/kampagne';
 
 export interface Station {
@@ -58,6 +58,8 @@ export function markieren(el: HTMLElement) {
   const ok = s.bestanden();
   const geskippt = ok && checkUebersprungen(s.mid, s.cid);
   const skip = !ok && s.hardware && laden().ohneHardware;
+  const ohneHw = el.querySelector<HTMLButtonElement>('[data-kw-ohne-hw]');
+  if (ohneHw) ohneHw.hidden = ok || laden().ohneHardware || !s.darf();
   const knopf = el.querySelector<HTMLButtonElement>('[data-kw-skip]');
   if (knopf) {
     knopf.hidden = ok || !s.darf();
@@ -85,6 +87,11 @@ if (typeof window !== 'undefined') {
   beiAenderung(alleMarkieren);
   // Überspringen in zwei Schritten, damit niemand aus Versehen tippt.
   document.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('[data-kw-ohne-hw]')) {
+      setOhneHardware(true);
+      document.querySelectorAll<HTMLInputElement>('[data-kw-ohne-hardware]').forEach((i) => (i.checked = true));
+      return;
+    }
     const knopf = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-kw-skip]');
     if (!knopf) return;
     const el = knopf.closest<HTMLElement>('[data-kw-check]')!;

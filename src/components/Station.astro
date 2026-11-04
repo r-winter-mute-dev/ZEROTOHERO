@@ -10,6 +10,7 @@ const { id, titel, art = 'Prüfung', hardware = false } = Astro.props;
   </div>
   <slot />
   <p class="meldung" data-kw-meldung role="status" aria-live="polite"></p>
+  {hardware && <p class="ohne-hw"><button type="button" class="knopf zweit" data-kw-ohne-hw>Keine Hardware zur Hand? Ohne Hardware weitermachen</button></p>}
   <p class="skip"><button type="button" class="linkknopf klein" data-kw-skip>Hängt hier etwas? Prüfung überspringen</button></p>
 </section>
 <script>

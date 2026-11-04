@@ -264,7 +264,8 @@ const spick: { t: string; v: string }[] = fm.spick ?? [];
     if (!letzt) weiterK.textContent = `Weiter: ${schritte[jetzt + 1].name}`;
     const geschafft = s.checks.length > 0 && fertig(s);
     weiterK.classList.toggle('bereit', geschafft);
-    lob.textContent = geschafft ? 'Geschafft.' : '';
+    const nOffen = offeneChecks().length;
+    lob.textContent = geschafft ? (nOffen && !istFertig(meta.id) ? `Geschafft. Noch ${nOffen} ${nOffen === 1 ? 'Prüfung' : 'Prüfungen'} offen.` : 'Geschafft.') : '';
     offenAktualisieren();
   }
 
@@ -310,7 +311,10 @@ const spick: { t: string; v: string }[] = fm.spick ?? [];
   function offenAktualisieren() {
     const liste = offeneChecks();
     const amEnde = leiste.hidden || jetzt === schritte.length - 1;
-    offen.hidden = istFertig(meta.id) || !liste.length || !amEnde || !istFreigeschaltet(meta.id);
+    // Auch mitten in der Mission zeigen, sobald der aktuelle Schritt geschafft ist oder nur noch Hardware fehlt.
+    const schrittGeschafft = !leiste.hidden && schritte[jetzt].checks.length > 0 && fertig(schritte[jetzt]);
+    const nurHardware = liste.length > 0 && liste.every((c) => c.hardware);
+    offen.hidden = istFertig(meta.id) || !liste.length || !(amEnde || schrittGeschafft || nurHardware) || !istFreigeschaltet(meta.id);
     if (offen.hidden) return;
     offenListe.innerHTML = '';
     for (const c of liste) {
