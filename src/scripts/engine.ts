@@ -12,7 +12,7 @@ export interface Zustand {
   v: 1;
   ohneHardware: boolean;
   missionen: Record<string, { status: Status; xp: number; am: string }>;
-  checks: Record<string, Record<string, { ok: true; ersterVersuch: boolean }>>;
+  checks: Record<string, Record<string, { ok: true; ersterVersuch: boolean; uebersprungen?: boolean }>>;
   fehlversuche: Record<string, number>;
   abzeichen: string[];
 }
@@ -69,11 +69,25 @@ export function fehlversuch(mid: string, cid: string) {
   speichern(z);
 }
 
+/** Testhilfe: Prüfung ohne Lösen als erledigt markieren. Die Mission zählt dann als „im Simulator geschafft“. */
+export function checkUeberspringen(mid: string, cid: string) {
+  const z = laden();
+  z.checks[mid] = z.checks[mid] || {};
+  if (!z.checks[mid][cid]) z.checks[mid][cid] = { ok: true, ersterVersuch: false, uebersprungen: true };
+  speichern(z);
+  auswerten(mid);
+}
+
+export function checkUebersprungen(mid: string, cid: string): boolean {
+  return !!laden().checks[mid]?.[cid]?.uebersprungen;
+}
+
 export function checkBestehen(mid: string, cid: string) {
   const z = laden();
   const k = `${mid}/${cid}`;
   z.checks[mid] = z.checks[mid] || {};
-  if (!z.checks[mid][cid]) z.checks[mid][cid] = { ok: true, ersterVersuch: !z.fehlversuche[k] };
+  const alt = z.checks[mid][cid];
+  if (!alt || alt.uebersprungen) z.checks[mid][cid] = { ok: true, ersterVersuch: !alt && !z.fehlversuche[k] };
   speichern(z);
   auswerten(mid);
 }
@@ -95,7 +109,8 @@ function auswerten(mid: string) {
   const ohneHw = meta.checks.filter((c) => !c.hardware).every(ok) && z.ohneHardware;
   if (!alle && !ohneHw) return;
 
-  const status: Status = alle ? 'real' : 'simuliert';
+  const geschummelt = meta.checks.some((c) => z.checks[mid]?.[c.id]?.uebersprungen);
+  const status: Status = alle && !geschummelt ? 'real' : 'simuliert';
   const vorher = z.missionen[mid];
   if (vorher && (vorher.status === 'real' || status === 'simuliert')) return;
 

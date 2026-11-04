@@ -92,6 +92,16 @@ const spick: { t: string; v: string }[] = fm.spick ?? [];
     )}
     </div>
 
+    <section class="offen" data-kw-offen hidden>
+      <h2>Noch offen</h2>
+      <p class="leise klein">Die Mission ist geschafft, sobald diese Prüfungen erledigt sind.</p>
+      <ul data-offen-liste></ul>
+      <p class="leise klein">Hängt etwas oder willst du nur weiter testen? Übersprungene Missionen zählen als „im Simulator geschafft“ und lassen sich jederzeit nachholen.</p>
+      <div class="offen-knoepfe">
+        <button type="button" class="knopf zweit" data-offen-hw hidden>Ich habe die Hardware nicht</button>
+        <button type="button" class="knopf zweit" data-offen-alle>Ganze Mission überspringen</button>
+      </div>
+    </section>
     <section class="belohnung" data-kw-belohnung hidden aria-live="polite">
       <h2 data-bel-titel>Mission geschafft</h2>
       <p data-bel-text></p>
@@ -145,7 +155,7 @@ const spick: { t: string; v: string }[] = fm.spick ?? [];
 
   // ---------- Schritt für Schritt ----------
   import { einstellungen, letzterSchritt, schrittMerken, wenigBewegung } from '../../scripts/einstellungen';
-  import { checkBestanden } from '../../scripts/engine';
+  import { checkBestanden, checkUeberspringen } from '../../scripts/engine';
 
   const inhalt = document.querySelector<HTMLElement>('[data-kw-inhalt]')!;
   const leiste = document.querySelector<HTMLElement>('[data-kw-schrittleiste]')!;
@@ -255,6 +265,7 @@ const spick: { t: string; v: string }[] = fm.spick ?? [];
     const geschafft = s.checks.length > 0 && fertig(s);
     weiterK.classList.toggle('bereit', geschafft);
     lob.textContent = geschafft ? 'Geschafft.' : '';
+    offenAktualisieren();
   }
 
   function zeige(i: number, scrollen: boolean) {
@@ -283,7 +294,49 @@ const spick: { t: string; v: string }[] = fm.spick ?? [];
       schritte.forEach((s) => (s.el.hidden = false));
       wieder.hidden = true;
     }
+    offenAktualisieren();
   }
+
+  // ---------- Was fehlt noch? ----------
+  const offen = document.querySelector<HTMLElement>('[data-kw-offen]')!;
+  const offenListe = offen.querySelector<HTMLElement>('[data-offen-liste]')!;
+  const offenAlle = offen.querySelector<HTMLButtonElement>('[data-offen-alle]')!;
+  const offenHw = offen.querySelector<HTMLButtonElement>('[data-offen-hw]')!;
+  offenHw.addEventListener('click', () => { setOhneHardware(true); if (hw) hw.checked = true; });
+  function offeneChecks() {
+    const z = laden();
+    return (meta.checks as { id: string; hardware?: boolean }[]).filter((c) => !checkBestanden(meta.id, c.id) && !(c.hardware && z.ohneHardware));
+  }
+  function offenAktualisieren() {
+    const liste = offeneChecks();
+    const amEnde = leiste.hidden || jetzt === schritte.length - 1;
+    offen.hidden = istFertig(meta.id) || !liste.length || !amEnde || !istFreigeschaltet(meta.id);
+    if (offen.hidden) return;
+    offenListe.innerHTML = '';
+    for (const c of liste) {
+      const st = document.querySelector<HTMLElement>(`[data-kw-check="${c.id}"]`);
+      const li = document.createElement('li');
+      const name = st?.querySelector('h3')?.textContent?.trim() || c.id;
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'linkknopf';
+      b.textContent = name + (c.hardware ? ' (mit Hardware)' : '');
+      b.addEventListener('click', () => {
+        const i = schritte.findIndex((x) => x.checks.includes(c.id));
+        if (!leiste.hidden && i >= 0) zeige(i, false);
+        st?.scrollIntoView({ behavior: wenigBewegung() ? 'auto' : 'smooth', block: 'start' });
+      });
+      li.append(b);
+      offenListe.append(li);
+    }
+    offenHw.hidden = !liste.some((c) => c.hardware);
+    offenAlle.dataset.sicher = '';
+    offenAlle.textContent = 'Ganze Mission überspringen';
+  }
+  offenAlle.addEventListener('click', () => {
+    if (offenAlle.dataset.sicher !== '1') { offenAlle.dataset.sicher = '1'; offenAlle.textContent = 'Wirklich? Noch einmal tippen.'; return; }
+    for (const c of offeneChecks()) checkUeberspringen(meta.id, c.id);
+  });
+  beiAenderung(offenAktualisieren);
 
   weiterK.addEventListener('click', () => zeige(jetzt + 1, true));
   zurueckK.addEventListener('click', () => zeige(jetzt - 1, true));
@@ -309,6 +362,12 @@ const spick: { t: string; v: string }[] = fm.spick ?? [];
   .hw-schalter input { margin-top: 0.3rem; width: 1.1rem; height: 1.1rem; accent-color: var(--akzent); flex: none; }
   .inhalt :global(h2:first-child) { margin-top: 0.5rem; }
   .entwurf { border: 1px dashed var(--leise-dunkel); border-radius: var(--radius); padding: 1rem 1.2rem; }
+  .offen { max-width: var(--breite); margin: 2rem 0 1rem; padding: 1.2rem 1.5rem; border-radius: var(--radius); background: var(--flaeche); border: 2px dashed var(--warnung); }
+  .offen h2 { margin-top: 0; }
+  .offen ul { margin: 0.6rem 0 1rem; }
+  .offen li { margin: 0.3rem 0; }
+  .offen :global(li button) { font: inherit; color: var(--akzent-hell); background: none; border: 0; padding: 0.2rem 0; text-align: left; text-decoration: underline; cursor: pointer; }
+  .offen-knoepfe { display: flex; gap: 0.6rem; flex-wrap: wrap; }
   .belohnung { max-width: var(--breite); margin: 2.5rem 0 1rem; padding: 1.4rem 1.5rem; border-radius: var(--radius); background: var(--flaeche); border: 2px solid var(--akzent); }
   .belohnung h2 { margin-top: 0; }
   .belohnung.frisch { animation: aufleuchten 1.2s ease-out; }
