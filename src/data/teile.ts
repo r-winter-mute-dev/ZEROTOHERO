@@ -53,7 +53,8 @@ export const TEILE: Record<number, Teil[]> = {
     { teil: 'Steckbrücke', zweck: 'Brücke über das Multimeter (Mission 6.5)', produkt: 'Kein neuer Kauf: aus dem Set aus Akt 0' },
   ],
   7: [
-    { teil: 'MOSFETs und Dioden', zweck: 'Selbsthalteschaltung', hinweis: 'Wird nach der Messung am Prototyp festgelegt.' },
+    { teil: 'Schaltmodul mit Selbsthaltung', zweck: 'Trennt die Klingel im Ruhezustand ganz vom Akku (Mission 7.2)', produkt: 'Pololu Mini Pushbutton Power Switch LV (Artikel 2808)', url: 'https://www.pololu.com/product/2808', hinweis: 'Bei Roboter-Bausatz.de nicht gefunden (Stand November 2026). Der Link führt zur Herstellerseite, dort stehen Händler in Deutschland. Wichtig ist die LV-Version: Nur sie arbeitet ab 2,2 V und damit an einer Li-Ion-Zelle. Die Stiftleisten lötest du selbst an (Mission 5.3).' },
+    { teil: 'Widerstand 10 kΩ', zweck: 'Hält OFF beim Einschalten sicher auf LOW', produkt: 'Kein neuer Kauf: aus dem Widerstandssortiment aus Akt 1' },
   ],
   8: [
     { teil: 'Übungsplatine zum Löten', zweck: 'Löten lernen', produkt: 'Bausatz Übungsplatine zum Löten', url: `${RB}/p/bausatz-uebungsplatine-zum-loeten` },

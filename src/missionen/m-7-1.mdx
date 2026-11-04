@@ -1,0 +1,75 @@
+---
+id: m-7-1
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: k4
+  - id: trainer
+spick:
+  - t: "MOSFET"
+    v: "Schalter, den eine Spannung am Gate steuert, fast ohne Strom"
+  - t: "N-Kanal"
+    v: "Schaltet GND (Low-Side), Gate über Source = an"
+  - t: "P-Kanal"
+    v: "Schaltet Plus (High-Side), Gate unter Source = an"
+  - t: "U_GS(th)"
+    v: "Schwelle, ab der der Kanal anfängt zu leiten"
+  - t: "R_DS(on)"
+    v: "Widerstand im eingeschalteten Zustand, je kleiner, desto kühler"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Mosfet from '../components/Mosfet.astro';
+import TeileListe from '../components/TeileListe.astro';
+
+In Mission 6.5 hast du gesehen: Auch im Tiefschlaf zieht das Board Milliampere. Das Problem ist nicht der Chip, sondern alles drumherum. Die Lösung klingt einfach: Strom ganz weg, solange niemand klingelt. Dafür braucht es einen Schalter, den die Elektronik selbst bedienen kann. **Deine Mission: Lerne den MOSFET kennen, den Schalter ohne bewegliche Teile, und schalte im Trainer eine Klingel ein und aus.** Für diese Mission brauchst du keine Hardware.
+
+<TeileListe akte={[7]} />
+
+## Theorie
+
+<Karte nr={1} titel="Ein Schalter, den eine Spannung bedient">
+Aus Mission 4.5 kennst du den Transistor, der den Blitz schaltet. Er braucht einen kleinen Strom an der Basis. Ein **MOSFET** funktioniert anders: Sein Steueranschluss, das **Gate**, ist durch eine hauchdünne Isolierschicht vom Rest getrennt. Eine Spannung am Gate öffnet oder schließt den Weg zwischen den beiden anderen Anschlüssen, **Source** und **Drain**. Im Ruhezustand fließt ins Gate praktisch kein Strom. Genau das brauchst du für eine Klingel, die monatelang wartet.
+</Karte>
+
+<Merke>Ein MOSFET schaltet mit einer Spannung am Gate. Ins Gate fließt fast kein Strom.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: MOSFET" fragen={[
+  { frage: 'Warum ist ein MOSFET für eine Akku-Klingel besonders gut geeignet?', richtig: 'Sein Gate braucht im Ruhezustand fast keinen Strom.', falsch: ['Er ist größer als ein normaler Transistor.', 'Er lädt den Akku nebenbei.'], erklaerung: 'Das Gate ist isoliert. Eine Spannung reicht, ein dauernder Strom ist nicht nötig.' },
+]} />
+
+<Karte nr={2} titel="Plus schalten oder Minus schalten">
+Es gibt zwei Sorten. Ein **N-Kanal-MOSFET** sitzt meist zwischen Verbraucher und GND und schaltet die Minusleitung (Low-Side). Ein **P-Kanal-MOSFET** sitzt zwischen Plus und Verbraucher und schaltet die Plusleitung (High-Side). Für die Klingel ist High-Side besser: GND bleibt immer verbunden. Erinnerst du dich an Mission 1.2? Fehlt die gemeinsame Masse, verstehen sich die Bauteile nicht mehr. Ein abgeschaltetes GND könnte über den Teiler oder den Taster seltsame Umwege suchen.
+</Karte>
+
+<Merke>N-Kanal schaltet GND, P-Kanal schaltet Plus. Für die Klingel: Plus schalten, GND bleibt.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: High-Side" fragen={[
+  { frage: 'Welche Leitung soll der Schalter der Klingel trennen?', richtig: 'Die Plusleitung, damit GND für alle Teile verbunden bleibt', falsch: ['Die GND-Leitung, das ist immer einfacher', 'Beide gleichzeitig'], erklaerung: 'High-Side-Schalter lassen die gemeinsame Masse in Ruhe.' },
+]} />
+
+<Karte nr={3} titel="Wann ein P-Kanal-MOSFET leitet">
+Beim P-Kanal-MOSFET zählt die Spannung zwischen Gate und Source, **U<sub>GS</sub>**. Die Source hängt am Akku, zum Beispiel 3,7 V. Liegt das Gate auch auf 3,7 V, ist U<sub>GS</sub> = 0 V, und der MOSFET sperrt. Zieht man das Gate auf GND, ist U<sub>GS</sub> = −3,7 V, und er leitet. Ab welcher Spannung er anfängt zu leiten, steht im Datenblatt als **U<sub>GS(th)</sub>** (threshold, Schwelle). Für eine einzelne Li-Ion-Zelle braucht man einen Typ, der schon bei wenigen Volt ganz durchschaltet. Solche Typen heißen oft „Logic Level“.
+</Karte>
+
+<Merke>P-Kanal: Gate an Plus = aus, Gate an GND = an. Die Schwelle steht im Datenblatt.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Gate" fragen={[
+  { frage: 'Source liegt auf 3,7 V, das Gate auch. Was macht der P-Kanal-MOSFET?', richtig: 'Er sperrt, weil U_GS = 0 V ist.', falsch: ['Er leitet voll.', 'Er geht kaputt.'], erklaerung: 'Ein P-Kanal-MOSFET braucht ein Gate deutlich unter der Source-Spannung.' },
+]} />
+
+<Karte nr={4} titel="Ganz an oder ganz aus">
+Voll eingeschaltet hat der Kanal nur einen winzigen Widerstand, den **R<sub>DS(on)</sub>**, oft nur einige Milliohm. Dann wird der MOSFET kaum warm. Gefährlich ist der Bereich dazwischen: Halb offen fällt eine große Spannung an ihm ab, während Strom fließt. Nach P = U × I aus Mission 1.6 wird er dann heiß. Ein Schalter soll deshalb schnell und vollständig schalten.
+</Karte>
+
+<Merke>Ganz an: kühl. Ganz aus: kein Strom. Halb an: heiß.</Merke>
+
+<Quiz id="k4" titel="Kurzcheck: Halb offen" fragen={[
+  { frage: 'Ein halb offener MOSFET lässt 70 mA durch, an ihm fallen 2 V ab. Wie viel Wärme entsteht?', richtig: '0,14 W', falsch: ['0,035 W', '2,07 W'], erklaerung: 'P = U × I = 2 V × 0,07 A = 0,14 W. Für ein kleines Bauteil ist das schon viel.' },
+]} />
+
+## Trainer
+
+<Mosfet id="trainer" titel="Trainer: P-Kanal-MOSFET als Schalter" />

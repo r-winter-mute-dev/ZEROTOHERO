@@ -1,0 +1,90 @@
+---
+id: m-7-4
+abzeichen: Null-Ampere
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: ruhestrom
+    hardware: true
+  - id: vergleich
+    hardware: true
+  - id: rechnen
+spick:
+  - t: "Ziel"
+    v: "Mindestens 100-mal weniger als in Mission 6.5"
+  - t: "Messbereich"
+    v: "µA, mit Brücke, solange die Klingel wach ist"
+  - t: "Was noch zieht"
+    v: "Schutzchip, Lademodul, Schaltmodul: zusammen wenige µA"
+  - t: "1 mA"
+    v: "= 1000 µA"
+  - t: "Selbstentladung"
+    v: "Herstellerangaben: etwa 1 bis 5 % pro Monat"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Rechnen from '../components/Rechnen.astro';
+import Zahl from '../components/Zahl.astro';
+import Protokoll from '../components/Protokoll.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+
+In Mission 6.5 kam die Enttäuschung: Milliampere im Schlaf. Jetzt ist die Klingel zwischen zwei Klingeln wirklich aus. Wie viel bleibt übrig? **Deine Mission: Miss den Ruhestrom von Klingel v4 und beweise, dass er mindestens 100-mal kleiner ist als vorher.**
+
+## Theorie
+
+<Karte nr={1} titel="Was jetzt noch zieht">
+Vor dem Schaltmodul hängen nur noch Akku und Lademodul. Der Schutzchip DW01 zieht laut Datenblatt typisch 3 µA [Fachquelle: Fortune Semiconductor, DW01A-Datenblatt]. Der Ladechip TP4056 zieht aus dem Akku nur wenige µA, solange kein Netzteil steckt [Fachquelle: TP4056-Datenblatt]. Das Schaltmodul selbst kommt laut Hersteller ausgeschaltet auf etwa 0,01 µA [Fachquelle: Pololu, Produktseite 2808]. Zusammen sind das einige Mikroampere statt einiger Milliampere.
+</Karte>
+
+<Merke>Übrig bleiben Schutzchip, Lademodul und Schaltmodul. Zusammen wenige µA.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Was bleibt" fragen={[
+  { frage: 'Warum zieht die ESP32-CAM jetzt im Ruhezustand gar nichts mehr?', richtig: 'Sie hängt hinter dem Schaltmodul und ist ganz vom Akku getrennt.', falsch: ['Weil sie tiefer schläft als vorher', 'Weil der Wandler sie abschaltet'], erklaerung: 'Ohne Versorgung kein Strom. Das ist der Unterschied zwischen schlafen und aus.' },
+]} />
+
+<Karte nr={2} titel="Kleine Ströme messen">
+Für wenige µA brauchst du den **µA-Bereich**. Er hat den größten Innenwiderstand (Mission 6.2), aber bei so kleinen Strömen fällt daran kaum Spannung ab. Gefährlich wird es nur, wenn die Klingel aufwacht. Deshalb wieder: **Brücke drauf**, solange sie wach ist, Brücke ab zum Ablesen. Diesmal misst du zwischen OUT+ des Lademoduls und VIN des Schaltmoduls.
+</Karte>
+
+<Merke>µA-Bereich, Brücke drauf beim Klingeln, ab zum Ablesen.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: µA-Bereich" fragen={[
+  { frage: 'Im µA-Bereich hat dein Multimeter 100 Ω Innenwiderstand. Wie viel Spannung fällt bei 5 µA ab?', richtig: '0,5 mV, also so gut wie nichts', falsch: ['0,5 V', '5 V'], erklaerung: 'U = 100 Ω × 0,000005 A = 0,0005 V. Bei kleinen Strömen stört die Bürdenspannung kaum.' },
+]} />
+
+<Karte nr={3} titel="Jetzt zählt der Akku selbst">
+Eine Li-Ion-Zelle verliert auch ganz ohne Verbraucher langsam Ladung. Das heißt **Selbstentladung**. Herstellerangaben liegen meist bei 1 bis 5 % pro Monat. Sie hängt stark von Temperatur und Ladestand ab, das zeigen auch Messreihen an 18650-Zellen [Zilberman et al. 2019, Peer-Review]. 2 % von 2900 mAh sind 58 mAh pro Monat. Das entspricht einem Dauerstrom von rund 80 µA. Deine Klingel zieht jetzt vermutlich weniger als die Zelle von sich aus verliert.
+</Karte>
+
+<Merke>Ab jetzt verliert die Zelle von selbst oft mehr als die Klingel verbraucht.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Selbstentladung" fragen={[
+  { frage: 'Die Klingel zieht aus 5 µA. Was begrenzt jetzt vor allem die Laufzeit?', richtig: 'Die Selbstentladung der Zelle und das Klingeln selbst', falsch: ['Der Ruhestrom der Klingel', 'Die Kamera'], erklaerung: '5 µA sind 3,6 mAh im Monat. Die Selbstentladung ist meist größer, und auch das Klingeln (Mission 6.1) kostet mehr.' },
+]} />
+
+## Messen
+
+<Checkliste id="messen" punkte={[
+  'Akku heraus. Die Verbindung von <strong>OUT+</strong> des Lademoduls zu <strong>VIN</strong> des Schaltmoduls auftrennen und das Multimeter dazwischensetzen.',
+  'Die Brücke von der roten zur schwarzen Messspitze stecken wie in Mission 6.5.',
+  'Multimeter auf den <strong>µA-Bereich</strong> (oder den kleinsten mA-Bereich), rote Leitung in die passende Buchse. Akku einlegen.',
+  'Klingeln. Warten, bis das Foto da ist und die LED am Modul aus ist.',
+  'Brücke abziehen, einige Sekunden warten, bis sich die Anzeige beruhigt, und ablesen.',
+  'Brücke wieder stecken. Akku heraus, Multimeter zurück auf V⎓, Verbindung wiederherstellen.',
+]} />
+
+<Zahl id="ruhestrom" titel="Messwert: Die ausgeschaltete Klingel" frage="Welchen Strom zieht die Klingel, wenn sie aus ist?" einheit="µA" min={0.5} max={60} vorlaeufig hardware hilfe={[
+  { unter: 0.5, text: 'Weniger als der Schutzchip allein. Hängt das Multimeter wirklich vor dem Schaltmodul? Steht es im µA-Bereich?' },
+  { ueber: 60, text: 'Noch zu viel. Hängt noch etwas vor dem Schaltmodul, zum Beispiel der Teiler? Oder ist das Modul gar nicht aus (LED an)?' },
+]} />
+
+<Protokoll id="vergleich" titel="Messprotokoll: Vorher und nachher" typ="vergleich" />
+
+<Rechnen id="rechnen" typ="budget,standby" anzahl={2} titel="Rechenaufgaben: Die neue Laufzeit" />
+
+<Hinweis titel="Gold-Stufe erreicht">
+Die Klingel ist fertig verdrahtet. In Akt 8 kommt alles auf eine Lochrasterplatine und in ein Gehäuse, damit sie an der Tür hängen kann.
+</Hinweis>

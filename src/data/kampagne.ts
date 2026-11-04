@@ -127,10 +127,10 @@ export const KAMPAGNE: Akt[] = [
     nr: 7, titel: 'Der Schalter', teil: 'schalter', teilName: 'Schalter (MOSFET)',
     ziel: 'Ruhestrom fast null (Gold-Stufe).',
     missionen: [
-      m('m-7-1', '7.1', 'MOSFET', 'Mit einem MOSFET eine LED schalten.', 'N- und P-Kanal, Gate-Schwelle', 'Simulator und Messung'),
-      m('m-7-2', '7.2', 'Selbsthaltung', 'Der Knopf schaltet ein, der ESP32 hält sich selbst an.', 'Selbsthalteschaltung', 'Simulator-Aufgabe'),
-      m('m-7-3', '7.3', 'Firmware', 'Halten, Foto, senden, aus.', 'Ablauf und Fehlerfälle', 'Chat-Nachweis'),
-      m('m-7-4', '7.4', 'Null-Ampere', 'Den Ruhestrom erneut messen.', 'Leckströme', 'Ruhestrom 100-mal kleiner als in 6.5'),
+      m('m-7-1', '7.1', 'MOSFET', 'Den Schalter ohne bewegliche Teile verstehen.', 'N- und P-Kanal, U_GS, Schwelle, R_DS(on)', 'Trainer', { bereit: true }),
+      m('m-7-2', '7.2', 'Selbsthaltung', 'Der Knopf schaltet ein, das Schaltmodul hält, die Klingel schaltet sich selbst aus.', 'Selbsthalteschaltung, Pololu-Schaltmodul, was hinter den Schalter gehört', 'Trainer und Einbau', { bereit: true }),
+      m('m-7-3', '7.3', 'Firmware', 'Klingel v4: messen, Foto, senden, aus.', 'Ablauf, Ausschalten, Zeitgrenze, Fehlerfälle', 'Nachweis aus dem Chat', { bereit: true }),
+      m('m-7-4', '7.4', 'Null-Ampere', 'Den Ruhestrom erneut messen und mit Mission 6.5 vergleichen.', 'Kleine Ströme messen, Selbstentladung', 'Ruhestrom mindestens 100-mal kleiner als in 6.5', { bereit: true }),
     ],
   },
   {

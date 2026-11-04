@@ -9,7 +9,7 @@ Ein Ordner pro Akt, darin ein Arduino-Sketch pro Mission. Jeder Sketch ist für 
 | `akt-4-auge/` | 4 | 5 Sketches für den ESP32-CAM (Board „AI Thinker ESP32-CAM“): PSRAM-Test, erstes Foto, Foto senden, Blitz mit PWM, Klingel v1 als Zustandsautomat |
 | `akt-5-herz/` | 5 | 1 Sketch: Belastungstest am Akku, das Ergebnis kommt als Nachricht in den Chat |
 | `akt-6-schlaf/` | 6 | 2 Sketches: Klingel v2 mit Tiefschlaf und Klingelknopf an GPIO 13, Klingel v3 mit Akkustand über einen Teiler an GPIO 14 |
-| `akt-7-schalter/` | 7 | folgt: Selbsthalteschaltung |
+| `akt-7-schalter/` | 7 | 1 Sketch: Klingel v4, schaltet sich über das Schaltmodul (OFF an GPIO 13) selbst aus |
 
 **Pins ESP32-CAM (Akt 4):** Blitz-LED an GPIO 4 (über Transistor), rote LED an GPIO 33 (LOW = an), Kamerapins laut AI-Thinker-Schaltplan. Als Klingelknopf dient in Akt 4 die Reset-Taste.
 
