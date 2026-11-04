@@ -1,123 +1,79 @@
 # Klingelwerk
 
-Ein kostenloser, interaktiver Elektronik-Kurs. Lernende fangen bei null an und bauen Mission für Mission eine smarte Türklingel: Ein ESP32-CAM mit 18650-Akku wacht auf Knopfdruck aus dem Tiefschlaf auf, macht ein Foto und schickt es an Telegram oder Discord.
+**Elektronik lernen, indem du eine smarte Türklingel baust.**
 
-Die Seite ist komplett statisch. Es gibt keinen Server, keine Anmeldung und keine Cookies. Der Fortschritt bleibt im Browser (localStorage) und lässt sich als Code exportieren.
+Klingelwerk ist ein kostenloser, interaktiver Kurs für alle, die bei null anfangen. Du lernst nicht erst Theorie und baust dann irgendwann etwas. Du baust von Anfang an an einem echten Gerät, und jedes Thema kommt genau dann, wenn die Klingel es braucht.
+
+**[Zum Kurs](https://DEIN-NAME.github.io/klingelwerk/)**
+
+## Das Ziel
+
+Am Ende hängt an deiner Tür eine selbst gebaute Klingel: Ein ESP32-CAM mit 18650-Akku wacht auf Knopfdruck aus dem Tiefschlaf auf, macht ein Foto und schickt es an Telegram oder Discord. Sie läuft ohne Kabel.
+
+Der Weg dorthin beginnt mit einer einzelnen LED.
+
+## So funktioniert der Kurs
+
+- **Neun Akte, neun Teile.** Jeder Akt baut ein Teil der Klingel: Knopf, Gehirn, Stimme, Auge, Herz und so weiter. Auf der Startseite füllt sich die Klingel Teil für Teil.
+- **Kurze Missionen mit Prüfung.** Jede Mission endet mit einem Quiz, einer Rechenaufgabe, einer Übung im Simulator oder einem echten Messwert von deinem Aufbau.
+- **Bosskämpfe.** Am Ende eines Akts wartet eine Fehlersuche: Eine Schaltung funktioniert nicht, und du findest mit dem Multimeter heraus, warum.
+- **Auch ohne Hardware.** Wer die Bauteile noch nicht hat, kommt im Simulator weiter. Die echten Prüfungen lassen sich später nachholen.
+- **Keine Anmeldung, kein Tracking.** Der Fortschritt bleibt in deinem Browser und lässt sich als Code sichern oder auf ein anderes Gerät übertragen.
+
+## Lehrplan
+
+| Akt | Teil | Du lernst |
+| --- | --- | --- |
+| 0 | Grundplatte | Sicherheit, Steckbrett, Multimeter |
+| 1 | Knopf | Stromkreis, Spannung, Strom, Masse, Ohmsches Gesetz, Reihe und parallel, Spannungsteiler, Leistung, Taster. Ergebnis: Klingel v0, die summt |
+| 2 | Gehirn | Mikrocontroller (ESP32), erste Programme, Eingänge, Entprellen |
+| 3 | Stimme | WLAN, HTTP und APIs, Verschlüsselung, Nachricht an Discord oder Telegram |
+| 4 | Auge | Kamera, Bilddaten, Foto verschicken, Transistor als Schalter |
+| 5 | Herz | Li-Ion-Akku, Laden, Spannungswandler, Kondensatoren |
+| 6 | Schlaf | Energiebudget, Strom messen, Tiefschlaf, Akkustand |
+| 7 | Schalter | MOSFET, Selbsthalteschaltung, Ruhestrom fast null |
+| 8 | Gehäuse | Löten, Lochraster, Gehäuse, Montage |
 
 ## Stand
 
 | Bereich | Stand |
 | --- | --- |
-| Spiel-Engine (XP, Level, Freischaltung, Abzeichen, Export/Import, Modus ohne Hardware) | fertig |
-| Startseite mit Klingel, die sich füllt, und Kampagnenkarte | fertig |
-| Akt 0 – Basislager (4 Missionen) | fertig |
-| Akt 1 – Der Knopf (8 Missionen + Bosskampf) | fertig |
-| Akt 2–8 (43 Missionen) | als geplante Missionen auf der Karte, Inhalte folgen |
+| Akt 0 und Akt 1 | spielbar |
+| Akt 2 bis 8 | in Arbeit, die geplanten Missionen sind auf der Karte sichtbar |
 
-## Auf GitHub Pages veröffentlichen
+## Was du brauchst
 
-1. Neues Repository auf GitHub anlegen, zum Beispiel `klingelwerk`.
-2. Alle Dateien dieses Ordners hochladen (ohne `node_modules` und `dist`) und auf den Branch `main` pushen:
-   ```bash
-   git init
-   git add .
-   git commit -m "Klingelwerk: erste Version"
-   git branch -M main
-   git remote add origin https://github.com/r-winter-mute-dev/klingelwerk.git
-   git push -u origin main
-   ```
-3. Im Repository: **Settings → Pages → Build and deployment → Source: GitHub Actions** wählen.
-4. Unter **Actions** läuft jetzt „Seite auf GitHub Pages veröffentlichen“. Nach etwa einer Minute ist die Seite erreichbar unter `https://DEIN-NAME.github.io/klingelwerk/`.
+Für Akt 0 und 1 reicht ein kleines Einsteigerset: Steckbrett, Multimeter, Batteriehalter für 2 × AA, Widerstände, LEDs, ein Taster und ein aktiver Summer. Mikrocontroller, Kamera und Akku kommen erst ab Akt 2 dazu. Die genaue Liste steht in Mission 0.1.
 
-Jeder weitere Push auf `main` veröffentlicht die Seite automatisch neu. Der Workflow liegt in `.github/workflows/deploy.yml` und setzt den richtigen Pfad (`/klingelwerk/`) selbst, auch wenn du das Repository anders nennst oder eine eigene Domain einrichtest.
+## Mitmachen
 
-## Lokal entwickeln
+Fehler gefunden, eine Erklärung unverständlich oder Lust, eine Mission zu schreiben? Beiträge sind willkommen. Wie eine Mission aufgebaut ist und welche Bausteine es gibt, steht in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+Am meisten hilft gerade:
+
+- **Testen mit echter Hardware.** Einige erwartete Messbereiche sind vorläufig und brauchen Messwerte von echten Aufbauten.
+- **Feedback von Einsteigern.** Wo bist du hängen geblieben?
+- **Missionen für Akt 2 und folgende.**
+
+## Lokal starten
 
 Voraussetzung: Node.js 22 oder neuer.
 
 ```bash
 npm install
-npm run dev      # Entwicklungsserver auf http://localhost:4321
-npm run build    # baut die fertige Seite nach dist/
-npm run preview  # zeigt den Build lokal an
+npm run dev
 ```
 
-## Aufbau
+Die Seite läuft dann unter http://localhost:4321.
 
-```
-src/
-  config.ts              Name der Seite, Link zum Repository
-  data/kampagne.ts       Alle Akte und Missionen (IDs, Titel, XP, Level)
-  missionen/*.mdx        Ausgeschriebene Missionen, eine Datei pro Mission
-  components/            Prüfungen und interaktive Bausteine
-  scripts/engine.ts      Fortschritt, Punkte, Freischaltung, Export/Import
-  scripts/station.ts     Gemeinsame Logik aller Prüfungen
-  pages/                 Startseite, Missionsseiten, Fortschritt, Über
-firmware/                Firmware für Akt 2+ (folgt)
-hardware/                Schaltpläne, Lochraster-Layouts, Gehäuse (folgt)
-```
+## Technik
 
-## Eine neue Mission schreiben
+Statische Seite mit [Astro](https://astro.build) und MDX, ohne Server und ohne externe Dienste. Jede Mission ist eine MDX-Datei, die Prüfungen sind wiederverwendbare Komponenten. Die Seite wird über GitHub Actions automatisch auf GitHub Pages veröffentlicht.
 
-1. In `src/data/kampagne.ts` bei der Mission `bereit: true` setzen. Die **ID nie ändern**, der gespeicherte Fortschritt hängt daran.
-2. Datei `src/missionen/<id>.mdx` anlegen. Vorlage: `m-1-1.mdx`.
-3. Im Frontmatter alle Prüfungen unter `checks` auflisten. `hardware: true` heißt: Diese Prüfung braucht echte Bauteile und wird im Modus „ohne Hardware“ übersprungen.
-4. Jede Prüfungskomponente bekommt eine `id`, die genau so in `checks` steht.
-
-```mdx
----
-id: m-2-1
-abzeichen: Erstes Leben
-checks:
-  - id: quiz
-  - id: geraet
-    hardware: true
----
-import Quiz from '../components/Quiz.astro';
-import Seriell from '../components/Seriell.astro';
-
-Text der Mission …
-
-<Quiz id="quiz" fragen={[{ frage: '…', richtig: '…', falsch: ['…', '…'] }]} />
-<Seriell id="geraet" titel="Gerätenachweis" muster="KW-CHECK:m-2-1:blink-ok" />
-```
-
-### Verfügbare Bausteine
-
-| Komponente | Zweck |
-| --- | --- |
-| `Karte` | Theorie-Karte (höchstens etwa 120 Wörter) |
-| `Hinweis` | Kasten für Sicherheit, Hintergrund oder vorläufige Werte |
-| `Quiz` | Multiple Choice, alle Antworten müssen stimmen |
-| `Zahl` | Ein Messwert wird gegen ein Toleranzband geprüft, mit Hilfetexten je nach Abweichung |
-| `Bestaetigung` | Abhaken („Meine LED leuchtet“) |
-| `Rechnen` | Rechenaufgaben mit Zufallswerten: `vorwiderstand`, `strom`, `reihe`, `parallel`, `teiler`, `leistung` |
-| `Protokoll` | Mehrere echte Messwerte werden gegeneinander geprüft: `led-strom`, `summe`, `teiler` |
-| `Messplatz` | Klickbarer Schaltplan mit virtuellem Multimeter, Messaufgaben oder Fehlersuche |
-| `KreisSim` | Mini-Simulator für den ersten Stromkreis |
-| `Steckbrett` | Trainer: Welche Löcher sind verbunden? |
-| `Multimeter` | Trainer: Messart und Buchse wählen |
-| `Prellen` | Oszilloskop-Animation eines prellenden Tasters |
-| `Seriell` | Gerätenachweis über Web Serial (Chrome/Edge), mit manueller Eingabe als Ersatz. Noch nicht mit echter Hardware getestet |
-
-### Regeln für jede Mission
-
-1. Gliederung: Einstieg → Theorie-Karten → Simulator/Übung → realer Aufbau → Prüfung → typische Fehler → Vertiefung.
-2. Der Einstieg beginnt mit einem Problem an der Klingel, nie mit einer Definition.
-3. Höchstens vier Theorie-Karten. Eine neue Idee pro Mission.
-4. Mindestens eine Prüfung mit echtem Bezug (Messwert, Gerätenachweis), nicht nur ein Quiz.
-5. Falsche Quizantworten sind echte Fehlvorstellungen.
-6. Jeder Zahlenwert ist belegt (Datenblatt, Messung) oder als vorläufig markiert.
-7. Der Weg ohne Hardware bleibt immer möglich.
-
-## Offene Punkte vor dem Launch
-
-- Die als vorläufig markierten Toleranzbänder (LED-Spannung, Strom des Summers) mit einem echten Aufbau nachmessen.
-- Ein Impressum ergänzen, falls die Seite in Deutschland betrieben wird. Ob und in welcher Form es nötig ist, bitte selbst prüfen.
-- In `src/config.ts` den Link zum Repository eintragen.
+Wer eine eigene Kopie betreiben will: Repository forken, unter **Settings → Pages** als Quelle **GitHub Actions** wählen, fertig. Der Workflow setzt den Pfad der Seite selbst.
 
 ## Lizenz
 
-- Code: MIT, siehe `LICENSE`.
-- Inhalte (Texte der Missionen, Zeichnungen): CC BY-SA 4.0, siehe `LICENSE-INHALTE.md`.
-- Schrift Atkinson Hyperlegible: SIL Open Font License, wird lokal mitgeliefert (keine Anfragen an Google).
+- Inhalte (Missionen, Texte, Zeichnungen): [CC BY-SA 4.0](LICENSE-INHALTE.md). Du darfst sie teilen und bearbeiten, solange du die Quelle nennst und unter derselben Lizenz weitergibst.
+- Code: [MIT](LICENSE).
+- Schrift: Atkinson Hyperlegible, SIL Open Font License.
