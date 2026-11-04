@@ -1,12 +1,12 @@
 {
-  "name": "klingelwerk",
+  "name": "0-to-hero",
   "version": "0.1.0",
   "private": true,
   "engines": {
     "node": ">=22.23.4"
   },
   "type": "module",
-  "description": "Kostenloser, interaktiver Elektronik-Kurs: Lerne die Grundlagen und baue eine smarte Türklingel mit ESP32-CAM.",
+  "description": "0 to Hero – Dein Einstieg in ein digitales Zeitalter. Kostenloser, interaktiver Elektronik-Kurs, beginnend mit einer smarten Türklingel.",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",

@@ -5,6 +5,8 @@ checks:
 ---
 import Bestaetigung from '../components/Bestaetigung.astro';
 import Hinweis from '../components/Hinweis.astro';
+import TeileListe from '../components/TeileListe.astro';
+import { url as seitenUrl } from '../config';
 
 Am Ende dieses Kurses hängt an deiner Tür eine Klingel, die du selbst gebaut hast. Jemand drückt den Knopf, die Klingel wacht aus dem Tiefschlaf auf, macht ein Foto und schickt es dir auf dein Handy, über Telegram oder Discord. Sie läuft mit einem Akku und braucht kein Kabel.
 
@@ -34,15 +36,9 @@ Die Zeichnung auf der Startseite zeigt die neun Teile. Jeder Akt baut eines davo
 
 ## Was du für Akt 0 und 1 brauchst
 
-| Teil | Hinweis |
-| --- | --- |
-| Steckbrett (830 oder 400 Kontakte) und ein Satz Steckbrücken | Damit baust du alles ohne Löten |
-| Digitales Multimeter | Mit Gleichspannung, Widerstand, Durchgang und einem mA- oder besser µA-Bereich (den brauchst du in Akt 6) |
-| Batteriehalter für 2 × AA mit Kabeln, dazu 2 AA-Batterien | Ungefährliche Stromquelle zum Einstieg |
-| Widerstandssortiment | Darin sind 220 Ω, 1 kΩ und 2,2 kΩ, die du brauchst |
-| Ein paar rote 5-mm-LEDs | Sie gehen beim Lernen auch mal kaputt |
-| Taster (6 × 6 mm, vier Beine) | Der spätere Klingelknopf |
-| Aktiver Piezo-Summer (3–5 V) | Für Klingel v0 in Mission 1.8 |
+Alle Teile mit Links zum Shop findest du auch auf der Seite <a href={seitenUrl('einkaufsliste')}>Einkaufsliste</a>, sortiert nach Akten.
+
+<TeileListe akte={[0, 1]} />
 
 <Hinweis titel="Was es noch nicht braucht">
 Mikrocontroller, Kamera und Akku kaufst du erst ab Akt 2. So musst du am Anfang wenig ausgeben und kannst erst ausprobieren, ob dir Elektronik Spaß macht.

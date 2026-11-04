@@ -5,10 +5,13 @@ import { SEITE, url } from '../config';
 <Basis titel="Über das Projekt">
   <section class="huelle text seite">
     <h1>Über {SEITE.name}</h1>
+    <p class="untertitel">{SEITE.untertitel}</p>
+    <p>{SEITE.mission}</p>
     <p>
-      {SEITE.name} ist ein kostenloser Kurs für alle, die Elektronik von Grund auf lernen wollen. Statt Kapitel für Kapitel
-      Theorie zu pauken, baust du eine smarte Türklingel. Jedes Thema kommt genau dann, wenn die Klingel es braucht.
+      Der Kurs ist kostenlos und für alle, die bei null anfangen. Statt Kapitel für Kapitel Theorie zu pauken, baust du
+      echte Geräte. Die erste Kampagne ist eine smarte Türklingel. Jedes Thema kommt genau dann, wenn die Klingel es braucht.
     </p>
+    <p>Willkommen und viel Spaß beim Lernen.</p>
 
     <h2>So funktioniert der Kurs</h2>
     <ul>
@@ -42,4 +45,5 @@ import { SEITE, url } from '../config';
 
 <style>
   .seite { padding-top: 2rem; }
+  .untertitel { font-size: 1.25rem; color: var(--leise); margin-top: -0.3rem; }
 </style>

@@ -1,4 +1,4 @@
-// Klingelwerk – Mission 2.6: Eingang
+// 0 to Hero – Mission 2.6: Eingang
 // Liest den Klingelknopf an GPIO 4. Absichtlich OHNE Entprellen.
 // Aufbau: GPIO 4 -> Taster -> GND (der Pull-up ist im ESP32 eingebaut)
 

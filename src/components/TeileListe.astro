@@ -1,0 +1,34 @@
+---
+// Zeigt die Einkaufsliste für einen oder mehrere Akte.
+import { TEILE } from '../data/teile';
+import { KAMPAGNE } from '../data/kampagne';
+interface Props { akte: number[]; titel?: boolean; }
+const { akte, titel = true } = Astro.props;
+---
+{akte.filter((a) => TEILE[a]).map((a) => (
+  <section class="teile">
+    {titel && <h3>Akt {a}: {KAMPAGNE[a].titel}</h3>}
+    <table>
+      <thead><tr><th>Teil</th><th>Wofür</th><th>Bei Roboter-Bausatz.de</th></tr></thead>
+      <tbody>
+        {TEILE[a].map((t) => (
+          <tr>
+            <td><strong>{t.teil}</strong>{t.optional && <span class="opt"> (optional)</span>}</td>
+            <td>{t.zweck}</td>
+            <td>
+              {t.url ? <a href={t.url} rel="nofollow noopener" target="_blank">{t.produkt ?? 'Zum Shop'}</a> : <span class="leise">{t.produkt ?? 'noch offen'}</span>}
+              {t.hinweis && <p class="hinweis klein">{t.hinweis}</p>}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </section>
+))}
+
+<style>
+  .teile h3 { margin-top: 1.6rem; }
+  .opt { color: var(--leise); font-weight: 400; }
+  .hinweis { margin: 0.3rem 0 0; color: var(--leise); }
+  td:first-child { min-width: 9rem; }
+</style>

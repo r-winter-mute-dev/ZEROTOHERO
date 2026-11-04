@@ -1,4 +1,4 @@
-// Klingelwerk – Mission 2.7: Entprellen
+// 0 to Hero – Mission 2.7: Entprellen
 // Zählt jeden echten Tastendruck genau einmal.
 // Aufbau wie in Mission 2.6: GPIO 4 -> Taster -> GND
 

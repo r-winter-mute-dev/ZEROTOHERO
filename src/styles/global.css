@@ -100,7 +100,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--akzent-hell); }
 .station-art { color: var(--leise); font-size: 0.88rem; }
 .station.bestanden { border-left-color: var(--gut); }
 .station.uebersprungen { border-left-color: var(--leise-dunkel); }
-.station.gesperrt { opacity: 0.6; }
+.station.gesperrt { border-left-style: dashed; }
 .meldung { margin: 0.8rem 0 0; padding: 0.6rem 0.8rem; border-radius: var(--radius-klein); background: rgba(255,255,255,0.04); }
 .meldung.gut { color: var(--gut); }
 .meldung.fehler { color: var(--fehler); }

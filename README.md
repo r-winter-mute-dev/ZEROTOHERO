@@ -1,12 +1,16 @@
-# Klingelwerk
+# 0 to Hero
 
-**Elektronik lernen, indem du eine smarte Türklingel baust.**
+**Dein Einstieg in ein digitales Zeitalter.**
 
-Klingelwerk ist ein kostenloser, interaktiver Kurs für alle, die bei null anfangen. Du lernst nicht erst Theorie und baust dann irgendwann etwas. Du baust von Anfang an an einem echten Gerät, und jedes Thema kommt genau dann, wenn die Klingel es braucht.
+Diese Website wurde gebaut, um jedem Menschen die Möglichkeit zu geben, zu verstehen, was um ihn herum passiert: von der blinkenden LED bis zum selbst lernenden Roboterarm.
+
+0 to Hero ist ein kostenloser, interaktiver Kurs für alle, die bei null anfangen. Du lernst nicht erst Theorie und baust dann irgendwann etwas. Du baust von Anfang an echte Geräte, und jedes Thema kommt genau dann, wenn du es brauchst. Die erste Kampagne ist eine smarte Türklingel.
+
+Willkommen und viel Spaß beim Lernen.
 
 **[Zum Kurs](https://r-winter-mute-dev.github.io/klingelwerk/)**
 
-## Das Ziel
+## Kampagne 1: Die smarte Türklingel
 
 Am Ende hängt an deiner Tür eine selbst gebaute Klingel: Ein ESP32-CAM mit 18650-Akku wacht auf Knopfdruck aus dem Tiefschlaf auf, macht ein Foto und schickt es an Telegram oder Discord. Sie läuft ohne Kabel.
 
@@ -43,7 +47,7 @@ Der Weg dorthin beginnt mit einer einzelnen LED.
 
 ## Was du brauchst
 
-Für Akt 0 und 1 reicht ein kleines Einsteigerset: Steckbrett, Multimeter, Batteriehalter für 2 × AA, Widerstände, LEDs, ein Taster und ein aktiver Summer. Für Akt 2 kommen ein ESP32-DevKit und ein USB-Datenkabel dazu, Kamera und Akku erst später. Die genaue Liste steht in Mission 0.1 und am Anfang jedes Akts.
+Für Akt 0 und 1 reicht ein kleines Einsteigerset: Steckbrett, Multimeter, Batteriehalter für 2 × AA, Widerstände, LEDs, ein Taster und ein aktiver Summer. Für Akt 2 kommen ein ESP32-DevKit und ein USB-Datenkabel dazu, Kamera und Akku erst später. Die komplette Liste mit Links zu Roboter-Bausatz.de steht auf der Seite „Einkaufsliste“, sortiert nach Akten.
 
 ## Mitmachen
 
