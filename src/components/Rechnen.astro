@@ -86,6 +86,13 @@ const { id, titel = 'Rechenaufgaben', typ, anzahl = 3 } = Astro.props;
       return { text: `Durch einen Widerstand von ${ohm(r)} fließen ${i} mA.`, frage: 'Leistung P =', einheit: 'mW', loesung: p,
         weg: `P = I² × R = (${fmt(i / 1000, 3)} A)² × ${fmt(r)} Ω = ${fmt(p / 1000, 4)} W = ${fmt(p, 1)} mW.` };
     },
+    pixel() {
+      const f = pick([{ n: 'QVGA', b: 320, h: 240 }, { n: 'VGA', b: 640, h: 480 }, { n: 'SVGA', b: 800, h: 600 }, { n: 'XGA', b: 1024, h: 768 }, { n: 'UXGA', b: 1600, h: 1200 }]);
+      const fmtx = pick([{ n: 'Graustufen', byte: 1 }, { n: 'RGB565', byte: 2 }, { n: 'RGB888', byte: 3 }]);
+      const px = f.b * f.h, bytes = px * fmtx.byte, kb = bytes / 1024;
+      return { text: `Ein Rohbild in ${f.n} (${f.b} × ${f.h} Pixel) im Format ${fmtx.n} (${fmtx.byte} Byte pro Pixel).`, frage: 'Speicherbedarf =', einheit: 'KB', loesung: kb,
+        weg: `${f.b} × ${f.h} = ${fmt(px, 0)} Pixel. Mal ${fmtx.byte} Byte = ${fmt(bytes, 0)} Byte. Geteilt durch 1024 = ${fmt(kb, 1)} KB. Zum Vergleich: Der ESP32 hat intern 520 KB Arbeitsspeicher für alles zusammen.` };
+    },
   };
 
   document.querySelectorAll<HTMLFormElement>('[data-kw-rechnen]').forEach((form) => {

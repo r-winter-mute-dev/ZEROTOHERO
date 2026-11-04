@@ -1,0 +1,121 @@
+---
+id: m-4-1
+abzeichen: Neues Gehirn
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: geraet
+    hardware: true
+spick:
+  - t: "Board in der Arduino IDE"
+    v: "AI Thinker ESP32-CAM"
+  - t: "USB-Chip der Programmierplatine"
+    v: "CH340"
+  - t: "Rote LED"
+    v: "GPIO 33, LOW = an"
+  - t: "Blitz-LED"
+    v: "GPIO 4"
+  - t: "PSRAM"
+    v: "Großer Zusatzspeicher für Bilder"
+  - t: "Upload hängt?"
+    v: "RST-Taste auf der ESP32-CAM kurz drücken"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Seriell from '../components/Seriell.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+import TeileListe from '../components/TeileListe.astro';
+
+Deine Klingel meldet sich im Chat. Aber „Es klingelt“ allein hilft wenig, du willst sehen, **wer** vor der Tür steht. Dafür braucht sie ein Auge. Ab jetzt arbeitest du mit einem neuen Board, das eine Kamera gleich mitbringt: der **ESP32-CAM**. **Deine Mission: Bring den ESP32-CAM zum Laufen.**
+
+<TeileListe akte={[4]} titel={false} />
+
+## Theorie
+
+<Karte nr={1} titel="Derselbe Chip, anderes Board">
+Auf dem ESP32-CAM sitzt derselbe ESP32-Chip wie auf deinem DevKit. Alles aus Akt 2 und 3 gilt weiter. Dazu kommen eine **Kamera** (OV2640), ein Steckplatz für eine microSD-Karte und eine helle **Blitz-LED**. Dafür fehlt etwas: Der ESP32-CAM hat **keinen USB-Anschluss**. Den liefert eine kleine Programmierplatine, die **ESP32-CAM-MB**, auf die du ihn aufsteckst.
+</Karte>
+
+<Merke>Gleicher Chip wie in Akt 2, aber mit Kamera. USB gibt es nur über die aufgesteckte Programmierplatine.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Das neue Board" fragen={[
+  { frage: 'Warum brauchst du die Programmierplatine ESP32-CAM-MB?', richtig: 'Der ESP32-CAM hat keinen eigenen USB-Anschluss.', falsch: ['Ohne sie funktioniert die Kamera nicht.', 'Sie enthält das WLAN.'], erklaerung: 'Die MB-Platine bringt USB-Anschluss und USB-Chip (CH340) mit.' },
+]} />
+
+<Karte nr={2} titel="Wenig freie Pins">
+Die Kamera belegt viele Pins: 15 Stück für Bilddaten, Takt und Steuerung. Weitere Pins teilt sich der Chip mit der microSD-Karte. Frei bleiben nur wenige, und davon sind einige Boot-Pins (Boss 2). Zwei Pins sind fest verdrahtet: **GPIO 4** schaltet die Blitz-LED, **GPIO 33** die kleine rote LED auf der Rückseite. Die rote LED leuchtet bei **LOW**, also umgekehrt wie gewohnt.
+</Karte>
+
+<Merke>GPIO 4 = Blitz, GPIO 33 = rote LED (LOW heißt an). Die meisten anderen Pins gehören der Kamera.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Pins" fragen={[
+  { frage: 'Mit welchem Befehl schaltest du die rote LED an GPIO 33 ein?', richtig: 'digitalWrite(33, LOW);', falsch: ['digitalWrite(33, HIGH);', 'Gar nicht, sie leuchtet immer.'], erklaerung: 'Die rote LED ist so verdrahtet, dass sie bei LOW leuchtet.' },
+]} />
+
+<Karte nr={3} titel="PSRAM: Platz für Bilder">
+Ein Foto braucht viel Speicher, mehr als die 520 KB, die der ESP32 intern hat. Deshalb sitzt auf dem ESP32-CAM ein zusätzlicher Speicherchip, das **PSRAM**. Laut AI-Thinker sind es 4 MB [Fachquelle: AI-Thinker, Produktangaben]. Die Arduino IDE schaltet es nur ein, wenn du das richtige Board auswählst: **AI Thinker ESP32-CAM**. Mit „ESP32 Dev Module“ läuft das Programm, aber die Kamera hat keinen Platz.
+</Karte>
+
+<Merke>Board „AI Thinker ESP32-CAM“ wählen. Nur dann ist das PSRAM für die Bilder eingeschaltet.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: PSRAM" fragen={[
+  { frage: 'Du hast aus Gewohnheit „ESP32 Dev Module“ gewählt. Was passiert?', richtig: 'Das PSRAM bleibt aus, und für Fotos fehlt der Speicher.', falsch: ['Gar nichts, beide Einstellungen sind gleich.', 'Die Arduino IDE weigert sich hochzuladen.'], erklaerung: 'Erst die Board-Auswahl „AI Thinker ESP32-CAM“ schaltet das PSRAM ein.' },
+]} />
+
+## Einrichten
+
+<Checkliste id="einrichten" punkte={[
+  'Den ESP32-CAM so auf die ESP32-CAM-MB stecken, dass die Kamera nach oben zeigt und alle Pins in den Buchsen sitzen.',
+  'Die Kamera vorsichtig prüfen: Das dünne Flachbandkabel muss fest im Stecker sitzen, die Lasche ist zugeklappt.',
+  'Die MB-Platine per USB mit dem Computer verbinden. Auf ihr sitzt ein <strong>CH340</strong>-Chip. Erscheint kein Port, brauchst du den CH340-Treiber vom Hersteller des Chips.',
+  'Unter <strong>Werkzeuge → Board → esp32</strong> den Eintrag <strong>AI Thinker ESP32-CAM</strong> wählen.',
+  'Unter <strong>Werkzeuge → Port</strong> den neuen Anschluss wählen.',
+]} />
+
+## Das erste Programm
+
+```cpp
+// 0 to Hero – Mission 4.1: Wechsel auf ESP32-CAM
+// Board in der Arduino IDE: "AI Thinker ESP32-CAM".
+// Lässt die kleine rote LED auf der Rückseite blinken und prüft, ob das PSRAM erkannt wird.
+
+const int ROTE_LED = 33;   // rote LED neben dem Reset-Taster, umgekehrte Logik: LOW = an
+
+void setup() {
+  Serial.begin(115200);
+  delay(500);
+  pinMode(ROTE_LED, OUTPUT);
+  Serial.println();
+  Serial.print("Chip: ");
+  Serial.println(ESP.getChipModel());
+  Serial.printf("Flash-Speicher: %u KB\n", (unsigned)(ESP.getFlashChipSize() / 1024));
+  if (psramFound()) {
+    Serial.printf("PSRAM gefunden: %u KB\n", (unsigned)(ESP.getPsramSize() / 1024));
+  } else {
+    Serial.println("Kein PSRAM gefunden. Ist als Board \"AI Thinker ESP32-CAM\" gewählt?");
+  }
+}
+
+void loop() {
+  digitalWrite(ROTE_LED, LOW);    // an
+  delay(300);
+  digitalWrite(ROTE_LED, HIGH);   // aus
+  delay(700);
+  if (psramFound()) {
+    Serial.printf("KW-CHECK:m-4-1:%012llX:%u\n", (unsigned long long)ESP.getEfuseMac(), (unsigned)ESP.getPsramSize());
+  }
+}
+```
+
+<Hinweis titel="Upload hängt bei „Connecting…“?">
+Laut Händler schaltet die MB-Platine selbst in den Upload-Modus [Fachquelle: Produktseite Roboter-Bausatz]. Klappt es trotzdem nicht, drück kurz die **RST**-Taste auf dem ESP32-CAM, während „Connecting…“ erscheint, nicht die Taste auf der MB-Platine.
+</Hinweis>
+
+Öffne nach dem Hochladen den seriellen Monitor mit 115200 Baud. Dort sollte „PSRAM gefunden“ stehen, und auf der Rückseite blinkt die rote LED.
+
+## Gerätenachweis
+
+<Seriell id="geraet" titel="Gerätenachweis: ESP32-CAM mit PSRAM" muster="^KW-CHECK:m-4-1:[0-9A-F]{12}:[1-9]\d{5,}$" hinweis="Die Zeile erscheint nur, wenn das PSRAM erkannt wurde." />

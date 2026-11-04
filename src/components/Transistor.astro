@@ -1,0 +1,155 @@
+---
+// Transistor-Trainer: Ein GPIO schaltet über einen NPN-Transistor eine Last mit großem Strom.
+// Vereinfachtes Modell: U_BE = 0,7 V, Stromverstärkung 100, Last braucht 150 mA.
+// Die Zahlen sind Modellwerte zum Verstehen, keine Messwerte des echten Blitzes.
+import Station from './Station.astro';
+interface Props { id: string; titel: string; }
+const { id, titel } = Astro.props;
+const widerstaende = [
+  { w: 0, t: 'kein Widerstand' },
+  { w: 100, t: '100 Ω' },
+  { w: 1000, t: '1 kΩ' },
+  { w: 100000, t: '100 kΩ' },
+];
+---
+<Station id={id} titel={titel} art="Trainer">
+  <div class="tr" data-kw-transistor>
+    <p class="tr-aufgabe" data-tr-aufgabe aria-live="polite"></p>
+    <div class="tr-raster">
+      <svg viewBox="0 0 320 250" class="tr-svg" role="img" aria-label="Schaltplan: GPIO, Basiswiderstand, NPN-Transistor, Blitz-LED an 5 V">
+        <!-- 5 V oben -->
+        <text x="232" y="18" class="tr-txt">+5 V</text>
+        <line x1="250" y1="24" x2="250" y2="44" class="tr-draht" data-tr-lastweg />
+        <!-- Last: Blitz-LED mit eigenem Vorwiderstand -->
+        <rect x="235" y="44" width="30" height="34" rx="3" class="tr-bauteil" />
+        <text x="272" y="66" class="tr-txt klein">Blitz-LED</text>
+        <circle cx="250" cy="61" r="10" class="tr-led" data-tr-led />
+        <line x1="250" y1="78" x2="250" y2="110" class="tr-draht" data-tr-lastweg />
+        <!-- Transistor -->
+        <circle cx="236" cy="138" r="26" class="tr-bauteil" />
+        <line x1="222" y1="122" x2="222" y2="154" class="tr-draht dick" />
+        <line x1="222" y1="130" x2="250" y2="112" class="tr-draht" data-tr-lastweg />
+        <line x1="222" y1="146" x2="250" y2="164" class="tr-draht" data-tr-lastweg />
+        <polygon points="250,164 240,162 245,154" class="tr-pfeil" />
+        <text x="268" y="134" class="tr-txt klein">C</text>
+        <text x="268" y="168" class="tr-txt klein">E</text>
+        <text x="190" y="128" class="tr-txt klein">B</text>
+        <line x1="250" y1="164" x2="250" y2="214" class="tr-draht" data-tr-lastweg />
+        <!-- Masse -->
+        <line x1="236" y1="214" x2="264" y2="214" class="tr-draht dick" />
+        <line x1="242" y1="221" x2="258" y2="221" class="tr-draht" />
+        <text x="232" y="242" class="tr-txt klein">GND</text>
+        <!-- GPIO und Basiswiderstand -->
+        <rect x="8" y="122" width="60" height="32" rx="4" class="tr-bauteil" />
+        <text x="16" y="143" class="tr-txt">GPIO 4</text>
+        <line x1="68" y1="138" x2="100" y2="138" class="tr-draht" data-tr-basisweg />
+        <rect x="100" y="128" width="56" height="20" rx="3" class="tr-bauteil" data-tr-rb />
+        <text x="104" y="120" class="tr-txt klein" data-tr-rb-text>R<tspan baseline-shift="sub">B</tspan></text>
+        <line x1="156" y1="138" x2="222" y2="138" class="tr-draht" data-tr-basisweg />
+        <text x="10" y="176" class="tr-txt klein" data-tr-pegel>LOW · 0 V</text>
+      </svg>
+
+      <div class="tr-regler">
+        <fieldset>
+          <legend>GPIO 4</legend>
+          <label><input type="radio" name={`${id}-pegel`} value="0" checked /> LOW (0 V)</label>
+          <label><input type="radio" name={`${id}-pegel`} value="1" /> HIGH (3,3 V)</label>
+        </fieldset>
+        <fieldset>
+          <legend>Basiswiderstand R<sub>B</sub></legend>
+          {widerstaende.map((r, i) => (
+            <label><input type="radio" name={`${id}-rb`} value={r.w} checked={i === 3} /> {r.t}</label>
+          ))}
+        </fieldset>
+        <dl class="tr-werte">
+          <dt>Strom aus dem GPIO</dt><dd data-tr-ib>0 mA</dd>
+          <dt>Strom durch die Blitz-LED</dt><dd data-tr-ic>0 mA</dd>
+        </dl>
+      </div>
+    </div>
+    <p class="tr-erkl" data-tr-erkl aria-live="polite">Stell den GPIO auf HIGH und probier die Widerstände durch.</p>
+    <p class="leise klein">Modellwerte: Der Transistor verstärkt den Basisstrom etwa 100-fach, die Blitz-LED braucht 150 mA, ein GPIO verträgt höchstens etwa 20 mA (Mission 2.5).</p>
+  </div>
+</Station>
+
+<script>
+  import { fmt, station } from '../scripts/station';
+
+  const VERST = 100, ILAST = 150, IGPIO_MAX = 20, UBE = 0.7;
+
+  document.querySelectorAll<HTMLElement>('[data-kw-transistor]').forEach((box) => {
+    const s = station(box.closest('[data-kw-check]') as HTMLElement);
+    const wert = (n: string) => Number(box.querySelector<HTMLInputElement>(`input[name="${s.cid}-${n}"]:checked`)!.value);
+    const aufgaben = [
+      { text: 'Schalte den Blitz voll ein, ohne den GPIO zu überlasten.', pruef: (z: Zustand) => z.hoch && z.voll && !z.ueberlast },
+      { text: 'Und jetzt wieder aus: Was muss der GPIO dafür tun?', pruef: (z: Zustand) => !z.hoch },
+    ];
+    let nr = 0;
+    interface Zustand { hoch: boolean; rb: number; ib: number; ic: number; voll: boolean; ueberlast: boolean; }
+
+    function rechnen(): Zustand {
+      const hoch = wert('pegel') === 1, rb = wert('rb');
+      let ib = 0;
+      if (hoch) ib = rb === 0 ? 999 : ((3.3 - UBE) / rb) * 1000; // mA
+      const ic = Math.min(ib * VERST, ILAST);
+      return { hoch, rb, ib, ic, voll: ic >= ILAST, ueberlast: ib > IGPIO_MAX };
+    }
+
+    function zeichnen() {
+      const z = rechnen();
+      box.querySelector('[data-tr-pegel]')!.textContent = z.hoch ? 'HIGH · 3,3 V' : 'LOW · 0 V';
+      box.querySelector('[data-tr-ib]')!.textContent = z.ib >= 999 ? 'viel zu viel (Kurzschluss über die Basis)' : `${fmt(z.ib, z.ib < 1 ? 3 : 1)} mA`;
+      box.querySelector('[data-tr-ic]')!.textContent = `${fmt(z.ic, 1)} mA`;
+      const led = box.querySelector<SVGCircleElement>('[data-tr-led]')!;
+      led.style.opacity = String(0.12 + 0.88 * (z.ic / ILAST));
+      box.querySelectorAll<SVGElement>('[data-tr-lastweg]').forEach((l) => l.classList.toggle('an', z.ic > 0.5));
+      box.querySelectorAll<SVGElement>('[data-tr-basisweg]').forEach((l) => { l.classList.toggle('an', z.ib > 0); l.classList.toggle('heiss', z.ueberlast); });
+      box.querySelector<SVGElement>('[data-tr-rb]')!.classList.toggle('kurz', z.rb === 0);
+
+      let text = '';
+      if (!z.hoch) text = 'GPIO auf LOW: kein Basisstrom, der Transistor sperrt, der Blitz ist aus.';
+      else if (z.ueberlast) text = z.rb === 0 ? 'Ohne Basiswiderstand fließt ein riesiger Strom aus dem GPIO in die Basis. Das kann den Pin zerstören.' : `Der Blitz ist an, aber aus dem GPIO fließen ${fmt(z.ib, 1)} mA. Mehr als 20 mA hält der Pin auf Dauer nicht aus.`;
+      else if (!z.voll) text = `Der Basisstrom ist zu klein (${fmt(z.ib, 3)} mA). Der Transistor lässt nur ${fmt(z.ic, 1)} mA durch, der Blitz glimmt nur.`;
+      else text = `Gut: Aus dem GPIO fließen nur ${fmt(z.ib, 1)} mA, durch den Blitz volle ${ILAST} mA. Der kleine Strom steuert den großen.`;
+
+      const erkl = box.querySelector<HTMLElement>('[data-tr-erkl]')!;
+      erkl.textContent = text;
+      erkl.className = 'tr-erkl ' + (!z.hoch ? '' : z.ueberlast ? 'fehler' : z.voll ? 'gut' : 'warnung');
+      if (nr < aufgaben.length && aufgaben[nr].pruef(z) && !s.gesperrt()) {
+        nr++;
+        if (nr >= aufgaben.length) s.bestehen('Trainer geschafft: Du weißt, wie ein kleiner Strom den Blitz schaltet.');
+        else s.melden('Aufgabe gelöst. Weiter mit der nächsten.', 'gut');
+      }
+      box.querySelector('[data-tr-aufgabe]')!.textContent = nr < aufgaben.length ? `Aufgabe ${nr + 1} von ${aufgaben.length}: ${aufgaben[nr].text}` : 'Geschafft. Probier ruhig weiter herum.';
+    }
+
+    box.addEventListener('change', zeichnen);
+    box.querySelector('[data-tr-aufgabe]')!.textContent = `Aufgabe 1 von ${aufgaben.length}: ${aufgaben[0].text}`;
+  });
+</script>
+
+<style>
+  .tr-aufgabe { font-weight: 700; }
+  .tr-erkl { margin: 0.8rem 0 0.5rem; padding: 0.6rem 0.8rem; border-radius: var(--radius-klein); background: rgba(255,255,255,0.04); }
+  .tr-erkl.gut { color: var(--gut); } .tr-erkl.fehler { color: var(--fehler); } .tr-erkl.warnung { color: var(--warnung); }
+  .tr-raster { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+  .tr-svg { width: 100%; height: auto; background: var(--flaeche-leicht); border-radius: var(--radius-klein); }
+  .tr-txt { fill: var(--text); font-size: 13px; font-family: var(--schrift); }
+  .tr-txt.klein { font-size: 11px; fill: var(--leise); }
+  .tr-draht { stroke: var(--leise-dunkel); stroke-width: 2.5; fill: none; transition: stroke 0.2s; }
+  .tr-draht.dick { stroke-width: 4; }
+  .tr-draht.an { stroke: var(--akzent); }
+  .tr-draht.heiss { stroke: var(--fehler); stroke-width: 4; }
+  .tr-bauteil { fill: var(--tief); stroke: var(--leise); stroke-width: 2; }
+  .tr-bauteil.kurz { stroke-dasharray: 4 3; opacity: 0.4; }
+  .tr-pfeil { fill: var(--leise); }
+  .tr-led { fill: #fff8e1; opacity: 0.12; transition: opacity 0.25s; }
+  .tr fieldset { border: 1px solid var(--flaeche); border-radius: var(--radius-klein); margin: 0 0 0.7rem; padding: 0.4rem 0.8rem; }
+  .tr legend { font-weight: 700; padding: 0 0.3rem; }
+  .tr label { display: block; padding: 0.15rem 0; cursor: pointer; }
+  .tr input { accent-color: var(--akzent); }
+  .tr-werte { margin: 0; }
+  .tr-werte dt { color: var(--leise); font-size: 0.85rem; }
+  .tr-werte dd { margin: 0 0 0.4rem; font-weight: 700; }
+  @media (max-width: 640px) { .tr-raster { grid-template-columns: 1fr; } }
+</style>

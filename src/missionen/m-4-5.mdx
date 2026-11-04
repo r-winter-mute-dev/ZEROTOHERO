@@ -1,0 +1,134 @@
+---
+id: m-4-5
+abzeichen: Blitzmeister
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: k4
+  - id: trainer
+  - id: geraet
+    hardware: true
+spick:
+  - t: "Transistor"
+    v: "Kleiner Basisstrom schaltet großen Strom"
+  - t: "Basisstrom"
+    v: "I = (3,3 V − 0,7 V) / R<sub>B</sub>"
+  - t: "Blitz auf dem ESP32-CAM"
+    v: "GPIO 4 → Widerstand → Transistor → LED"
+  - t: "PWM starten"
+    v: "ledcAttach(4, 5000, 8);"
+  - t: "Helligkeit setzen"
+    v: "ledcWrite(4, 0 … 255);"
+  - t: "Tastgrad"
+    v: "Anteil der Zeit, in der der Pin an ist"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Transistor from '../components/Transistor.astro';
+import Seriell from '../components/Seriell.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Wer abends klingelt, steht im Dunkeln. Dann zeigt das Foto nur Schwarz. Der ESP32-CAM hat dafür eine sehr helle Blitz-LED. Die braucht aber viel mehr Strom, als ein GPIO liefern darf. Wie geht das trotzdem? **Deine Mission: Versteh, wie ein Transistor den Blitz schaltet, und dimm ihn per Programm.**
+
+<Hinweis art="sicherheit" titel="Hell">
+Die Blitz-LED ist sehr hell. Schau nicht direkt hinein, wenn sie leuchtet, und richte sie nicht auf die Augen anderer.
+</Hinweis>
+
+## Theorie
+
+<Karte nr={1} titel="Ein Schalter, den Strom bedient">
+In Mission 2.5 hast du gelernt: Ein GPIO verträgt nur etwa 20 mA. Ein **Transistor** löst das Problem. Er hat drei Anschlüsse: **Basis**, **Kollektor** und **Emitter**. Ein kleiner Strom in die Basis öffnet den Weg vom Kollektor zum Emitter, und dort darf ein viel größerer Strom fließen. Der GPIO bedient also nur den Schalter, den großen Strom liefert die Versorgung.
+</Karte>
+
+<Merke>Kleiner Strom in die Basis schaltet großen Strom von Kollektor zu Emitter.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Transistor" fragen={[
+  { frage: 'Woher kommt der große Strom für die Blitz-LED?', richtig: 'Aus der Versorgung, der Transistor lässt ihn nur durch.', falsch: ['Aus dem GPIO, der Transistor verstärkt ihn', 'Aus dem Transistor selbst'], erklaerung: 'Der GPIO liefert nur den kleinen Basisstrom.' },
+]} />
+
+<Karte nr={2} titel="Der Basiswiderstand">
+Die Basis verhält sich ähnlich wie eine LED: Ab etwa **0,7 V** fließt Strom, und ohne Begrenzung fließt viel zu viel. Deshalb sitzt vor der Basis immer ein **Basiswiderstand**. Den Strom rechnest du wie in Akt 1: I = (3,3 V − 0,7 V) / R. Ist R zu groß, öffnet der Transistor nur halb, und der Blitz glimmt. Ist R zu klein, wird der GPIO überlastet.
+</Karte>
+
+<Merke>Vor die Basis gehört immer ein Widerstand. Zu groß: Blitz glimmt. Zu klein: GPIO überlastet.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Basiswiderstand" fragen={[
+  { frage: 'Wie viel Strom fließt aus dem GPIO bei einem Basiswiderstand von 1 kΩ?', richtig: 'Etwa 2,6 mA', falsch: ['Etwa 26 mA', 'Etwa 3,3 A'], erklaerung: '(3,3 V − 0,7 V) / 1000 Ω = 0,0026 A = 2,6 mA. Sicher für den GPIO.' },
+]} />
+
+<Karte nr={3} titel="Schon eingebaut">
+Auf dem ESP32-CAM ist diese Schaltung schon fertig: Im Schaltplan von AI-Thinker hängt GPIO 4 über einen Widerstand an einem NPN-Transistor vom Typ **S8050**, und der schaltet die Blitz-LED [Fachquelle: AI-Thinker, Schaltplan ESP32-CAM V1.6]. Deshalb genügt `digitalWrite(4, HIGH)`. Was du gleich im Trainer ausprobierst, passiert also auf deinem Board schon.
+</Karte>
+
+<Merke>Auf dem ESP32-CAM schaltet ein Transistor den Blitz. Für dich reicht digitalWrite(4, HIGH).</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Auf dem Board" fragen={[
+  { frage: 'Warum darfst du den Blitz mit digitalWrite(4, HIGH) einschalten, obwohl er viel Strom braucht?', richtig: 'Auf dem Board sitzt schon ein Transistor, der GPIO liefert nur den Basisstrom.', falsch: ['Der GPIO 4 verträgt mehr Strom als andere Pins.', 'Der Blitz braucht in Wahrheit kaum Strom.'], erklaerung: 'Die Transistorschaltung ist auf dem ESP32-CAM schon eingebaut.' },
+]} />
+
+<Karte nr={4} titel="Dimmen mit PWM">
+Ein GPIO kennt nur an und aus. Um zu dimmen, schaltet man ihn sehr schnell an und aus, hier 5000-mal pro Sekunde. Das heißt **PWM** (Pulsweitenmodulation). Das Auge sieht kein Flackern, sondern eine mittlere Helligkeit. Der **Tastgrad** sagt, wie viel der Zeit der Pin an ist: Mit `ledcWrite(4, 20)` sind es 20 von 255 Stufen, knapp 8 %. Der Transistor schaltet einfach im selben Takt mit.
+</Karte>
+
+<Merke>PWM: schnell an und aus. Der Tastgrad bestimmt die Helligkeit.</Merke>
+
+<Quiz id="k4" titel="Kurzcheck: PWM" fragen={[
+  { frage: 'Bei ledcWrite(4, 128) mit 8 Bit Auflösung: Wie hell ist der Blitz ungefähr?', richtig: 'Etwa halb so hell, der Pin ist die halbe Zeit an.', falsch: ['Voll hell, jeder Wert über 0 heißt an', 'Aus, 128 ist zu wenig'], erklaerung: '128 von 255 sind etwa 50 % Tastgrad.' },
+]} />
+
+## Transistor-Trainer
+
+<Transistor id="trainer" titel="Trainer: Den Blitz schalten" />
+
+## Das Programm
+
+Die ESP32-CAM steckt auf der MB-Platine. Lade das Programm hoch und schau, wie der Blitz erst kurz aufleuchtet und dann sanft auf- und abdimmt. Das Programm bleibt absichtlich unter 10 % Helligkeit.
+
+```cpp
+// 0 to Hero – Mission 4.5: Der Blitz
+// Die helle Blitz-LED hängt über einen Transistor an GPIO 4.
+// Erst ganz an und aus, dann gedimmt mit PWM.
+// Achtung: Die LED ist sehr hell. Nicht direkt hineinschauen.
+// Board: "AI Thinker ESP32-CAM".
+
+const int BLITZ = 4;
+
+void setup() {
+  Serial.begin(115200);
+  delay(500);
+  Serial.println();
+
+  // 1. Einfach an und aus, wie eine LED in Akt 2
+  pinMode(BLITZ, OUTPUT);
+  Serial.println("Blitz kurz an ...");
+  digitalWrite(BLITZ, HIGH);
+  delay(150);
+  digitalWrite(BLITZ, LOW);
+  delay(1000);
+
+  // 2. PWM: 5000-mal pro Sekunde an und aus, Helligkeit in 256 Stufen (8 Bit)
+  ledcAttach(BLITZ, 5000, 8);
+}
+
+void loop() {
+  const int stufen[] = {0, 2, 5, 10, 20, 10, 5, 2};   // höchstens 20 von 255, also unter 10 %
+  for (int s : stufen) {
+    ledcWrite(BLITZ, s);
+    Serial.printf("Tastgrad %d von 255 (%.0f %%)\n", s, s * 100.0 / 255);
+    delay(600);
+  }
+  ledcWrite(BLITZ, 0);
+  Serial.printf("KW-CHECK:m-4-5:%012llX:pwm-ok\n", (unsigned long long)ESP.getEfuseMac());
+  delay(3000);
+}
+```
+
+<Hinweis titel="Blitz und Kamera zusammen">
+Die Kamera nutzt für ihren Takt ebenfalls die PWM-Hardware des ESP32. Deshalb schaltet die fertige Klingel den Blitz nur ganz an oder aus, mit `digitalWrite`. Das Dimmen probierst du hier ohne Kamera.
+</Hinweis>
+
+## Gerätenachweis
+
+<Seriell id="geraet" titel="Gerätenachweis: Der Blitz dimmt" muster="^KW-CHECK:m-4-5:[0-9A-F]{12}:pwm-ok$" />

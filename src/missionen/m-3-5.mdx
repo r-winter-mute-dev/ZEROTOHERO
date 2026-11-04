@@ -1,0 +1,275 @@
+---
+id: m-3-5
+abzeichen: Die Stimme
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: geraet
+    hardware: true
+  - id: angekommen
+    hardware: true
+spick:
+  - t: "Discord"
+    v: "POST an die Webhook-URL, JSON {\"content\": \"…\"}, Antwort 204 oder 200"
+  - t: "Telegram"
+    v: "POST an …/bot&lt;TOKEN&gt;/sendMessage, JSON mit chat_id und text, Antwort 200"
+  - t: "Dienst wählen"
+    v: "In secrets.h: DIENST 1 = Discord, 2 = Telegram"
+  - t: "Taster"
+    v: "GPIO 4 gegen GND, INPUT_PULLUP, Interrupt FALLING"
+  - t: "Sperrzeit"
+    v: "Höchstens eine Nachricht alle 10 Sekunden"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Seriell from '../components/Seriell.astro';
+import Bestaetigung from '../components/Bestaetigung.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+import { url as seitenUrl } from '../config';
+
+Alles ist bereit: Der Knopf wird erkannt (Akt 2), der ESP32 ist im WLAN (3.1), er spricht verschlüsselt (3.3), und die Zugangsdaten sind sicher verstaut (3.4). Jetzt kommt alles zusammen. **Deine Mission: Ein Druck auf den Klingelknopf schickt eine Nachricht auf dein Handy.**
+
+**Du brauchst:** den Aufbau aus Mission 2.6 (Taster zwischen GPIO 4 und GND) und entweder einen eigenen Discord-Server oder Telegram auf dem Handy. Such dir eins aus.
+
+## Theorie
+
+<Karte nr={1} titel="Webhook: eine Adresse zum Hineinschreiben">
+Ein **Webhook** ist eine Adresse, an die man per POST eine Nachricht schickt, und sie erscheint in einem bestimmten Kanal. Discord nutzt das: Du legst im Kanal einen Webhook an und bekommst eine URL. Mehr braucht die Klingel nicht. Kein Konto, keine Anmeldung, nur die URL. Darum ist sie so wertvoll (Mission 3.4).
+</Karte>
+
+<Merke>Discord: Webhook anlegen, URL kopieren, fertig. Die URL ist der Schlüssel.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Webhook" fragen={[
+  { frage: 'Was braucht die Klingel, um über einen Discord-Webhook zu schreiben?', richtig: 'Nur die Webhook-URL', falsch: ['Deinen Discord-Benutzernamen und dein Passwort', 'Eine eigene App auf dem Handy'], erklaerung: 'Die URL enthält alles, was nötig ist, auch den Token.' },
+]} />
+
+<Karte nr={2} titel="Bot: ein Chatpartner mit Token">
+Telegram arbeitet mit **Bots**. Ein Bot ist ein eigenes Konto, das ein Programm steuert. Du erstellst ihn bei @BotFather und bekommst einen **Token**. Damit der Bot dir schreiben kann, brauchst du noch die **Chat-ID**: die Nummer des Chats zwischen dir und dem Bot. Die Klingel schickt dann Token, Chat-ID und Text an die Methode `sendMessage`.
+</Karte>
+
+<Merke>Telegram: Token von @BotFather plus Chat-ID. Der Bot darf erst schreiben, wenn du ihm zuerst geschrieben hast.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Bot" fragen={[
+  { frage: 'Was sagt die Chat-ID dem Telegram-Server?', richtig: 'In welchen Chat die Nachricht soll', falsch: ['Wie der Bot heißt', 'Welches WLAN die Klingel nutzt'], erklaerung: 'Der Token sagt, welcher Bot schreibt. Die Chat-ID sagt, wohin.' },
+]} />
+
+<Karte nr={3} titel="Nicht zu oft klingeln">
+Server mögen keine Dauerfeuer. Schickt ein Gerät zu viele Anfragen, antwortet der Server mit **429 Too Many Requests** und nimmt eine Weile nichts mehr an. Außerdem prellt ein Knopf, und Kinder drücken gern zehnmal. Deshalb hat das Programm eine **Sperrzeit**: Nach einer Nachricht wartet es 10 Sekunden, bevor es die nächste schickt. Das Entprellen aus Mission 2.7 steckt auch mit drin.
+</Karte>
+
+<Merke>Eine Nachricht, dann 10 Sekunden Pause. Das schützt vor Spam und vor 429.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Sperrzeit" fragen={[
+  { frage: 'Jemand drückt fünfmal schnell hintereinander. Wie viele Nachrichten schickt die Klingel?', richtig: 'Eine, die weiteren Drücke fallen in die Sperrzeit', falsch: ['Fünf', 'Keine, weil der Knopf prellt'], erklaerung: 'Die Sperrzeit lässt nur eine Nachricht alle 10 Sekunden durch.' },
+]} />
+
+## Den Dienst einrichten
+
+Mach nur **einen** der beiden Wege.
+
+<details>
+<summary><strong>Weg A: Discord-Webhook</strong></summary>
+
+<Checkliste id="discord" punkte={[
+  'Einen eigenen Discord-Server öffnen (oder über das Plus links einen neuen anlegen). Du brauchst dort das Recht „Webhooks verwalten“.',
+  'Am gewünschten Kanal auf das Zahnrad klicken: <strong>Kanal bearbeiten → Integrationen → Webhooks → Neuer Webhook</strong>.',
+  'Dem Webhook einen Namen geben, zum Beispiel „Klingel“.',
+  'Auf <strong>Webhook-URL kopieren</strong> klicken. Diese URL ist dein Schlüssel.',
+]} />
+
+In secrets.h: `DIENST 1` und die URL bei `DISCORD_WEBHOOK` eintragen.
+</details>
+
+<details>
+<summary><strong>Weg B: Telegram-Bot</strong></summary>
+
+<Checkliste id="telegram" punkte={[
+  'In Telegram den Kontakt <strong>@BotFather</strong> öffnen (auf den blauen Haken achten) und <code>/newbot</code> schicken.',
+  'Einen Namen und einen Benutzernamen wählen. Der Benutzername muss auf <code>bot</code> enden.',
+  'Den Token kopieren, den @BotFather schickt. Er sieht aus wie <code>123456789:AA…</code>.',
+  'Deinen neuen Bot in Telegram öffnen und ihm irgendeine Nachricht schicken, zum Beispiel „Hallo“.',
+  'Im Browser <code>https://api.telegram.org/bot</code><em>DEIN_TOKEN</em><code>/getUpdates</code> öffnen. Dort bei <code>"chat":{"id":</code> die Zahl ablesen. Das ist deine Chat-ID.',
+]} />
+
+In secrets.h: `DIENST 2`, den Token bei `TELEGRAM_TOKEN` und die Chat-ID bei `TELEGRAM_CHAT_ID` eintragen.
+</details>
+
+<Hinweis titel="Wer liest mit?">
+Die Nachrichten laufen über die Server von Discord oder Telegram und liegen dort gespeichert. Für „Es klingelt“ ist das unproblematisch. Ab Akt 4 schickt die Klingel Fotos von deiner Haustür. Überleg dir, in welchen Kanal die kommen und wer dort mitliest.
+</Hinweis>
+
+## Das Programm
+
+<Checkliste id="aufbau" punkte={[
+  'Prüfen, dass der Taster noch zwischen GPIO 4 und GND steckt (Mission 2.6).',
+  'Neuen Sketch anlegen und speichern, zum Beispiel als <code>es-klingelt</code>.',
+  'Über <strong>Sketch → Datei hinzufügen …</strong> die Datei <code>wurzeln.h</code> aus Mission 3.3 hinzufügen.',
+  'Über die drei Punkte rechts neben den Tabs einen <strong>Neuen Tab</strong> <code>secrets.h</code> anlegen und die Vorlage unten hineinkopieren.',
+  'In secrets.h WLAN-Daten, den Dienst und deine Zugangsdaten eintragen.',
+  'Den Code unten in den Haupt-Tab kopieren, hochladen und den seriellen Monitor öffnen.',
+  'Warten, bis „Bereit. Drück den Klingelknopf.“ erscheint, dann drücken.',
+]} />
+
+<p><a class="knopf zweit" href={seitenUrl('firmware/wurzeln.h')} download="wurzeln.h">wurzeln.h herunterladen</a></p>
+
+**secrets.h** (nie teilen):
+
+```cpp
+#pragma once
+
+#define WLAN_NAME      "DEIN_WLAN"
+#define WLAN_PASSWORT  "DEIN_PASSWORT"
+
+// Wohin soll die Klingel schreiben? 1 = Discord, 2 = Telegram
+#define DIENST 1
+
+// Discord: Kanal-Einstellungen → Integrationen → Webhooks → Webhook-URL kopieren
+#define DISCORD_WEBHOOK "https://discord.com/api/webhooks/DEINE_ID/DEIN_TOKEN"
+
+// Telegram: Token von @BotFather, Chat-ID über getUpdates (siehe Mission 3.5)
+#define TELEGRAM_TOKEN   "123456789:DEIN_TOKEN"
+#define TELEGRAM_CHAT_ID "DEINE_CHAT_ID"
+```
+
+**Das Programm:**
+
+```cpp
+// 0 to Hero – Mission 3.5: Es klingelt
+// Ein Druck auf den Klingelknopf (GPIO 4 gegen GND) schickt eine Nachricht
+// nach Discord (Webhook) oder Telegram (Bot-API). Was davon, steht in secrets.h.
+//
+// In diesem Ordner brauchst du: secrets.h (aus secrets.example.h) und wurzeln.h.
+
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <HTTPClient.h>
+#include <time.h>
+#include "wurzeln.h"
+
+#if __has_include("secrets.h")
+#include "secrets.h"
+#else
+#error "secrets.h fehlt: Kopiere secrets.example.h, nenne die Kopie secrets.h und trag deine Daten ein."
+#endif
+
+const int TASTER_PIN = 4;
+const unsigned long ENTPRELLZEIT = 50;     // ms, wie in Mission 2.7
+const unsigned long SPERRZEIT = 10000;     // ms: höchstens eine Nachricht alle 10 Sekunden
+
+volatile bool gedrueckt = false;
+volatile unsigned long letzterInterrupt = 0;
+unsigned long letzteNachricht = 0;
+int klingelZaehler = 0;
+
+void IRAM_ATTR tasterISR() {               // Interrupt wie in Mission 2.8: nur einen Merker setzen
+  unsigned long jetzt = millis();
+  if (jetzt - letzterInterrupt > ENTPRELLZEIT) gedrueckt = true;
+  letzterInterrupt = jetzt;
+}
+
+void wlanVerbinden() {
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WLAN_NAME, WLAN_PASSWORT);
+  Serial.print("WLAN");
+  while (WiFi.status() != WL_CONNECTED) { Serial.print("."); delay(250); }
+  Serial.print(" verbunden, IP ");
+  Serial.println(WiFi.localIP());
+}
+
+void uhrzeitHolen() {
+  configTime(0, 0, "pool.ntp.org", "time.google.com");
+  Serial.print("Uhrzeit");
+  while (time(nullptr) < 1700000000) { Serial.print("."); delay(250); }
+  Serial.println(" gesetzt");
+}
+
+// Sendet einen JSON-Text per HTTPS-POST und gibt den Statuscode zurück.
+int postJson(const String& url, const String& json) {
+  WiFiClientSecure client;
+  client.setCACert(WURZELN);
+  HTTPClient https;
+  if (!https.begin(client, url)) return -100;
+  https.addHeader("Content-Type", "application/json");
+  int code = https.POST(json);
+  if (code < 0) {
+    Serial.print("Verbindungsfehler: ");
+    Serial.println(https.errorToString(code));
+  } else if (code >= 400) {
+    Serial.print("Antwort vom Server: ");
+    Serial.println(https.getString());   // dort steht meist, was nicht stimmt
+  }
+  https.end();
+  return code;
+}
+
+int nachrichtSenden(const String& text) {
+#if DIENST == 1
+  String json = "{\"content\":\"" + text + "\"}";
+  int code = postJson(DISCORD_WEBHOOK, json);
+  bool ok = (code == 200 || code == 204);   // Discord antwortet mit 204 (ohne Inhalt) oder 200
+#elif DIENST == 2
+  String url = String("https://api.telegram.org/bot") + TELEGRAM_TOKEN + "/sendMessage";
+  String json = String("{\"chat_id\":\"") + TELEGRAM_CHAT_ID + "\",\"text\":\"" + text + "\"}";
+  int code = postJson(url, json);
+  bool ok = (code == 200);
+#else
+#error "DIENST in secrets.h muss 1 (Discord) oder 2 (Telegram) sein."
+#endif
+  Serial.print("Statuscode: ");
+  Serial.print(code);
+  Serial.println(ok ? " (angekommen)" : " (nicht angekommen)");
+  if (ok) Serial.printf("KW-CHECK:m-3-5:%012llX:%d\n", (unsigned long long)ESP.getEfuseMac(), code);
+  return code;
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(500);
+  pinMode(TASTER_PIN, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(TASTER_PIN), tasterISR, FALLING);
+  wlanVerbinden();
+  uhrzeitHolen();
+  Serial.println("Bereit. Drück den Klingelknopf.");
+}
+
+void loop() {
+  if (gedrueckt) {
+    gedrueckt = false;
+    if (millis() - letzteNachricht < SPERRZEIT && letzteNachricht != 0) {
+      Serial.println("Zu schnell hintereinander, ich warte noch.");
+      return;
+    }
+    letzteNachricht = millis();
+    klingelZaehler++;
+    Serial.println("Es klingelt! Sende Nachricht ...");
+    nachrichtSenden("Es klingelt! (Nummer " + String(klingelZaehler) + " seit dem Start)");
+  }
+  if (WiFi.status() != WL_CONNECTED) {      // WLAN weg? Neu verbinden.
+    Serial.println("WLAN verloren, verbinde neu.");
+    wlanVerbinden();
+  }
+}
+```
+
+<Merke>Im seriellen Monitor steht nach jedem Druck der Statuscode. 204 oder 200 heißt: angekommen.</Merke>
+
+## Nachweis
+
+<Seriell id="geraet" titel="Gerätenachweis: Nachricht gesendet" muster="^KW-CHECK:m-3-5:[0-9A-F]{12}:(200|204)$" hinweis="Die Zeile erscheint, sobald eine Nachricht angekommen ist. Drück den Knopf, während du verbunden bist." />
+
+<Bestaetigung id="angekommen" titel="Es klingelt auf dem Handy" text="Die Nachricht „Es klingelt!“ ist auf meinem Handy angekommen." />
+
+## Typische Fehler
+
+| Statuscode | Bedeutung | Lösung |
+| --- | --- | --- |
+| 400 | Anfrage unverständlich, bei Telegram oft „chat not found“ | Chat-ID prüfen. Hast du dem Bot zuerst geschrieben? |
+| 401 | Token falsch | Token oder Webhook-URL in secrets.h neu kopieren |
+| 404 | Webhook gibt es nicht (mehr) | Webhook in Discord neu anlegen, URL neu eintragen |
+| 429 | Zu viele Anfragen | Warten. Die Sperrzeit im Programm nicht verkürzen |
+| −1 | Keine Verbindung | WLAN, Uhrzeit und wurzeln.h prüfen (Mission 3.3) |
+
+Den genauen Grund schreibt der Server mit. Das Programm gibt ihn bei Fehlern im seriellen Monitor aus.

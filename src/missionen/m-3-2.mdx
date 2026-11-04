@@ -1,0 +1,93 @@
+---
+id: m-3-2
+abzeichen: Botschafter
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: k4
+  - id: baukasten
+spick:
+  - t: "Anfrage"
+    v: "Methode + Adresse + Header + Inhalt"
+  - t: "GET"
+    v: "Etwas abholen"
+  - t: "POST"
+    v: "Etwas schicken"
+  - t: "2xx"
+    v: "Hat geklappt (200 OK, 204 No Content)"
+  - t: "4xx"
+    v: "Deine Anfrage stimmt nicht (400, 401, 404)"
+  - t: "5xx"
+    v: "Fehler beim Server"
+  - t: "JSON"
+    v: '{"content": "Es klingelt!"}'
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Anfrage from '../components/Anfrage.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Dein ESP32 ist im Netz. Aber wie sagt er Discord oder Telegram, dass es geklingelt hat? Er schickt eine **Anfrage** an deren Server, in einer festen Form, die beide Seiten verstehen. Diese Form üben wir hier ohne Hardware. **Deine Mission: Bau Anfragen zusammen und lies, was der Server antwortet.**
+
+## Theorie
+
+<Karte nr={1} titel="Anfrage und Antwort">
+Im Internet läuft fast alles nach demselben Muster: Ein Gerät schickt eine **Anfrage** (Request), der Server schickt eine **Antwort** (Response). Die Sprache dafür heißt **HTTP**. Eine **API** ist die Liste der Anfragen, die ein Server versteht, sozusagen seine Speisekarte. Discord und Telegram beschreiben ihre API in der Dokumentation.
+</Karte>
+
+<Merke>Gerät fragt, Server antwortet. Die API sagt, welche Fragen der Server versteht.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: API" fragen={[
+  { frage: 'Was ist eine API?', richtig: 'Die Liste der Anfragen, die ein Server versteht', falsch: ['Ein Kabel zwischen ESP32 und Router', 'Ein Programm, das auf dem ESP32 läuft'], erklaerung: 'Die API ist wie eine Speisekarte: Sie sagt, was man bestellen kann.' },
+]} />
+
+<Karte nr={2} titel="Methode und Adresse">
+Jede Anfrage beginnt mit einer **Methode** und einer **Adresse** (URL). Die Methode sagt, was du willst: **GET** holt etwas ab, **POST** schickt etwas hin, **DELETE** löscht etwas. Die Adresse sagt, wohin. Für deine Klingel reicht fast immer: **POST** an die Adresse, die dir Discord oder Telegram gibt.
+</Karte>
+
+<Merke>GET holt ab, POST schickt hin. Eine Klingel-Nachricht ist ein POST.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Methode" fragen={[
+  { frage: 'Die Klingel soll eine Nachricht in den Chat schreiben. Welche Methode?', richtig: 'POST', falsch: ['GET', 'DELETE'], erklaerung: 'POST schickt Daten an den Server.' },
+]} />
+
+<Karte nr={3} titel="Header und JSON">
+Nach Methode und Adresse folgen **Header**: Zusatzangaben wie `Content-Type: application/json`. Der sagt dem Server, in welcher Form der Inhalt kommt. Der **Inhalt** (Body) ist bei Discord und Telegram **JSON**: Namen in Anführungszeichen, ein Doppelpunkt, dann der Wert. Zum Beispiel `{"content": "Es klingelt!"}`. Fehlt ein Anführungszeichen, versteht der Server nichts.
+</Karte>
+
+<Merke>JSON: geschweifte Klammern, "Name": "Wert". Dazu der Header Content-Type: application/json.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: JSON" fragen={[
+  { frage: 'Welches JSON ist richtig geschrieben?', richtig: '{"content": "Hallo"}', falsch: ['{content: Hallo}', '("content" = "Hallo")'], erklaerung: 'Geschweifte Klammern, Namen und Texte in Anführungszeichen, dazwischen ein Doppelpunkt.' },
+]} />
+
+<Karte nr={4} titel="Statuscodes">
+Jede Antwort beginnt mit einer dreistelligen Zahl, dem **Statuscode**. Die erste Ziffer verrät das Wichtigste: **2xx** heißt geklappt, zum Beispiel 200 OK oder 204 No Content („geklappt, aber ich schicke nichts zurück“). **4xx** heißt: Deine Anfrage stimmt nicht, etwa 400 (unverständlich), 401 (falsches Passwort) oder 404 (gibt es nicht). **5xx** heißt: Der Server hat ein Problem.
+</Karte>
+
+<Merke>2xx = geklappt. 4xx = dein Fehler. 5xx = Fehler beim Server.</Merke>
+
+<Quiz id="k4" titel="Kurzcheck: Statuscodes" fragen={[
+  { frage: 'Deine Klingel bekommt 401 zurück. Wo suchst du den Fehler?', richtig: 'Bei dir: Token oder Passwort stimmt nicht', falsch: ['Beim Server, er ist kaputt', 'Nirgends, 401 heißt geklappt'], erklaerung: '4xx heißt: Die Anfrage stimmt nicht. 401 steht für fehlende oder falsche Anmeldedaten.' },
+]} />
+
+## Der Baukasten
+
+Hier steckst du Anfragen zusammen und schickst sie an einen **nachgebauten** Discord-Webhook. Nichts davon verlässt deinen Browser. Links siehst du, was der ESP32 später genau so verschickt, rechts die Antwort.
+
+<Anfrage id="baukasten" titel="HTTP-Baukasten" aufgaben={[
+  { text: 'Frag den Webhook, wer er ist. Du willst etwas abholen.', ziel: 200, tipp: 'Abholen heißt GET, und die Adresse muss der richtige Webhook mit dem richtigen Token sein.' },
+  { text: 'Schick die Nachricht „Es klingelt!“ in den Kanal.', ziel: 204, tipp: 'Schicken heißt POST. Dazu der Header Content-Type: application/json und gültiges JSON mit "content".' },
+  { text: 'Provozier einen Fehler: Versuch es mit einem falschen Token.', ziel: 401, tipp: 'Nimm die Adresse, die auf /falsch endet.' },
+  { text: 'Schick eine leere Nachricht und schau, was der Server sagt.', ziel: 400, tipp: 'POST mit JSON, aber mit leerem Text: {"content": ""}. Oder lass den Content-Type weg.' },
+]} />
+
+<Hinweis titel="Probier auch DELETE">
+Schick einmal ein DELETE an den richtigen Webhook und danach wieder eine Nachricht. Wer die vollständige Adresse kennt, kann deinen Webhook also löschen oder in deinem Namen schreiben. Genau deshalb behandelst du sie in Mission 3.4 wie ein Passwort.
+</Hinweis>
+
+<Hinweis titel="Vereinfacht">
+Der Übungs-Server ist nachgebaut. Die Statuscodes und Fehlermeldungen orientieren sich an der Discord-Dokumentation, der echte Server liefert aber mehr Header und Details. Discord antwortet auf eine Nachricht je nach Einstellung mit 204 oder mit 200 und der gespeicherten Nachricht [Fachquelle: Discord-Entwicklerdokumentation, „Execute Webhook“]. Deine Klingel akzeptiert deshalb beides.
+</Hinweis>

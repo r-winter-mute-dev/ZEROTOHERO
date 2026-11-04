@@ -1,0 +1,77 @@
+---
+id: m-4-2
+abzeichen: Pixelzähler
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: k4
+  - id: rechnen
+spick:
+  - t: "Pixel"
+    v: "Breite × Höhe"
+  - t: "Rohbild"
+    v: "Pixel × Byte pro Pixel"
+  - t: "1 KB"
+    v: "1024 Byte"
+  - t: "RGB565"
+    v: "2 Byte pro Pixel"
+  - t: "Interner Speicher"
+    v: "520 KB für alles zusammen"
+  - t: "JPEG-Qualität (ESP32-CAM)"
+    v: "10 = sehr gut, 63 = sehr schlecht"
+  - t: "VGA"
+    v: "640 × 480"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Rechnen from '../components/Rechnen.astro';
+
+Bevor die Kamera das erste Foto macht, eine Frage: Wie groß soll es sein? Ein großes Foto zeigt mehr Details. Aber es braucht mehr Speicher, mehr Zeit zum Senden und damit mehr Akku. **Deine Mission: Rechne aus, wie viel Speicher ein Bild braucht, und entscheide, welche Größe zur Klingel passt.** Für diese Mission brauchst du keine Hardware.
+
+## Theorie
+
+<Karte nr={1} titel="Pixel und Auflösung">
+Ein Digitalfoto besteht aus winzigen Bildpunkten, den **Pixeln**, in Zeilen und Spalten. Die **Auflösung** gibt an, wie viele: VGA hat 640 × 480 Pixel, das sind 307 200. Die Kamera des ESP32-CAM schafft bis zu 1600 × 1200 (UXGA), das sind knapp 2 Millionen. Doppelte Breite und doppelte Höhe ergeben viermal so viele Pixel.
+</Karte>
+
+<Merke>Pixelzahl = Breite × Höhe. Doppelt so breit und hoch heißt vierfach so viele Pixel.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Pixel" fragen={[
+  { frage: 'QVGA hat 320 × 240 Pixel, VGA hat 640 × 480. Wie viele Pixel hat VGA im Vergleich?', richtig: 'Viermal so viele', falsch: ['Doppelt so viele', 'Gleich viele, nur größer dargestellt'], erklaerung: 'Breite und Höhe verdoppeln sich, also 2 × 2 = 4.' },
+]} />
+
+<Karte nr={2} titel="Farbe kostet Bytes">
+Jedes Pixel speichert seine Farbe als Zahl. Ein Graustufenbild braucht **1 Byte** pro Pixel. Das Format **RGB565** speichert Rot, Grün und Blau zusammen in **2 Byte**, RGB888 in 3 Byte. Ein Rohbild braucht also: Pixel × Byte pro Pixel. Ein VGA-Bild in RGB565 sind 640 × 480 × 2 = 614 400 Byte, geteilt durch 1024 sind das **600 KB**.
+</Karte>
+
+<Merke>Rohbild = Breite × Höhe × Byte pro Pixel. Durch 1024 teilen ergibt KB.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Bytes" fragen={[
+  { frage: 'Ein VGA-Rohbild in RGB565 braucht 600 KB. Der ESP32 hat intern 520 KB. Was folgt daraus?', richtig: 'Es passt nicht in den internen Speicher, deshalb gibt es das PSRAM.', falsch: ['Es passt knapp hinein.', 'Das spielt keine Rolle, Bilder liegen auf dem Server.'], erklaerung: 'Schon ein einziges VGA-Rohbild ist größer als der ganze interne Speicher.' },
+]} />
+
+<Karte nr={3} titel="JPEG schrumpft das Bild">
+Zum Glück muss niemand Rohbilder verschicken. Die Kamera kann ein Bild sofort als **JPEG** ausgeben. Das Verfahren lässt Details weg, die das Auge kaum bemerkt, und spart so den Großteil der Bytes. Beim ESP32-CAM stellst du die **Qualität** als Zahl von 10 bis 63 ein. Achtung, umgekehrt: **Kleiner heißt besser** und größer [Fachquelle: Espressif, esp32-camera]. Wie stark es schrumpft, misst du in Mission 4.3 selbst.
+</Karte>
+
+<Merke>JPEG spart viele Bytes. Qualität beim ESP32-CAM: kleine Zahl = besseres, größeres Bild.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: JPEG" fragen={[
+  { frage: 'Du stellst die JPEG-Qualität von 12 auf 30. Was passiert?', richtig: 'Das Bild wird kleiner und etwas schlechter.', falsch: ['Das Bild wird größer und besser.', 'Nur die Auflösung ändert sich.'], erklaerung: 'Beim ESP32-CAM heißt eine größere Zahl stärkere Kompression.' },
+]} />
+
+<Karte nr={4} titel="Was die Klingel braucht">
+Für die Klingel zählt nicht das schönste Bild, sondern ein erkennbares Gesicht, schnell verschickt. Jede Sekunde mit eingeschaltetem WLAN kostet Akku, und ein großes Bild braucht länger zum Hochladen. Deshalb startet dieser Kurs mit **VGA** und Qualität **12**. Das ist ein Kompromiss, keine Regel: Später misst du, wie lange ein Klingeln dauert, und kannst nachjustieren.
+</Karte>
+
+<Merke>Großes Bild = mehr Details, aber mehr Speicher, mehr Sendezeit, mehr Akku. Start: VGA, Qualität 12.</Merke>
+
+<Quiz id="k4" titel="Kurzcheck: Abwägen" fragen={[
+  { frage: 'Warum nimmt der Kurs nicht einfach die höchste Auflösung?', richtig: 'Größere Bilder brauchen länger zum Senden, und das kostet Akku.', falsch: ['Die höchste Auflösung ist verboten.', 'Discord nimmt keine großen Bilder an.'], erklaerung: 'Bei einem Akkugerät zählt jede Sekunde, in der das WLAN läuft.' },
+]} />
+
+## Rechnen
+
+<Rechnen id="rechnen" titel="Rechenaufgaben: Wie groß ist das Rohbild?" typ="pixel" anzahl={3} />

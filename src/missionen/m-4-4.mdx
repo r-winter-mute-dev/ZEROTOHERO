@@ -1,0 +1,261 @@
+---
+id: m-4-4
+abzeichen: Fotograf
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: puzzle
+  - id: geraet
+    hardware: true
+  - id: angekommen
+    hardware: true
+spick:
+  - t: "Header"
+    v: "Content-Type: multipart/form-data; boundary=GRENZE"
+  - t: "Neuer Teil"
+    v: "--GRENZE"
+  - t: "Ende"
+    v: "--GRENZE--"
+  - t: "Discord"
+    v: "Teile payload_json und files[0], an die Webhook-URL"
+  - t: "Telegram"
+    v: "Teile chat_id, caption und photo, an …/sendPhoto"
+  - t: "Zeilenende"
+    v: "\\r\\n"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Lueckentext from '../components/Lueckentext.astro';
+import Seriell from '../components/Seriell.astro';
+import Bestaetigung from '../components/Bestaetigung.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+import { PUZZLE_M44 } from '../data/puzzles';
+import { url as seitenUrl } from '../config';
+
+Die Kamera macht Fotos, und die Klingel kann Nachrichten schicken. Jetzt kommt beides zusammen. Ein Foto ist aber kein kurzer Text, den man in JSON packt. Es ist eine Datei aus vielen tausend Bytes. **Deine Mission: Schick ein Foto vom ESP32-CAM in deinen Chat.**
+
+## Theorie
+
+<Karte nr={1} titel="Ein Paket mit mehreren Teilen">
+Willst du Text und Datei gleichzeitig schicken, brauchst du ein Format, das beides in einer Anfrage trägt: **multipart/form-data**. Das ist dasselbe Verfahren, mit dem dein Browser Dateien hochlädt. Der Inhalt besteht aus mehreren **Teilen**. Jeder Teil hat einen Namen, zum Beispiel `chat_id` oder `photo`, und darunter seinen Inhalt.
+</Karte>
+
+<Merke>multipart/form-data: ein Paket, mehrere Teile, jeder mit Namen. So reisen Text und Foto zusammen.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: multipart" fragen={[
+  { frage: 'Warum reicht für ein Foto nicht der JSON-Inhalt aus Akt 3?', richtig: 'Ein Foto ist eine Datei aus Bytes, kein kurzer Text. multipart trägt Text und Datei zusammen.', falsch: ['JSON ist für Fotos zu langsam.', 'Discord verbietet JSON.'], erklaerung: 'multipart/form-data ist das übliche Format für Datei-Uploads.' },
+]} />
+
+<Karte nr={2} titel="Die Grenzlinie">
+Woran erkennt der Server, wo ein Teil aufhört? An einer **Grenzlinie** (boundary), die du dir selbst ausdenkst. Sie steht im Header: `Content-Type: multipart/form-data; boundary=0toHeroKlingelGrenze`. Im Inhalt beginnt jeder Teil mit `--` und der Grenze. Ganz am Ende steht die Grenze mit `--` davor **und** danach. Die Grenze darf im Foto nicht vorkommen, deshalb nimmt man einen langen, ungewöhnlichen Text.
+</Karte>
+
+<Merke>Jeder Teil beginnt mit --GRENZE. Das Ende ist --GRENZE--.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Grenze" fragen={[
+  { frage: 'Woran erkennt der Server das Ende des ganzen Pakets?', richtig: 'An der Grenze mit zwei Strichen davor und danach: --GRENZE--', falsch: ['An einer leeren Zeile', 'Am Ende des Fotos, das erkennt er selbst'], erklaerung: 'Die zwei Striche am Ende sagen: Hier kommt kein Teil mehr.' },
+]} />
+
+<Karte nr={3} titel="Zusammensetzen im PSRAM">
+Das Programm baut das Paket aus drei Stücken: einem **Kopf** mit den Textteilen und dem Anfang des Dateiteils, dem **Foto** aus dem Bildpuffer und einem **Fuß** mit der Schlussgrenze. Alles kommt hintereinander in einen Speicherbereich im PSRAM, angefordert mit `ps_malloc`. Nach dem Senden gibt `free` ihn wieder frei, genau wie beim Bildpuffer.
+</Karte>
+
+<Merke>Kopf + Foto + Fuß, hintereinander im PSRAM. Nach dem Senden: free.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Zusammensetzen" fragen={[
+  { frage: 'Warum legt das Programm das Paket ins PSRAM und nicht in den internen Speicher?', richtig: 'Das Paket ist so groß wie das Foto, dafür ist das PSRAM da.', falsch: ['Weil PSRAM schneller ist.', 'Weil HTTPS nur mit PSRAM funktioniert.'], erklaerung: 'Ein Foto mit Kopf und Fuß braucht schnell zig Kilobyte.' },
+]} />
+
+## So sieht das Paket aus
+
+Ergänze die Lücken. So schickt die Klingel ein Foto an Telegram (der Bildteil ist gekürzt).
+
+<Lueckentext id="puzzle" titel="Puzzle: Ein multipart-Paket" aufgabe="Setze die fehlenden Stücke ein: den Anfang eines Teils, den Bildtyp und das Ende des Pakets." code={PUZZLE_M44} luecken={[
+  { loesungen: ['--0toHeroKlingelGrenze'], tipp: 'Jeder Teil beginnt mit zwei Strichen und der Grenze.' },
+  { loesungen: ['image/jpeg'], tipp: 'Welches Bildformat liefert die Kamera? Schreibweise: image/…' },
+  { loesungen: ['--0toHeroKlingelGrenze--'], tipp: 'Das Ende: Grenze mit zwei Strichen davor und danach.' },
+]} />
+
+## Das Programm
+
+<Checkliste id="aufbau" punkte={[
+  'Neuen Sketch anlegen und speichern, zum Beispiel als <code>foto-senden</code>. Board: <strong>AI Thinker ESP32-CAM</strong>.',
+  'Über <strong>Sketch → Datei hinzufügen …</strong> die Datei <code>wurzeln.h</code> hinzufügen.',
+  'Einen neuen Tab <code>secrets.h</code> anlegen und deine Daten aus Mission 3.5 hineinkopieren. Sie gelten unverändert.',
+  'Den Code unten in den Haupt-Tab kopieren und hochladen.',
+  'Den seriellen Monitor öffnen. Nach ein paar Sekunden kommt das Foto in deinem Chat an.',
+]} />
+
+<p><a class="knopf zweit" href={seitenUrl('firmware/wurzeln.h')} download="wurzeln.h">wurzeln.h herunterladen</a></p>
+
+```cpp
+// 0 to Hero – Mission 4.4: Foto verschicken
+// Macht nach dem Start ein Foto und schickt es nach Discord oder Telegram.
+// In diesem Ordner brauchst du: secrets.h (aus secrets.example.h) und wurzeln.h.
+// Board: "AI Thinker ESP32-CAM".
+
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <HTTPClient.h>
+#include <time.h>
+#include "wurzeln.h"
+#if __has_include("secrets.h")
+#include "secrets.h"
+#else
+#error "secrets.h fehlt: Kopiere secrets.example.h, nenne die Kopie secrets.h und trag deine Daten ein."
+#endif
+
+// ---------- Kamera (AI-Thinker ESP32-CAM) ----------
+// Pinbelegung laut AI-Thinker-Schaltplan. Für andere Kameraboards sind die Pins anders.
+#include "esp_camera.h"
+
+bool kameraStarten(framesize_t groesse, int qualitaet) {
+  camera_config_t c = {};
+  c.pin_pwdn = 32;  c.pin_reset = -1;  c.pin_xclk = 0;
+  c.pin_sccb_sda = 26;  c.pin_sccb_scl = 27;
+  c.pin_d7 = 35;  c.pin_d6 = 34;  c.pin_d5 = 39;  c.pin_d4 = 36;
+  c.pin_d3 = 21;  c.pin_d2 = 19;  c.pin_d1 = 18;  c.pin_d0 = 5;
+  c.pin_vsync = 25;  c.pin_href = 23;  c.pin_pclk = 22;
+  c.xclk_freq_hz = 20000000;            // Takt für den Bildsensor: 20 MHz
+  c.ledc_timer = LEDC_TIMER_0;
+  c.ledc_channel = LEDC_CHANNEL_0;
+  c.pixel_format = PIXFORMAT_JPEG;      // der Sensor liefert gleich ein fertiges JPEG
+  c.frame_size = groesse;
+  c.jpeg_quality = qualitaet;           // 10 = sehr gut, 63 = sehr schlecht
+  c.fb_count = 2;                       // zwei Bildpuffer ...
+  c.fb_location = CAMERA_FB_IN_PSRAM;   // ... im großen PSRAM
+  c.grab_mode = CAMERA_GRAB_LATEST;     // immer das neueste Bild nehmen
+
+  esp_err_t fehler = esp_camera_init(&c);
+  if (fehler != ESP_OK) {
+    Serial.printf("Kamera startet nicht: Fehler 0x%x (%s)\n", (unsigned)fehler, esp_err_to_name(fehler));
+    return false;
+  }
+  return true;
+}
+
+// Die ersten Bilder nach dem Start sind oft zu dunkel oder grünstichig,
+// weil die automatische Belichtung erst ein paar Bilder braucht. Die werfen wir weg.
+camera_fb_t* fotoMachen() {
+  for (int i = 0; i < 3; i++) {
+    camera_fb_t* alt = esp_camera_fb_get();
+    if (alt) esp_camera_fb_return(alt);
+    delay(100);
+  }
+  return esp_camera_fb_get();
+}
+
+// ---------- WLAN und Uhrzeit (wie in Akt 3) ----------
+bool wlanVerbinden(unsigned long maxMs) {
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WLAN_NAME, WLAN_PASSWORT);
+  unsigned long start = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - start < maxMs) delay(100);
+  return WiFi.status() == WL_CONNECTED;
+}
+
+bool uhrzeitHolen(unsigned long maxMs) {
+  configTime(0, 0, "pool.ntp.org", "time.google.com");
+  unsigned long start = millis();
+  while (time(nullptr) < 1700000000 && millis() - start < maxMs) delay(100);
+  return time(nullptr) >= 1700000000;
+}
+
+// ---------- Foto verschicken (multipart/form-data) ----------
+// Der Inhalt besteht aus mehreren Teilen, getrennt durch eine Grenzlinie.
+// Ein Teil ist Text (die Nachricht), ein Teil ist die JPEG-Datei.
+const char* GRENZE = "0toHeroKlingelGrenze";
+
+String teilText(const char* name, const String& wert) {
+  return String("--") + GRENZE + "\r\n"
+       + "Content-Disposition: form-data; name=\"" + name + "\"\r\n\r\n"
+       + wert + "\r\n";
+}
+
+String teilDateiKopf(const char* name) {
+  return String("--") + GRENZE + "\r\n"
+       + "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"klingel.jpg\"\r\n"
+       + "Content-Type: image/jpeg\r\n\r\n";
+}
+
+int fotoSenden(camera_fb_t* fb, const String& text) {
+  String url, kopf;
+#if DIENST == 1
+  url = DISCORD_WEBHOOK;
+  kopf = teilText("payload_json", String("{\"content\":\"") + text + "\"}") + teilDateiKopf("files[0]");
+#elif DIENST == 2
+  url = String("https://api.telegram.org/bot") + TELEGRAM_TOKEN + "/sendPhoto";
+  kopf = teilText("chat_id", String(TELEGRAM_CHAT_ID)) + teilText("caption", text) + teilDateiKopf("photo");
+#else
+#error "DIENST in secrets.h muss 1 (Discord) oder 2 (Telegram) sein."
+#endif
+  String fuss = String("\r\n--") + GRENZE + "--\r\n";
+
+  // Alles in einem Stück im PSRAM zusammensetzen: Kopf + Bild + Fuß
+  size_t laenge = kopf.length() + fb->len + fuss.length();
+  uint8_t* inhalt = (uint8_t*)ps_malloc(laenge);
+  if (!inhalt) { Serial.println("Kein Speicher für den Versand."); return -200; }
+  memcpy(inhalt, kopf.c_str(), kopf.length());
+  memcpy(inhalt + kopf.length(), fb->buf, fb->len);
+  memcpy(inhalt + kopf.length() + fb->len, fuss.c_str(), fuss.length());
+
+  WiFiClientSecure client;
+  client.setCACert(WURZELN);
+  HTTPClient https;
+  https.setTimeout(20000);                 // große Dateien brauchen etwas länger
+  int code = -100;
+  if (https.begin(client, url)) {
+    https.addHeader("Content-Type", String("multipart/form-data; boundary=") + GRENZE);
+    code = https.POST(inhalt, laenge);
+    if (code < 0) { Serial.print("Verbindungsfehler: "); Serial.println(https.errorToString(code)); }
+    else if (code >= 400) { Serial.print("Antwort vom Server: "); Serial.println(https.getString()); }
+    https.end();
+  }
+  free(inhalt);
+  return code;
+}
+
+bool angekommen(int code) {
+#if DIENST == 1
+  return code == 200 || code == 204;
+#else
+  return code == 200;
+#endif
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(500);
+  Serial.println();
+  if (!kameraStarten(FRAMESIZE_VGA, 12)) return;
+  if (!wlanVerbinden(20000)) { Serial.println("Kein WLAN."); return; }
+  Serial.print("WLAN verbunden, IP ");
+  Serial.println(WiFi.localIP());
+  if (!uhrzeitHolen(10000)) { Serial.println("Keine Uhrzeit."); return; }
+
+  camera_fb_t* fb = fotoMachen();
+  if (!fb) { Serial.println("Kein Bild bekommen."); return; }
+  Serial.printf("Foto: %u Byte. Sende ...\n", (unsigned)fb->len);
+  int code = fotoSenden(fb, "Testfoto von deiner Klingel");
+  Serial.printf("Statuscode: %d%s\n", code, angekommen(code) ? " (angekommen)" : " (nicht angekommen)");
+  if (angekommen(code)) {
+    Serial.printf("KW-CHECK:m-4-4:%012llX:%d:%u\n", (unsigned long long)ESP.getEfuseMac(), code, (unsigned)fb->len);
+  }
+  esp_camera_fb_return(fb);
+}
+
+void loop() {}
+```
+
+<Hinweis titel="Brownout oder Neustart beim Senden?">
+Kamera und WLAN zusammen ziehen kurz viel Strom. Startet die ESP32-CAM beim Senden neu, liefert die USB-Buchse oder das Kabel nicht genug. Probier ein kürzeres Kabel oder einen anderen Anschluss direkt am Computer. Mehr dazu im Bosskampf.
+</Hinweis>
+
+## Nachweis
+
+<Seriell id="geraet" titel="Gerätenachweis: Foto verschickt" muster="^KW-CHECK:m-4-4:[0-9A-F]{12}:(200|204):\d{3,}$" />
+
+<Bestaetigung id="angekommen" titel="Das Foto ist da" text="Das Testfoto von meiner Klingel ist in meinem Chat angekommen." />

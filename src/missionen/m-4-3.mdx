@@ -1,0 +1,146 @@
+---
+id: m-4-3
+abzeichen: Erstes Bild
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: groesse
+    hardware: true
+  - id: geraet
+    hardware: true
+spick:
+  - t: "Kamera starten"
+    v: "esp_camera_init(&config)"
+  - t: "Bild holen"
+    v: "camera_fb_t* fb = esp_camera_fb_get();"
+  - t: "Bild zurückgeben"
+    v: "esp_camera_fb_return(fb);"
+  - t: "Im Bildpuffer"
+    v: "fb->buf (Daten), fb->len (Byte), fb->width, fb->height"
+  - t: "Rohbild VGA (RGB565)"
+    v: "600 KB"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Zahl from '../components/Zahl.astro';
+import Seriell from '../components/Seriell.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Jetzt öffnet die Klingel zum ersten Mal ihr Auge. Das Foto siehst du noch nicht, denn der ESP32-CAM hat keinen Bildschirm. Aber du siehst, wie groß es ist, und damit, ob die Kamera wirklich arbeitet. **Deine Mission: Nimm ein Foto auf und miss seine Größe.**
+
+## Theorie
+
+<Karte nr={1} titel="Der Bildpuffer">
+Die Kamera legt jedes Foto in einen **Bildpuffer** (englisch frame buffer) im PSRAM. Mit `esp_camera_fb_get()` bekommst du einen Zeiger darauf: `fb->buf` sind die Bilddaten, `fb->len` ihre Länge in Byte. Wenn du fertig bist, gibst du den Puffer mit `esp_camera_fb_return(fb)` zurück. Vergisst du das, ist der Speicher belegt, und das nächste Foto kommt nie.
+</Karte>
+
+<Merke>fb_get holt das Bild, fb_return gibt den Speicher zurück. Immer beides.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Bildpuffer" fragen={[
+  { frage: 'Was passiert, wenn du esp_camera_fb_return() vergisst?', richtig: 'Der Puffer bleibt belegt, und weitere Fotos schlagen fehl.', falsch: ['Das Foto wird automatisch gelöscht.', 'Nichts, das Programm räumt selbst auf.'], erklaerung: 'Den Speicher musst du selbst zurückgeben.' },
+]} />
+
+<Karte nr={2} titel="Die ersten Bilder taugen nichts">
+Der Bildsensor stellt Belichtung und Weißabgleich automatisch ein. Das braucht ein paar Bilder. Die ersten Fotos nach dem Start sind deshalb oft zu dunkel oder grünstichig. Das Programm macht darum drei Bilder, wirft sie weg und nimmt erst das vierte. Für eine Klingel ist das wichtig, denn sie macht nach jedem Aufwachen genau ein Foto.
+</Karte>
+
+<Merke>Nach dem Start erst ein paar Bilder wegwerfen. Dann stimmt die Belichtung.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Belichtung" fragen={[
+  { frage: 'Warum wirft das Programm die ersten drei Bilder weg?', richtig: 'Die automatische Belichtung braucht ein paar Bilder, bis sie passt.', falsch: ['Weil die ersten Bilder zu groß sind.', 'Um Speicher zu sparen.'], erklaerung: 'Die ersten Bilder sind oft zu dunkel oder farbstichig.' },
+]} />
+
+<Karte nr={3} titel="Wie viel spart JPEG?">
+In Mission 4.2 hast du gerechnet: Ein VGA-Rohbild in RGB565 braucht 600 KB. Das Programm gibt aus, wie groß das JPEG wirklich ist, und um welchen Faktor es kleiner ist. Die Zahl hängt vom Motiv ab: Eine weiße Wand lässt sich viel stärker zusammenpressen als ein Bücherregal mit vielen Kanten.
+</Karte>
+
+<Merke>Wie stark JPEG spart, hängt vom Motiv ab. Viele Details = größere Datei.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Motiv" fragen={[
+  { frage: 'Welches Motiv ergibt bei gleicher Auflösung die größere JPEG-Datei?', richtig: 'Ein Bücherregal mit vielen Kanten und Farben', falsch: ['Eine weiße Wand', 'Beide gleich groß, die Auflösung ist ja gleich'], erklaerung: 'JPEG spart dort am meisten, wo wenig Details sind.' },
+]} />
+
+## Das Programm
+
+Die ESP32-CAM steckt weiter auf der MB-Platine, Board **AI Thinker ESP32-CAM**.
+
+```cpp
+// 0 to Hero – Mission 4.3: Erstes Foto
+// Nimmt ein Foto in VGA (640 × 480) auf und gibt aus, wie groß es ist.
+// Board: "AI Thinker ESP32-CAM".
+
+// ---------- Kamera (AI-Thinker ESP32-CAM) ----------
+// Pinbelegung laut AI-Thinker-Schaltplan. Für andere Kameraboards sind die Pins anders.
+#include "esp_camera.h"
+
+bool kameraStarten(framesize_t groesse, int qualitaet) {
+  camera_config_t c = {};
+  c.pin_pwdn = 32;  c.pin_reset = -1;  c.pin_xclk = 0;
+  c.pin_sccb_sda = 26;  c.pin_sccb_scl = 27;
+  c.pin_d7 = 35;  c.pin_d6 = 34;  c.pin_d5 = 39;  c.pin_d4 = 36;
+  c.pin_d3 = 21;  c.pin_d2 = 19;  c.pin_d1 = 18;  c.pin_d0 = 5;
+  c.pin_vsync = 25;  c.pin_href = 23;  c.pin_pclk = 22;
+  c.xclk_freq_hz = 20000000;            // Takt für den Bildsensor: 20 MHz
+  c.ledc_timer = LEDC_TIMER_0;
+  c.ledc_channel = LEDC_CHANNEL_0;
+  c.pixel_format = PIXFORMAT_JPEG;      // der Sensor liefert gleich ein fertiges JPEG
+  c.frame_size = groesse;
+  c.jpeg_quality = qualitaet;           // 10 = sehr gut, 63 = sehr schlecht
+  c.fb_count = 2;                       // zwei Bildpuffer ...
+  c.fb_location = CAMERA_FB_IN_PSRAM;   // ... im großen PSRAM
+  c.grab_mode = CAMERA_GRAB_LATEST;     // immer das neueste Bild nehmen
+
+  esp_err_t fehler = esp_camera_init(&c);
+  if (fehler != ESP_OK) {
+    Serial.printf("Kamera startet nicht: Fehler 0x%x (%s)\n", (unsigned)fehler, esp_err_to_name(fehler));
+    return false;
+  }
+  return true;
+}
+
+// Die ersten Bilder nach dem Start sind oft zu dunkel oder grünstichig,
+// weil die automatische Belichtung erst ein paar Bilder braucht. Die werfen wir weg.
+camera_fb_t* fotoMachen() {
+  for (int i = 0; i < 3; i++) {
+    camera_fb_t* alt = esp_camera_fb_get();
+    if (alt) esp_camera_fb_return(alt);
+    delay(100);
+  }
+  return esp_camera_fb_get();
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(500);
+  Serial.println();
+  if (!kameraStarten(FRAMESIZE_VGA, 12)) return;
+  Serial.println("Kamera läuft.");
+
+  camera_fb_t* fb = fotoMachen();
+  if (!fb) { Serial.println("Kein Bild bekommen."); return; }
+
+  unsigned long roh = (unsigned long)fb->width * fb->height * 2;   // so groß wäre es roh (RGB565)
+  Serial.printf("Foto: %u × %u Pixel\n", (unsigned)fb->width, (unsigned)fb->height);
+  Serial.printf("JPEG-Größe: %u Byte (%.1f KB)\n", (unsigned)fb->len, fb->len / 1024.0);
+  Serial.printf("Roh wären es %lu Byte, also etwa %.0f-mal so viel.\n", roh, (double)roh / fb->len);
+  Serial.printf("KW-CHECK:m-4-3:%012llX:%ux%u:%u\n", (unsigned long long)ESP.getEfuseMac(), (unsigned)fb->width, (unsigned)fb->height, (unsigned)fb->len);
+  esp_camera_fb_return(fb);       // Puffer zurückgeben, sonst ist der Speicher weg
+}
+
+void loop() {}
+```
+
+<Hinweis titel="„Kamera startet nicht: Fehler 0x105“?">
+Dann findet der Chip die Kamera nicht. Fast immer sitzt das Flachbandkabel nicht richtig. Stecker vom Strom trennen, Lasche öffnen, Kabel gerade bis zum Anschlag einschieben, Lasche schließen. Mehr dazu im Bosskampf.
+</Hinweis>
+
+<Zahl id="groesse" titel="Messwert: Größe deines Fotos" frage="Wie viele KB hat dein JPEG laut seriellem Monitor?" einheit="KB" min={3} max={200} vorlaeufig hilfe={[
+  { unter: 3, text: 'Sehr klein. Ist das Bild fast schwarz? Zeigt die Kamera vielleicht auf den Tisch, oder ist die Schutzfolie noch auf der Linse?' },
+  { ueber: 200, text: 'Ungewöhnlich groß für VGA mit Qualität 12. Hast du die Byte-Zahl eingetragen statt der KB? Teile durch 1024.' },
+]} />
+
+## Gerätenachweis
+
+<Seriell id="geraet" titel="Gerätenachweis: Das erste Foto" muster="^KW-CHECK:m-4-3:[0-9A-F]{12}:640x480:\d{3,}$" />

@@ -1,0 +1,100 @@
+---
+id: m-3-boss
+abzeichen: Netzflüsterer
+checks:
+  - id: boss
+spick:
+  - t: "Vorgehen"
+    v: "Von unten nach oben: WLAN → Uhrzeit → TLS → Statuscode"
+  - t: "Statuscode"
+    v: "2xx geklappt, 4xx deine Anfrage, 5xx der Server"
+  - t: "Negativer Code"
+    v: "Die Verbindung kam gar nicht zustande"
+---
+import Logdiagnose from '../components/Logdiagnose.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Jemand hat geklingelt, aber auf dem Handy kam nichts an. Zwischen Knopf und Chat liegen viele Stationen: WLAN, Router, Internet, Verschlüsselung, Server. Irgendwo bleibt die Nachricht hängen. **Dein Bosskampf: Fünf Klingeln schweigen. Lies die Logs und finde heraus, an welcher Station es hakt.**
+
+## Die Methode
+
+Eine Nachricht muss vier Stufen nehmen, und jede baut auf der vorigen auf. Prüf sie von unten nach oben:
+
+1. **WLAN:** Ist der ESP32 verbunden und hat er eine IP-Adresse?
+2. **Uhrzeit:** Zeigt die Uhrzeit ein heutiges Datum? Ohne sie scheitert jedes Zertifikat.
+3. **TLS:** Kommt überhaupt ein Statuscode zurück, oder eine negative Zahl?
+4. **Statuscode:** Was sagt der Server? Bei 4xx steht in der Antwort fast immer, was nicht stimmt.
+
+<Merke>Von unten nach oben: WLAN, Uhrzeit, TLS, Statuscode. Die erste Stufe, die scheitert, ist die Ursache.</Merke>
+
+<Hinweis titel="Lesetipp">
+Die Logs sind gekürzte Beispiele aus den Programmen dieses Akts. Zeilen mit `[E]` oder `[W]` am Anfang kommen vom ESP32 selbst (Fehler und Warnungen), der Rest von deinem Programm.
+</Hinweis>
+
+<Logdiagnose id="boss" titel="Bosskampf: Die Nachricht kommt nie an" anzahl={5} faelle={[
+  {
+    symptom: 'Die Klingel kommt nie über das WLAN hinaus. Das Handy sieht das Netz „Zuhause_5G“ einwandfrei.',
+    log: 'Verbinde mit Zuhause_5G\n[W][STA.cpp:538] _onStaArduinoEvent(): Reason: 201 - NO_AP_FOUND\nStatus: WLAN nicht gefunden (Name falsch oder nur 5 GHz?)\n[W][STA.cpp:538] _onStaArduinoEvent(): Reason: 201 - NO_AP_FOUND\nKeine Verbindung nach 20 Sekunden.',
+    richtig: 'Das Netz sendet nur auf 5 GHz. Der ESP32 kann nur 2,4 GHz und findet es deshalb nicht.',
+    falsch: ['Das WLAN-Passwort ist falsch.', 'Das Zertifikat von Discord ist abgelaufen.', 'Der Taster prellt.'],
+    erklaerung: 'NO_AP_FOUND heißt: Kein Zugangspunkt mit diesem Namen zu sehen. Das Handy kann 5 GHz, der ESP32 nicht (Mission 3.1).',
+  },
+  {
+    symptom: 'Die Klingel hängt beim Verbinden fest. Das Netz ist ein 2,4-GHz-Netz.',
+    log: 'Verbinde mit Zuhause\n[W][STA.cpp:538] _onStaArduinoEvent(): Reason: 15 - 4WAY_HANDSHAKE_TIMEOUT\nStatus: getrennt\n[W][STA.cpp:538] _onStaArduinoEvent(): Reason: 15 - 4WAY_HANDSHAKE_TIMEOUT\nKeine Verbindung nach 20 Sekunden. Letzter Status: getrennt',
+    richtig: 'Das WLAN-Passwort stimmt nicht. Beim Handschlag mit dem Router scheitert die Anmeldung.',
+    falsch: ['Der Router sendet nur auf 5 GHz.', 'Die Wurzelzertifikate fehlen.', 'Der Telegram-Token ist falsch.'],
+    erklaerung: 'Den Router sieht der ESP32, sonst käme NO_AP_FOUND. Der Handschlag (Handshake) prüft das Passwort, und genau da läuft er in eine Zeitüberschreitung.',
+  },
+  {
+    symptom: 'WLAN klappt, aber jede HTTPS-Anfrage scheitert.',
+    log: 'WLAN verbunden, IP 192.168.178.57\nUhrzeit (UTC): Thu Jan  1 00:00:12 1970\n[E][ssl_client.cpp:37] _handle_error(): (-9984) X509 - Certificate verification failed, e.g. CRL, CA or signature check failed\nGET https://discord.com/api/v10/gateway -> -1\nFehler: connection refused',
+    richtig: 'Die Uhrzeit ist nicht gesetzt. Mit dem Datum 1970 hält der ESP32 jedes Zertifikat für noch nicht gültig.',
+    falsch: ['Das WLAN-Passwort ist falsch.', 'Discord ist gerade ausgefallen.', 'Der Webhook wurde gelöscht.'],
+    erklaerung: 'Die Zeile mit 1970 verrät es. Ohne NTP kennt der ESP32 das Datum nicht, und die Zertifikatsprüfung scheitert (Mission 3.3).',
+  },
+  {
+    symptom: 'WLAN und Uhrzeit stimmen, trotzdem scheitert HTTPS.',
+    log: 'WLAN verbunden, IP 192.168.178.57\nUhrzeit (UTC): Wed Nov  4 18:02:41 2026\n[E][ssl_client.cpp:37] _handle_error(): (-9984) X509 - Certificate verification failed, e.g. CRL, CA or signature check failed\nGET https://api.telegram.org/bot123:ungueltig/getMe -> -1',
+    richtig: 'Die passende Wurzel fehlt. wurzeln.h ist nicht eingebunden oder enthält die Stelle nicht, die Telegram nutzt.',
+    falsch: ['Die Uhrzeit ist falsch.', 'Der Bot-Token ist falsch.', 'Die Chat-ID fehlt.'],
+    erklaerung: 'Die Uhrzeit ist von heute, also bleibt nur die Kette. Ein falscher Token würde einen Statuscode liefern, keine negative Zahl.',
+  },
+  {
+    symptom: 'Die Klingel verbindet sich, aber Telegram lehnt ab.',
+    log: 'Es klingelt! Sende Nachricht ...\nAntwort vom Server: {"ok":false,"error_code":401,"description":"Unauthorized"}\nStatuscode: 401 (nicht angekommen)',
+    richtig: 'Der Bot-Token in secrets.h ist falsch oder wurde ungültig gemacht.',
+    falsch: ['Die Chat-ID ist falsch.', 'Das Zertifikat fehlt.', 'Die Sperrzeit ist zu kurz.'],
+    erklaerung: '401 heißt: Anmeldung abgelehnt. Bei Telegram meldet man sich mit dem Token an. Hol dir bei @BotFather einen neuen und trag ihn ein.',
+  },
+  {
+    symptom: 'Token stimmt, die Verbindung klappt, aber nichts kommt an.',
+    log: 'Es klingelt! Sende Nachricht ...\nAntwort vom Server: {"ok":false,"error_code":400,"description":"Bad Request: chat not found"}\nStatuscode: 400 (nicht angekommen)',
+    richtig: 'Die Chat-ID stimmt nicht, oder du hast dem Bot noch nie geschrieben.',
+    falsch: ['Der Token ist falsch.', 'Das WLAN ist zu schwach.', 'Telegram ist ausgefallen.'],
+    erklaerung: 'Der Server sagt es wörtlich: chat not found. Schreib dem Bot eine Nachricht und lies die Chat-ID über getUpdates neu ab (Mission 3.5).',
+  },
+  {
+    symptom: 'Gestern ging es noch. Heute kommt bei Discord nichts mehr an.',
+    log: 'Es klingelt! Sende Nachricht ...\nAntwort vom Server: {"message": "Unknown Webhook", "code": 10015}\nStatuscode: 404 (nicht angekommen)',
+    richtig: 'Der Webhook wurde gelöscht. Die URL zeigt ins Leere.',
+    falsch: ['Das Zertifikat ist abgelaufen.', 'Das WLAN-Passwort hat sich geändert.', 'Der Knopf ist kaputt.'],
+    erklaerung: 'Unknown Webhook mit 404: Den Webhook gibt es nicht mehr. Leg in Discord einen neuen an und trag die neue URL in secrets.h ein.',
+  },
+  {
+    symptom: 'Die ersten Nachrichten kamen an, dann nicht mehr. Jemand hat die Sperrzeit im Programm auf 0 gesetzt.',
+    log: 'Statuscode: 204 (angekommen)\nStatuscode: 204 (angekommen)\nAntwort vom Server: {"message": "You are being rate limited.", "retry_after": 3.2, "global": false}\nStatuscode: 429 (nicht angekommen)',
+    richtig: 'Zu viele Nachrichten in kurzer Zeit. Der Server bremst die Klingel aus.',
+    falsch: ['Der Webhook wurde gelöscht.', 'Die Uhrzeit ist falsch.', 'Das Zertifikat passt nicht.'],
+    erklaerung: '429 heißt Too Many Requests. Der Server sagt sogar, wie viele Sekunden man warten soll. Die Sperrzeit gehört wieder ins Programm.',
+  },
+]} />
+
+## Die Faustregeln aus diesem Bosskampf
+
+1. **Erst das WLAN, dann alles andere.** Ohne IP-Adresse braucht man nicht weiterzusuchen.
+2. **Negative Zahl heißt Verbindung, positive Zahl heißt Anfrage.** Bei −1 suchst du bei WLAN, Uhrzeit und Zertifikaten. Bei 4xx suchst du in secrets.h.
+3. **Der Server sagt meist, was ihm fehlt.** Lies die Antwort Wort für Wort.
+
+<Merke>Negative Zahl: Verbindung prüfen. 4xx: Zugangsdaten prüfen. Die Antwort des Servers lesen.</Merke>

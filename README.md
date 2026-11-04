@@ -42,12 +42,12 @@ Der Weg dorthin beginnt mit einer einzelnen LED.
 
 | Bereich | Stand |
 | --- | --- |
-| Akt 0 bis Akt 2 | spielbar |
-| Akt 3 bis 8 | in Arbeit, die geplanten Missionen sind auf der Karte sichtbar |
+| Akt 0 bis Akt 4 | spielbar: Grundlagen, Mikrocontroller, WLAN, Nachricht und Foto an Discord oder Telegram |
+| Akt 5 bis 8 | in Arbeit, die geplanten Missionen sind auf der Karte sichtbar |
 
 ## Was du brauchst
 
-Für Akt 0 und 1 reicht ein kleines Einsteigerset: Steckbrett, Multimeter, Batteriehalter für 2 × AA, Widerstände, LEDs, ein Taster und ein aktiver Summer. Für Akt 2 kommen ein ESP32-DevKit und ein USB-Datenkabel dazu, Kamera und Akku erst später. Die komplette Liste mit Links zu Roboter-Bausatz.de steht auf der Seite „Einkaufsliste“, sortiert nach Akten.
+Für Akt 0 und 1 reicht ein kleines Einsteigerset: Steckbrett, Multimeter, Batteriehalter für 2 × AA, Widerstände, LEDs, ein Taster und ein aktiver Summer. Für Akt 2 kommen ein ESP32-DevKit und ein USB-Datenkabel dazu. Akt 3 braucht keine neuen Teile, nur ein 2,4-GHz-WLAN und Discord oder Telegram. Für Akt 4 kommen der ESP32-CAM und seine Programmierplatine dazu, der Akku folgt in Akt 5. Die komplette Liste mit Links zu Roboter-Bausatz.de steht auf der Seite „Einkaufsliste“, sortiert nach Akten.
 
 ## Mitmachen
 
@@ -57,8 +57,8 @@ Am meisten hilft gerade:
 
 - **Testen mit echter Hardware.** Einige erwartete Messbereiche sind vorläufig und brauchen Messwerte von echten Aufbauten.
 - **Feedback von Einsteigern.** Wo bist du hängen geblieben?
-- **Feedback zu Akt 2 auf echter Hardware.** Die Sketches sind geprüft, aber noch nicht auf jedem Board getestet.
-- **Missionen für Akt 3 und folgende.**
+- **Feedback zu Akt 2 bis 4 auf echter Hardware.** Die Sketches sind syntaktisch geprüft, aber noch nicht auf jedem Board getestet.
+- **Missionen für Akt 5 und folgende.**
 
 ## Lokal starten
 
