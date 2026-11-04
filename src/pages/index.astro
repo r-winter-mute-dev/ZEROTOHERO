@@ -2,7 +2,7 @@
 import Basis from '../layouts/Basis.astro';
 import Klingel from '../components/Klingel.astro';
 import KampagnenKarte from '../components/KampagnenKarte.astro';
-import { url } from '../config';
+import { SEITE, url } from '../config';
 ---
 <Basis>
   <section class="huelle held">
@@ -25,9 +25,18 @@ import { url } from '../config';
     <Klingel />
   </section>
 
+  <section class="huelle willkommen">
+    <div class="text">
+      <h2>Willkommen bei {SEITE.name}</h2>
+      <p>{SEITE.mission}</p>
+      <p>Die erste Kampagne ist die smarte Türklingel. Sie bringt dir die Grundlagen der Elektronik bei, vom ersten Stromkreis bis zum vernetzten Gerät. Weitere Kampagnen bauen darauf auf.</p>
+      <p>Willkommen und viel Spaß beim Lernen.</p>
+    </div>
+  </section>
+
   <section class="huelle karte-bereich">
     <div class="text">
-      <h2>Die Kampagne</h2>
+      <h2>Kampagne 1: Die smarte Türklingel</h2>
       <p class="leise">
         Neun Akte, jeder baut ein Teil der Klingel. Jede Mission endet mit einer Prüfung: einem Quiz, einer Rechnung
         oder einem echten Messwert. Ohne Hardware kommst du im Simulator weiter, das Teil leuchtet dann grau statt farbig.
@@ -72,4 +81,6 @@ import { url } from '../config';
   .balken { height: 8px; background: var(--tief); border-radius: 4px; overflow: hidden; border: 1px solid var(--flaeche); }
   .balken span { display: block; height: 100%; width: 0; background: var(--akzent); transition: width 0.6s; }
   .karte-bereich > :global(*) { max-width: 52rem; }
+  .willkommen { padding-top: 1rem; }
+  .willkommen h2 { margin-top: 1rem; }
 </style>

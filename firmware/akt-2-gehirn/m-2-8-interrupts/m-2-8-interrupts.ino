@@ -1,4 +1,4 @@
-// Klingelwerk – Mission 2.8: Interrupts
+// 0 to Hero – Mission 2.8: Interrupts
 // Das Hauptprogramm ist absichtlich langsam (zwei Sekunden pro Durchlauf).
 // Trotzdem geht kein Tastendruck verloren, weil ein Interrupt ihn sofort merkt.
 // Aufbau wie in Mission 2.6: GPIO 4 -> Taster -> GND

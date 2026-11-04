@@ -1,4 +1,4 @@
-// Klingelwerk – Mission 2.4: Programmieren II (Schleifen und Funktionen)
+// 0 to Hero – Mission 2.4: Programmieren II (Schleifen und Funktionen)
 // Ein Klingelmuster: dreimal kurz, einmal lang.
 
 const int LED_PIN = 2;

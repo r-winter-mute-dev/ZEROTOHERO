@@ -1,4 +1,4 @@
-// Klingelwerk – Mission 2.3: Programmieren I (Variablen und Bedingungen)
+// 0 to Hero – Mission 2.3: Programmieren I (Variablen und Bedingungen)
 // Die LED blinkt erst langsam, ab dem fünften Mal schnell.
 
 const int LED_PIN = 2;

@@ -1,4 +1,4 @@
-// Klingelwerk – Mission 2.5: Ausgang
+// 0 to Hero – Mission 2.5: Ausgang
 // Schaltet eine externe LED an GPIO 23 alle zwei Sekunden um.
 // Aufbau: GPIO 23 -> 220-Ohm-Widerstand -> LED (langes Bein) -> LED (kurzes Bein) -> GND
 

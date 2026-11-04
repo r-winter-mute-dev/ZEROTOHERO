@@ -1,4 +1,4 @@
-// Klingelwerk – Mission 2.1: Erstes Leben
+// 0 to Hero – Mission 2.1: Erstes Leben
 // Lässt die eingebaute LED blinken und meldet sich über die serielle Schnittstelle.
 // Board: "ESP32 Dev Module"
 

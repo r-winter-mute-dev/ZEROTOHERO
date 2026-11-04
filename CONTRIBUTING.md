@@ -1,4 +1,4 @@
-# Mitmachen bei Klingelwerk
+# Mitmachen bei 0 to Hero
 
 Danke, dass du helfen willst. Hier steht, wie das Projekt aufgebaut ist und wie du eine Mission schreibst.
 

@@ -20,12 +20,13 @@ const voll = titel ? `${titel} – ${SEITE.name}` : `${SEITE.name} – ${SEITE.u
     <a class="sprung" href="#inhalt">Zum Inhalt springen</a>
     <header class="kopf">
       <div class="huelle kopf-innen">
-        <a class="marke" href={url('')}>
-          <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="16" cy="16" r="5.5" fill="currentColor"/></svg>
-          {SEITE.name}
+        <a class="marke" href={url('')} aria-label={SEITE.name}>
+          <svg viewBox="0 0 24 32" width="20" height="27" aria-hidden="true"><ellipse cx="12" cy="16" rx="9" ry="12.5" fill="none" stroke="currentColor" stroke-width="3"/></svg>
+          <span aria-hidden="true">to Hero</span>
         </a>
         <nav aria-label="Hauptnavigation">
           <a href={url('')}>Kampagne</a>
+          <a href={url('einkaufsliste')}>Einkaufsliste</a>
           <a href={url('fortschritt')}>Fortschritt</a>
           <a href={url('ueber')}>Über</a>
         </nav>
@@ -65,7 +66,7 @@ const voll = titel ? `${titel} – ${SEITE.name}` : `${SEITE.name} – ${SEITE.u
   .sprung:focus { left: 1rem; top: 1rem; background: var(--text); color: var(--grund); padding: 0.5rem 1rem; z-index: 10; }
   .kopf { border-bottom: 1px solid var(--flaeche); background: rgba(13, 13, 13, 0.9); }
   .kopf-innen { display: flex; align-items: center; gap: 1.5rem; min-height: 4rem; flex-wrap: wrap; }
-  .marke { display: inline-flex; align-items: center; gap: 0.55rem; font-weight: 700; font-size: 1.2rem; color: var(--text); text-decoration: none; }
+  .marke { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; font-size: 1.2rem; color: var(--text); text-decoration: none; }
   .marke svg { color: var(--akzent); }
   nav { display: flex; gap: 1.2rem; margin-right: auto; }
   nav a { color: var(--leise); text-decoration: none; }

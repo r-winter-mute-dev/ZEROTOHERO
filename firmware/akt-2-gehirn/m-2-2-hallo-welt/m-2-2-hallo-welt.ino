@@ -1,4 +1,4 @@
-// Klingelwerk – Mission 2.2: Hallo, Welt
+// 0 to Hero – Mission 2.2: Hallo, Welt
 // Schickt einen eigenen Text an den Computer.
 
 String name = "DEIN NAME";  // <- hier deinen Namen eintragen
