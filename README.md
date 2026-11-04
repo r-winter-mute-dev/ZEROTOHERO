@@ -8,7 +8,7 @@ Diese Website wurde gebaut, um jedem Menschen die Möglichkeit zu geben, zu vers
 
 Willkommen und viel Spaß beim Lernen.
 
-**[Zum Kurs](https://r-winter-mute-dev.github.io/klingelwerk/)**
+**[Zum Kurs](https://r-winter-mute-dev.github.io/0-to-hero/)**
 
 ## Kampagne 1: Die smarte Türklingel
 
