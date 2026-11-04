@@ -1,7 +1,7 @@
 ---
 // Messprotokoll: mehrere echte Messwerte werden gegeneinander geprüft.
 import Station from './Station.astro';
-interface Props { id: string; titel: string; typ: 'led-strom' | 'summe' | 'teiler'; }
+interface Props { id: string; titel: string; typ: 'led-strom' | 'summe' | 'teiler' | 'kalibrierung'; }
 const { id, titel, typ } = Astro.props;
 
 const FELDER = {
@@ -15,6 +15,10 @@ const FELDER = {
     ['ubat', 'Spannung der Batterie (Plus gegen Minus)', 'V'],
     ['ur', 'Spannung am Widerstand', 'V'],
     ['uled', 'Spannung an der LED', 'V'],
+  ],
+  kalibrierung: [
+    ['umulti', 'Akkuspannung laut Multimeter', 'V'],
+    ['uklingel', 'Akkuspannung laut Klingel (mit KORREKTUR = 1.000)', 'V'],
   ],
   teiler: [
     ['u', 'Spannung der Batterie', 'V'],
@@ -53,6 +57,16 @@ const FELDER = {
         const abw = Math.abs(v.i - erwartet) / erwartet;
         if (abw <= 0.1) return s.bestehen(`Rechnung: (${fmt(v.ubat)} V − ${fmt(v.uled)} V) / ${fmt(v.r)} Ω = ${fmt(erwartet)} mA. Gemessen: ${fmt(v.i)} mA. Abweichung ${fmt(abw * 100, 1)} %. Das Ohmsche Gesetz stimmt.`);
         return s.fehl(`Rechnung ergibt ${fmt(erwartet)} mA, gemessen hast du ${fmt(v.i)} mA (${fmt(abw * 100, 0)} % Abweichung, erlaubt sind 10 %). Häufige Ursachen: Multimeter nicht in Reihe, falscher Messbereich, Strom in A statt mA eingetragen.`);
+      }
+      if (typ === 'kalibrierung') {
+        if (v.umulti < 2.5 || v.umulti > 4.3) return s.fehl(`${fmt(v.umulti)} V passt nicht zu einer Li-Ion-Zelle (2,5 bis 4,2 V). Hast du die Zelle gemessen, Plus gegen Minus, auf V⎓?`);
+        if (v.uklingel <= 0) return s.fehl('Die Klingel meldet 0 V. Kommt am GPIO 14 überhaupt Spannung an? Miss die Mitte des Teilers gegen GND.');
+        const k = v.umulti / v.uklingel;
+        if (k < 0.85 || k > 1.15) {
+          const hinweis = k > 1.7 && k < 2.3 ? ' Der Faktor ist fast genau 2: Fehlt im Sketch TEILER = 2.0?' : k < 0.6 ? ' Die Klingel misst viel zu viel: Sind die beiden Widerstände wirklich gleich groß?' : '';
+          return s.fehl(`Korrektur wäre ${fmt(k, 3)}. Das ist mehr als 15 % daneben, so viel weicht der ADC normalerweise nicht ab.${hinweis}`);
+        }
+        return s.bestehen(`Deine Korrektur: ${fmt(v.umulti, 3)} V / ${fmt(v.uklingel, 3)} V = ${fmt(k, 3)}. Trag im Sketch ein: const float KORREKTUR = ${k.toFixed(3)}; Dann hochladen und noch einmal klingeln.`);
       }
       if (typ === 'summe') {
         const summe = v.ur + v.uled;

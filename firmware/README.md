@@ -8,10 +8,12 @@ Ein Ordner pro Akt, darin ein Arduino-Sketch pro Mission. Jeder Sketch ist für 
 | `akt-3-stimme/` | 3 | 4 Sketches: WLAN, HTTPS mit Zertifikatsprüfung, Zugangsdaten in `secrets.h`, Nachricht an Discord oder Telegram |
 | `akt-4-auge/` | 4 | 5 Sketches für den ESP32-CAM (Board „AI Thinker ESP32-CAM“): PSRAM-Test, erstes Foto, Foto senden, Blitz mit PWM, Klingel v1 als Zustandsautomat |
 | `akt-5-herz/` | 5 | 1 Sketch: Belastungstest am Akku, das Ergebnis kommt als Nachricht in den Chat |
-| `akt-6-schlaf/` | 6 | folgt: Tiefschlaf, Aufwachen per Taster, Akkustand |
+| `akt-6-schlaf/` | 6 | 2 Sketches: Klingel v2 mit Tiefschlaf und Klingelknopf an GPIO 13, Klingel v3 mit Akkustand über einen Teiler an GPIO 14 |
 | `akt-7-schalter/` | 7 | folgt: Selbsthalteschaltung |
 
 **Pins ESP32-CAM (Akt 4):** Blitz-LED an GPIO 4 (über Transistor), rote LED an GPIO 33 (LOW = an), Kamerapins laut AI-Thinker-Schaltplan. Als Klingelknopf dient in Akt 4 die Reset-Taste.
+
+**Pins ab Akt 6:** Klingelknopf zwischen GPIO 13 und GND (Aufwachen per ext0, interner Pull-up), Spannungsteiler 10 kΩ / 10 kΩ von OUT+ des Lademoduls an GPIO 14 (ADC2, nur vor dem WLAN messbar). Keine SD-Karte einstecken.
 
 **Pins in Akt 2:** LED intern an GPIO 2 (nicht jedes Board hat eine), externe LED an GPIO 23, Taster an GPIO 4 gegen GND mit internem Pull-up.
 
