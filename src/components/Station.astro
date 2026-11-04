@@ -1,0 +1,16 @@
+---
+// Rahmen für jede Prüfung. id = Prüfungs-ID innerhalb der Mission (muss in "checks" im Frontmatter stehen).
+interface Props { id: string; titel: string; art?: string; hardware?: boolean; }
+const { id, titel, art = 'Prüfung', hardware = false } = Astro.props;
+---
+<section class="station" data-kw-check={id} data-hardware={String(hardware)} aria-labelledby={`st-${id}`}>
+  <div class="station-kopf">
+    <h3 id={`st-${id}`}>{titel}</h3>
+    <span class="station-art" data-kw-status data-art={hardware ? `${art} mit Hardware` : art}>{hardware ? `${art} mit Hardware` : art}</span>
+  </div>
+  <slot />
+  <p class="meldung" data-kw-meldung role="status" aria-live="polite"></p>
+</section>
+<script>
+  import '../scripts/station';
+</script>

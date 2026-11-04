@@ -1,0 +1,38 @@
+---
+id: m-1-6
+checks:
+  - id: rechnen
+  - id: quiz
+---
+import Karte from '../components/Karte.astro';
+import Rechnen from '../components/Rechnen.astro';
+import Quiz from '../components/Quiz.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Wo Strom durch einen Widerstand fließt, entsteht Wärme. Meist ist das harmlos, aber jedes Bauteil hält nur eine bestimmte Leistung aus. Später rechnest du mit derselben Formel aus, wie viel Energie deine Klingel aus dem Akku zieht. **Deine Mission: Berechne Leistungen und entscheide, ob ein Bauteil zu heiß wird.**
+
+## Theorie
+
+<Karte nr={1} titel="Leistung">
+**Leistung** sagt, wie viel Energie pro Sekunde umgesetzt wird. Sie wird in **Watt (W)** gemessen: **P = U × I**. Eine LED mit 2 V und 5 mA setzt 0,01 W um, also 10 mW.
+</Karte>
+
+<Karte nr={2} titel="Zwei weitere Formen">
+Setzt du das Ohmsche Gesetz ein, bekommst du **P = I² × R** und **P = U² / R**. Sie sind praktisch, wenn du nur Strom und Widerstand oder nur Spannung und Widerstand kennst.
+</Karte>
+
+<Karte nr={3} titel="Nennleistung">
+Die üblichen kleinen Widerstände halten **0,25 W** aus [übliche Herstellerangabe, steht im Datenblatt]. Darüber werden sie heiß und können verbrennen. Faustregel: Plane höchstens die Hälfte der Nennleistung ein, dann bleibt das Bauteil handwarm.
+</Karte>
+
+<Rechnen id="rechnen" typ="leistung" anzahl={3} />
+
+<Quiz id="quiz" titel="Quiz: Wird es heiß?" fragen={[
+  { frage: 'Ein 220-Ω-Widerstand hängt ohne LED direkt an 3 V. Reicht ein 0,25-W-Widerstand?', richtig: 'Ja, P = 3² / 220 ≈ 0,04 W.', falsch: ['Nein, er verbrennt.', 'Das kann man nicht ausrechnen.'], erklaerung: 'P = U² / R = 9 / 220 = 0,041 W, weit unter 0,25 W.' },
+  { frage: 'Ein 100-Ω-Widerstand hängt direkt an 12 V. Reicht ein 0,25-W-Widerstand?', richtig: 'Nein, P = 12² / 100 = 1,44 W.', falsch: ['Ja, Widerstände halten das aus.', 'Ja, bei 12 V gilt die Grenze nicht.'], erklaerung: '1,44 W ist fast sechsmal so viel wie erlaubt.' },
+  { frage: 'Warum wird ein Widerstand warm, wenn Strom fließt?', richtig: 'Er wandelt elektrische Energie in Wärme um.', falsch: ['Weil er Strom verbraucht.', 'Weil die Spannung in ihm steckt.'], erklaerung: 'Strom wird nicht verbraucht, Energie wird umgewandelt (Mission 1.1, Karte 3).' },
+]} />
+
+<Hinweis titel="Ausblick auf die Klingel">
+Ein ESP32 zieht beim Senden über WLAN für kurze Zeit mehrere hundert Milliampere [Größenordnung aus dem Espressif-Datenblatt, wird in Akt 5 gemessen]. Mit P = U × I rechnest du dann aus, welche Leistung der Akku liefern muss.
+</Hinweis>

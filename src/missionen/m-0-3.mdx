@@ -1,0 +1,30 @@
+---
+id: m-0-3
+checks:
+  - id: trainer
+---
+import Karte from '../components/Karte.astro';
+import Steckbrett from '../components/Steckbrett.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Auf dem Steckbrett baust du alle Schaltungen bis Akt 7, ganz ohne Löten. Damit das klappt, musst du wissen, welche Löcher innen miteinander verbunden sind. Steckst du ein Bein in die falsche Reihe, ist der Kreis offen, und nichts passiert.
+
+## Theorie
+
+<Karte nr={1} titel="Spalten mit fünf Löchern">
+Die Spalten sind durchnummeriert (1, 2, 3 …), die Zeilen haben Buchstaben (a bis j). In jeder Spalte sind die fünf Löcher **a bis e** innen durch eine Metallklammer verbunden. Ebenso die fünf Löcher **f bis j**. Steckst du zwei Bauteilbeine in dieselbe Fünfergruppe, sind sie verbunden.
+</Karte>
+
+<Karte nr={2} titel="Die Mittelrinne trennt">
+Zwischen e und f verläuft eine Rinne. Sie trennt die obere von der unteren Hälfte. Darüber setzt man später Bauteile mit zwei Beinreihen, wie Taster oder Chips, damit ihre Beine nicht kurzgeschlossen sind.
+</Karte>
+
+<Karte nr={3} titel="Versorgungsschienen">
+Am Rand liegen lange Reihen mit roter (+) und blauer (−) Linie. Jede Schiene ist der Länge nach verbunden. Dort schließt du die Stromquelle an, und von dort holst du dir Plus und Minus an jede Stelle des Bretts.
+</Karte>
+
+<Hinweis titel="Achtung bei langen Steckbrettern">
+Bei manchen großen Steckbrettern sind die Versorgungsschienen in der Mitte unterbrochen, erkennbar an einer Lücke in der roten oder blauen Linie. Ob das bei deinem Brett so ist, prüfst du in Mission 0.4 mit dem Durchgangsprüfer.
+</Hinweis>
+
+<Steckbrett id="trainer" />

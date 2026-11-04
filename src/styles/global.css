@@ -1,0 +1,111 @@
+@import '@fontsource/atkinson-hyperlegible/400.css';
+@import '@fontsource/atkinson-hyperlegible/700.css';
+@import '@fontsource/atkinson-hyperlegible/400-italic.css';
+
+:root {
+  /* Platine */
+  --maske: #143a2c;        /* Lötstopplack, Grund */
+  --maske-tief: #0f2e23;   /* vertiefte Flächen */
+  --platine: #1d5240;      /* erhabene Flächen */
+  --kupfer: #c98b4f;       /* Akzent, Leiterbahnen, Links */
+  --kupfer-hell: #e3a96f;
+  --druck: #f2efe4;        /* Bestückungsdruck, Text */
+  --zinn: #b9c0bd;         /* Nebentext */
+  --zinn-dunkel: #7f8f88;
+  --gut: #8fd18b;          /* bestanden */
+  --warnung: #f0c264;
+  --fehler: #ff8a7a;
+
+  --schrift: 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --mass: 1rem;
+  --zeile: 1.55;
+  --breite: 44rem;
+  --radius-klein: 4px;
+  --radius: 10px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+html { background: var(--maske); color: var(--druck); }
+
+body {
+  margin: 0;
+  font-family: var(--schrift);
+  font-size: 1.0625rem;
+  line-height: var(--zeile);
+  background:
+    radial-gradient(circle at 1px 1px, rgba(242, 239, 228, 0.06) 1px, transparent 1.5px) 0 0 / 24px 24px,
+    var(--maske);
+  min-height: 100vh;
+}
+
+a { color: var(--kupfer-hell); text-underline-offset: 0.18em; }
+a:hover { color: var(--druck); }
+
+:focus-visible { outline: 3px solid var(--kupfer-hell); outline-offset: 3px; border-radius: 2px; }
+
+h1, h2, h3 { line-height: 1.15; font-weight: 700; margin: 0 0 0.5em; }
+h1 { font-size: clamp(2rem, 4.5vw, 3.1rem); letter-spacing: -0.01em; }
+h2 { font-size: 1.6rem; margin-top: 2.2em; }
+h3 { font-size: 1.2rem; margin-top: 1.6em; }
+p, ul, ol { margin: 0 0 1em; }
+li { margin-bottom: 0.35em; }
+strong { color: #fff; }
+code { font-size: 0.92em; background: var(--maske-tief); padding: 0.1em 0.35em; border-radius: var(--radius-klein); }
+hr { border: 0; border-top: 1px solid var(--platine); margin: 2.5rem 0; }
+
+table { border-collapse: collapse; width: 100%; margin: 0 0 1.2em; font-size: 0.97rem; }
+th, td { text-align: left; padding: 0.5em 0.7em; border-bottom: 1px solid var(--platine); vertical-align: top; }
+th { color: var(--zinn); font-weight: 700; }
+
+.huelle { max-width: 72rem; margin: 0 auto; padding: 0 1.25rem; }
+.text { max-width: var(--breite); }
+.leise { color: var(--zinn); }
+.klein { font-size: 0.9rem; }
+
+/* Knöpfe */
+.knopf {
+  display: inline-flex; align-items: center; gap: 0.5em;
+  font: inherit; font-weight: 700; font-size: 1rem;
+  padding: 0.6em 1.1em; border-radius: 999px;
+  border: 2px solid var(--kupfer); background: var(--kupfer); color: var(--maske-tief);
+  cursor: pointer; text-decoration: none;
+}
+.knopf:hover { background: var(--kupfer-hell); border-color: var(--kupfer-hell); color: var(--maske-tief); }
+.knopf.zweit { background: transparent; color: var(--kupfer-hell); }
+.knopf.zweit:hover { background: rgba(201, 139, 79, 0.15); color: var(--druck); }
+.knopf:disabled { opacity: 0.45; cursor: not-allowed; }
+
+input[type='text'], input[type='number'], textarea, select {
+  font: inherit; color: var(--druck); background: var(--maske-tief);
+  border: 1px solid var(--zinn-dunkel); border-radius: var(--radius-klein);
+  padding: 0.45em 0.6em;
+}
+input:focus, textarea:focus, select:focus { border-color: var(--kupfer-hell); }
+
+/* Kasten für Prüfungen und Übungen: Lötpad-Rand links */
+.station {
+  position: relative;
+  margin: 1.6rem 0;
+  padding: 1.25rem 1.25rem 1.1rem 1.5rem;
+  background: var(--maske-tief);
+  border-radius: var(--radius);
+  border-left: 4px solid var(--kupfer);
+}
+.station > h3:first-child, .station > .station-kopf { margin-top: 0; }
+.station-kopf { display: flex; justify-content: space-between; gap: 1rem; align-items: baseline; flex-wrap: wrap; margin-bottom: 0.8rem; }
+.station-kopf h3 { margin: 0; }
+.station-art { color: var(--zinn); font-size: 0.88rem; }
+.station.bestanden { border-left-color: var(--gut); }
+.station.uebersprungen { border-left-color: var(--zinn-dunkel); }
+.station.gesperrt { opacity: 0.6; }
+.meldung { margin: 0.8rem 0 0; padding: 0.6rem 0.8rem; border-radius: var(--radius-klein); background: rgba(255,255,255,0.04); }
+.meldung.gut { color: var(--gut); }
+.meldung.fehler { color: var(--fehler); }
+.meldung.warnung { color: var(--warnung); }
+.meldung:empty { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}

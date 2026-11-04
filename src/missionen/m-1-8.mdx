@@ -1,0 +1,54 @@
+---
+id: m-1-8
+abzeichen: Erste Klingel
+checks:
+  - id: quiz
+  - id: summt
+    hardware: true
+  - id: strom
+    hardware: true
+---
+import Karte from '../components/Karte.astro';
+import Quiz from '../components/Quiz.astro';
+import Bestaetigung from '../components/Bestaetigung.astro';
+import Zahl from '../components/Zahl.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Zeit für deine erste echte Klingel. Sie ist noch nicht smart und schickt noch keine Fotos. Aber sie tut, was eine Klingel tun muss: Jemand drückt, und es klingelt. **Deine Mission: Bau Klingel v0 aus Taster und Summer und miss, wie viel Strom sie braucht.**
+
+## Theorie
+
+<Karte nr={1} titel="Aktiver und passiver Summer">
+Ein **aktiver Summer** hat eine kleine Schaltung eingebaut, die den Ton erzeugt. Du legst Gleichspannung an, und er piept. Ein **passiver Summer** ist nur ein Lautsprecherplättchen. Er braucht ein schnell wechselndes Signal, zum Beispiel von einem Mikrocontroller. Für Klingel v0 nimmst du einen aktiven Summer.
+</Karte>
+
+<Karte nr={2} titel="Auch der Summer hat eine Richtung">
+Wie die LED hat ein aktiver Summer ein **Plus-Bein** (meist das längere, oft mit „+“ markiert) und ein Minus-Bein. Falsch herum bleibt er stumm. Einen Vorwiderstand braucht er nicht, wenn seine Nennspannung zu deiner Batterie passt. Viele aktive Summer sind für 3–5 V gebaut [Datenblatt deines Summers prüfen].
+</Karte>
+
+<Karte nr={3} titel="Was du gerade gebaut hast">
+Batterie, Schalter, Verbraucher: Das ist der Grundaufbau fast jeder Schaltung. In der fertigen Klingel ersetzt der Mikrocontroller den Summer, und statt eines Tons entsteht eine Nachricht. Der Knopf bleibt genau so, wie du ihn heute einbaust.
+</Karte>
+
+## Aufbau
+
+1. Batterie heraus.
+2. Den Taster aus Mission 1.7 stehen lassen. Die LED und ihren Widerstand durch den Summer ersetzen: Plus-Bein des Summers an den Taster, Minus-Bein an das schwarze Kabel des Batteriehalters.
+3. Batterie einlegen und drücken. Es summt.
+4. **Strom messen:** Batterie heraus, schwarzes Kabel lösen, Multimeter auf mA⎓ in die Lücke setzen wie in Mission 1.3. Batterie einlegen, drücken, Wert ablesen.
+
+<Quiz id="quiz" titel="Quiz: Summer" fragen={[
+  { frage: 'Du legst 3 V an einen Summer, aber er bleibt stumm. Richtig gepolt ist er. Was ist die wahrscheinlichste Ursache?', richtig: 'Es ist ein passiver Summer, er braucht ein wechselndes Signal.', falsch: ['Die Batterie hat zu viel Spannung.', 'Summer funktionieren nur mit Widerstand.'], erklaerung: 'Karte 1.' },
+  { frage: 'Wo liegt der Taster in Klingel v0?', richtig: 'In Reihe mit dem Summer', falsch: ['Parallel zum Summer', 'Parallel zur Batterie'], erklaerung: 'Er muss im Weg liegen, damit er den Kreis öffnen und schließen kann. Parallel zur Batterie wäre er beim Drücken ein Kurzschluss.' },
+]} />
+
+<Bestaetigung id="summt" titel="Es klingelt" text="Meine Klingel v0 summt, solange ich den Taster drücke." />
+
+<Zahl id="strom" titel="Messwert: Strom der Klingel v0" frage="Welchen Strom zeigt das Multimeter, während du drückst?" einheit="mA" min={1} max={60} vorlaeufig hilfe={[
+  { unter: 1, text: 'Fast kein Strom: Steht das Multimeter auf mA⎓ und steckt die rote Leitung in der mA-Buchse? Liegt das Multimeter wirklich in Reihe?' },
+  { ueber: 60, text: 'Ungewöhnlich viel für einen kleinen Summer. Prüfe, ob du in der 10A-Buchse misst und das Komma richtig gesetzt ist.' },
+]} />
+
+<Hinweis titel="Merk dir die Zahl">
+Den Strom deiner Klingel wirst du in Akt 6 wieder brauchen. Dort rechnest du aus, wie lange ein Akku hält. Notier dir den Wert.
+</Hinweis>

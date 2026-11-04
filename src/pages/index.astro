@@ -1,0 +1,75 @@
+---
+import Basis from '../layouts/Basis.astro';
+import Klingel from '../components/Klingel.astro';
+import KampagnenKarte from '../components/KampagnenKarte.astro';
+import { url } from '../config';
+---
+<Basis>
+  <section class="huelle held">
+    <div class="held-text">
+      <h1>Bau eine Türklingel, die dir ein Foto aufs Handy schickt.</h1>
+      <p class="einstieg">
+        Du fängst bei null an: Was ist Spannung, wie leuchtet eine LED? Mission für Mission baust du ein Teil
+        der Klingel und lernst genau die Elektronik, die du dafür brauchst. Am Ende wacht ein ESP32-CAM auf Knopfdruck
+        auf, macht ein Foto und schickt es an Telegram oder Discord.
+      </p>
+      <div class="weiter">
+        <a class="knopf" href={url('mission/m-0-1')} data-kw-weiter>Erste Mission starten</a>
+        <span class="leise" data-kw-weiter-info>Kostenlos, ohne Anmeldung.</span>
+      </div>
+      <div class="rangleiste" aria-label="Dein Rang">
+        <div class="rang-zeile"><b data-kw-level>Lehrling</b><span class="leise" data-kw-naechster></span></div>
+        <div class="balken"><span data-kw-balken></span></div>
+      </div>
+    </div>
+    <Klingel />
+  </section>
+
+  <section class="huelle karte-bereich">
+    <div class="text">
+      <h2>Die Kampagne</h2>
+      <p class="leise">
+        Neun Akte, jeder baut ein Teil der Klingel. Jede Mission endet mit einer Prüfung: einem Quiz, einer Rechnung
+        oder einem echten Messwert. Ohne Hardware kommst du im Simulator weiter, das Teil leuchtet dann grau statt kupfern.
+      </p>
+    </div>
+    <KampagnenKarte />
+  </section>
+</Basis>
+
+<script>
+  import { aktuelleMission, beiAenderung, laden, level, xpGesamt } from '../scripts/engine';
+  import { url } from '../config';
+  function zeigen() {
+    const z = laden();
+    const xp = xpGesamt(z);
+    const l = level(xp);
+    const naechst = document.querySelector('[data-kw-naechster]')!;
+    naechst.textContent = l.naechstesAb ? `noch ${l.naechstesAb - xp} XP bis ${l.naechsterName}` : 'höchster Rang erreicht';
+    const vorher = [0, 300, 900, 1500, 2100, 2700][l.nr - 1];
+    const anteil = l.naechstesAb ? (xp - vorher) / (l.naechstesAb - vorher) : 1;
+    (document.querySelector('[data-kw-balken]') as HTMLElement).style.width = `${Math.round(anteil * 100)}%`;
+    const m = aktuelleMission();
+    const weiter = document.querySelector<HTMLAnchorElement>('[data-kw-weiter]')!;
+    if (Object.keys(z.missionen).length > 0) {
+      weiter.textContent = `Weiter mit ${m.nr}: ${m.titel}`;
+      weiter.href = url(`mission/${m.id}`);
+      document.querySelector('[data-kw-weiter-info]')!.textContent = `${Object.keys(z.missionen).length} Missionen geschafft.`;
+    }
+  }
+  zeigen();
+  beiAenderung(zeigen);
+</script>
+
+<style>
+  .held { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 3rem; align-items: center; padding-top: 3rem; padding-bottom: 2rem; }
+  @media (max-width: 860px) { .held { grid-template-columns: 1fr; gap: 2rem; padding-top: 2rem; } }
+  .held h1 { max-width: 15ch; }
+  .einstieg { font-size: 1.15rem; max-width: 36rem; }
+  .weiter { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1.6rem 0 2rem; }
+  .rangleiste { max-width: 24rem; }
+  .rang-zeile { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 0.4rem; font-size: 0.95rem; }
+  .balken { height: 8px; background: var(--maske-tief); border-radius: 4px; overflow: hidden; border: 1px solid var(--platine); }
+  .balken span { display: block; height: 100%; width: 0; background: var(--kupfer); transition: width 0.6s; }
+  .karte-bereich > :global(*) { max-width: 52rem; }
+</style>

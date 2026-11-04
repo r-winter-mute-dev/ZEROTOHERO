@@ -1,0 +1,59 @@
+---
+id: m-1-3
+abzeichen: Ohms Lehrling
+checks:
+  - id: rechnen
+  - id: farbcode
+  - id: protokoll
+    hardware: true
+---
+import Karte from '../components/Karte.astro';
+import Rechnen from '../components/Rechnen.astro';
+import Quiz from '../components/Quiz.astro';
+import Protokoll from '../components/Protokoll.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+In Mission 1.1 war der Widerstand vorgegeben. Aber warum gerade 220 Ω? Später hängt an deiner Klingel eine LED am Mikrocontroller, mit 3,3 V statt 3 V. Dann musst du selbst rechnen. **Deine Mission: Berechne Vorwiderstände und beweise mit einer Strommessung, dass die Rechnung stimmt.**
+
+## Theorie
+
+<Karte nr={1} titel="Das Ohmsche Gesetz">
+Spannung, Strom und Widerstand hängen fest zusammen: **U = R × I**. Daraus folgen die zwei anderen Formen: **I = U / R** und **R = U / I**. Rechne immer in Grundeinheiten: Volt, Ampere, Ohm. 20 mA sind 0,02 A.
+</Karte>
+
+<Karte nr={2} titel="Der Vorwiderstand einer LED">
+An der LED fällt ihre **Durchlassspannung** ab: bei Rot etwa 1,8–2 V, bei Blau oder Weiß etwa 3 V [typische Datenblattwerte]. Den Rest der Spannung muss der Widerstand aufnehmen. Also: **R = (U<sub>Batterie</sub> − U<sub>LED</sub>) / I<sub>gewünscht</sub>**. Beispiel: (3 V − 1,9 V) / 0,005 A = 220 Ω.
+</Karte>
+
+<Karte nr={3} titel="Der Farbcode">
+Widerstände tragen ihren Wert als Farbringe. Bei vier Ringen gilt: 1. Ring = erste Ziffer, 2. Ring = zweite Ziffer, 3. Ring = Anzahl der Nullen, 4. Ring = Toleranz (Gold = ±5 %). Die Farben: Schwarz 0, Braun 1, Rot 2, Orange 3, Gelb 4, Grün 5, Blau 6, Violett 7, Grau 8, Weiß 9. **Rot-Rot-Braun** heißt 2, 2 und eine Null: 220 Ω.
+</Karte>
+
+<Karte nr={4} titel="Normwerte">
+Widerstände gibt es nicht in jedem Wert, sondern in Normreihen. Die Reihe E12 kennt pro Zehnerstufe nur 10, 12, 15, 18, 22, 27, 33, 39, 47, 56, 68 und 82. Ergibt deine Rechnung 195 Ω, nimmst du den **nächstgrößeren** Wert, also 220 Ω. Dann fließt etwas weniger Strom als geplant, und das ist sicher.
+</Karte>
+
+<Rechnen id="rechnen" typ="vorwiderstand,strom,vorwiderstand" anzahl={3} />
+
+<Quiz id="farbcode" titel="Quiz: Farbcode" fragen={[
+  { frage: 'Welchen Wert hat ein Widerstand mit den Ringen Braun-Schwarz-Rot-Gold?', richtig: '1 kΩ (1000 Ω)', falsch: ['102 Ω', '10 Ω'], erklaerung: 'Braun 1, Schwarz 0, Rot = zwei Nullen: 1 0 00.' },
+  { frage: 'Welche Farben hat ein 2,2-kΩ-Widerstand?', richtig: 'Rot-Rot-Rot', falsch: ['Rot-Rot-Braun', 'Rot-Rot-Orange'], erklaerung: '2, 2 und zwei Nullen: 2200 Ω.' },
+  { frage: 'Deine Rechnung ergibt 150 Ω. Du hast 120 Ω und 180 Ω. Welchen nimmst du?', richtig: '180 Ω', falsch: ['120 Ω', 'Egal'], erklaerung: 'Immer den nächstgrößeren Wert, sonst fließt zu viel Strom (Karte 4).' },
+]} />
+
+## Strom messen
+
+Strom misst du **in Reihe**: Der Strom muss durch das Multimeter hindurchfließen.
+
+1. Batterie aus dem Halter nehmen.
+2. Das schwarze Kabel des Batteriehalters aus dem Steckbrett ziehen. Jetzt ist der Kreis offen.
+3. Multimeter auf **mA⎓** stellen, rote Leitung in **VΩmA** (bei manchen Geräten gibt es eine eigene mA-Buchse).
+4. Rote Spitze an das kurze Bein der LED (bzw. an die Spalte, in der es steckt), schwarze Spitze an das lose schwarze Kabel des Batteriehalters. Das Multimeter schließt jetzt den Kreis.
+5. Batterie einlegen. Die LED leuchtet, und das Multimeter zeigt den Strom.
+6. Miss danach mit V⎓ die Batteriespannung und die LED-Spannung wie in Mission 1.2. Den Widerstandswert kennst du vom Farbcode.
+
+<Hinweis art="sicherheit" titel="Nach dem Messen zurückstellen">
+Stell das Multimeter nach der Strommessung sofort wieder auf V⎓ und die rote Leitung zurück. Wer später im Strombereich eine Spannung misst, schließt die Batterie kurz.
+</Hinweis>
+
+<Protokoll id="protokoll" titel="Messprotokoll: Stimmt das Ohmsche Gesetz?" typ="led-strom" />

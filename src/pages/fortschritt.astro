@@ -1,0 +1,85 @@
+---
+import Basis from '../layouts/Basis.astro';
+import { ALLE_MISSIONEN } from '../data/kampagne';
+const dateien = import.meta.glob('../missionen/*.mdx', { eager: true }) as Record<string, { frontmatter: any }>;
+const abzeichen = Object.values(dateien).map((d) => d.frontmatter?.abzeichen).filter(Boolean) as string[];
+---
+<Basis titel="Dein Fortschritt">
+  <section class="huelle text seite">
+    <h1>Dein Fortschritt</h1>
+    <p class="gross"><b data-kw-level>Lehrling</b> mit <b><span data-kw-xp>0</span> XP</b>. <span data-fs-anzahl></span></p>
+
+    <h2>Abzeichen</h2>
+    <ul class="abzeichen" data-fs-abzeichen data-alle={JSON.stringify(abzeichen)}></ul>
+
+    <h2>Fortschritt sichern</h2>
+    <p>Dein Fortschritt liegt nur in diesem Browser. Kopiere den Code, um ihn auf einem anderen Gerät weiterzuführen oder ihn zu sichern, bevor du den Browserverlauf löschst.</p>
+    <textarea data-fs-code rows="4" readonly aria-label="Dein Fortschritts-Code"></textarea>
+    <p><button class="knopf" type="button" data-fs-kopieren>Code kopieren</button></p>
+
+    <h2>Fortschritt laden</h2>
+    <form data-fs-import>
+      <label for="import-code">Fortschritts-Code einfügen</label>
+      <textarea id="import-code" rows="4" required></textarea>
+      <p><button class="knopf" type="submit">Fortschritt laden</button></p>
+      <p class="meldung" data-fs-meldung role="status"></p>
+    </form>
+
+    <h2>Neu anfangen</h2>
+    <p>Löscht deinen gesamten Fortschritt in diesem Browser.</p>
+    <button class="knopf zweit" type="button" data-fs-reset>Fortschritt löschen</button>
+    <p class="meldung" data-fs-reset-meldung role="status"></p>
+  </section>
+</Basis>
+
+<script>
+  import { ALLE_MISSIONEN } from '../data/kampagne';
+  import { beiAenderung, exportCode, importCode, laden, zuruecksetzen } from '../scripts/engine';
+  const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector<T>(s)!;
+  function zeigen() {
+    const z = laden();
+    const n = Object.keys(z.missionen).length;
+    $('[data-fs-anzahl]').textContent = `${n} von ${ALLE_MISSIONEN.length} Missionen geschafft.`;
+    $<HTMLTextAreaElement>('[data-fs-code]').value = exportCode();
+    const ul = $('[data-fs-abzeichen]');
+    const alle = JSON.parse(ul.dataset.alle!) as string[];
+    ul.innerHTML = '';
+    alle.forEach((a) => {
+      const li = document.createElement('li');
+      const hat = z.abzeichen.includes(a);
+      li.className = hat ? 'hat' : '';
+      li.textContent = hat ? a : `${a} (noch offen)`;
+      ul.append(li);
+    });
+  }
+  zeigen();
+  beiAenderung(zeigen);
+
+  $('[data-fs-kopieren]').addEventListener('click', async () => {
+    const t = $<HTMLTextAreaElement>('[data-fs-code]');
+    try { await navigator.clipboard.writeText(t.value); $('[data-fs-kopieren]').textContent = 'Kopiert'; }
+    catch { t.select(); $('[data-fs-kopieren]').textContent = 'Markiert, jetzt Strg+C drücken'; }
+  });
+  $<HTMLFormElement>('[data-fs-import]').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const r = importCode($<HTMLTextAreaElement>('#import-code').value);
+    const m = $('[data-fs-meldung]');
+    m.textContent = r.ok ? 'Fortschritt geladen.' : r.fehler!;
+    m.className = `meldung ${r.ok ? 'gut' : 'fehler'}`;
+  });
+  let sicher = false;
+  $('[data-fs-reset]').addEventListener('click', () => {
+    const m = $('[data-fs-reset-meldung]');
+    if (!sicher) { sicher = true; $('[data-fs-reset]').textContent = 'Wirklich löschen'; m.textContent = 'Noch einmal klicken zum Bestätigen. Das lässt sich nicht rückgängig machen.'; m.className = 'meldung warnung'; return; }
+    zuruecksetzen(); sicher = false; $('[data-fs-reset]').textContent = 'Fortschritt löschen'; m.textContent = 'Fortschritt gelöscht.'; m.className = 'meldung gut';
+  });
+</script>
+
+<style>
+  .seite { padding-top: 2rem; }
+  .gross { font-size: 1.2rem; }
+  textarea { width: 100%; font-size: 0.85rem; word-break: break-all; margin: 0.4rem 0; }
+  .abzeichen { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .abzeichen :global(li) { padding: 0.4rem 0.9rem; border-radius: 999px; border: 2px dashed var(--zinn-dunkel); color: var(--zinn); margin: 0; }
+  .abzeichen :global(li.hat) { border: 2px solid var(--kupfer); color: var(--druck); background: rgba(201, 139, 79, 0.2); }
+</style>

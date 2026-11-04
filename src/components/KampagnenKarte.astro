@@ -1,0 +1,94 @@
+---
+// Die Kampagne als Leiterbahn: jeder Akt ein Lötpad, jede Mission ein kleines Pad.
+import { KAMPAGNE } from '../data/kampagne';
+import { url } from '../config';
+---
+<ol class="bahn" data-kw-karte>
+  {KAMPAGNE.map((a) => (
+    <li class="akt" data-akt={a.nr}>
+      <span class="pad" aria-hidden="true"></span>
+      <details data-akt-details>
+        <summary>
+          <span class="akt-titel">Akt {a.nr}: {a.titel}</span>
+          <span class="akt-teil">baut: {a.teilName}</span>
+          <span class="akt-stand" data-akt-stand></span>
+        </summary>
+        <p class="akt-ziel">{a.ziel}</p>
+        <ul class="missionen">
+          {a.missionen.map((m) => (
+            <li data-mission-eintrag={m.id} class:list={[{ boss: m.boss, entwurf: !m.bereit }]}>
+              <a href={url(`mission/${m.id}`)}>
+                <span class="mpad" aria-hidden="true"></span>
+                <span class="mnr">{m.nr}</span>
+                <span class="mtitel">{m.titel}</span>
+                <span class="mstatus" data-mstatus>{m.bereit ? '' : 'in Arbeit'}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </details>
+    </li>
+  ))}
+</ol>
+
+<script>
+  import { KAMPAGNE } from '../data/kampagne';
+  import { aktuelleMission, beiAenderung, istFreigeschaltet, laden } from '../scripts/engine';
+  function zeigen(erstes = false) {
+    const z = laden();
+    const aktuell = aktuelleMission();
+    KAMPAGNE.forEach((a) => {
+      const li = document.querySelector<HTMLElement>(`[data-akt="${a.nr}"]`)!;
+      const fertig = a.missionen.filter((m) => z.missionen[m.id]).length;
+      li.querySelector('[data-akt-stand]')!.textContent = `${fertig} von ${a.missionen.length}`;
+      li.classList.toggle('fertig', fertig === a.missionen.length);
+      li.classList.toggle('laeuft', a.missionen.some((m) => m.id === aktuell.id));
+      if (erstes && a.missionen.some((m) => m.id === aktuell.id)) li.querySelector('details')!.open = true;
+      a.missionen.forEach((m) => {
+        const e = li.querySelector<HTMLElement>(`[data-mission-eintrag="${m.id}"]`)!;
+        const st = z.missionen[m.id]?.status;
+        e.classList.toggle('real', st === 'real');
+        e.classList.toggle('simuliert', st === 'simuliert');
+        e.classList.toggle('offen', !st && istFreigeschaltet(m.id));
+        e.classList.toggle('aktuell', m.id === aktuell.id);
+        const s = e.querySelector('[data-mstatus]')!;
+        s.textContent = st === 'real' ? 'geschafft' : st === 'simuliert' ? 'simuliert' : m.id === aktuell.id ? 'jetzt dran' : !m.bereit ? 'in Arbeit' : '';
+      });
+    });
+  }
+  zeigen(true);
+  beiAenderung(() => zeigen());
+</script>
+
+<style>
+  .bahn { list-style: none; margin: 0; padding: 0; position: relative; }
+  .bahn::before { content: ''; position: absolute; left: 13px; top: 14px; bottom: 14px; width: 4px; background: rgba(201, 139, 79, 0.35); border-radius: 2px; }
+  .akt { position: relative; padding-left: 3rem; margin: 0 0 0.6rem; }
+  .pad { position: absolute; left: 0; top: 0.65rem; width: 30px; height: 30px; border-radius: 50%; background: var(--maske); border: 4px solid var(--kupfer); box-shadow: 0 0 0 4px var(--maske); }
+  .akt.fertig .pad { background: var(--kupfer); }
+  .akt.laeuft .pad { background: radial-gradient(circle, var(--kupfer-hell) 35%, var(--maske) 38%); }
+  details { border-radius: var(--radius); }
+  summary { cursor: pointer; display: grid; grid-template-columns: 1fr auto; gap: 0 1rem; padding: 0.7rem 0.9rem; border-radius: var(--radius); list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary:hover { background: rgba(29, 82, 64, 0.5); }
+  details[open] summary { background: rgba(29, 82, 64, 0.5); }
+  .akt-titel { font-weight: 700; font-size: 1.15rem; }
+  .akt-teil { color: var(--zinn); grid-column: 1; font-size: 0.95rem; }
+  .akt-stand { grid-row: 1 / 3; grid-column: 2; align-self: center; color: var(--kupfer-hell); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .akt-ziel { margin: 0.6rem 0.9rem; color: var(--zinn); }
+  .missionen { list-style: none; padding: 0 0 0.6rem; margin: 0 0.4rem; }
+  .missionen li { margin: 0; }
+  .missionen a { display: grid; grid-template-columns: 1.4rem 4.2rem 1fr auto; align-items: center; gap: 0.5rem; padding: 0.42rem 0.5rem; text-decoration: none; color: var(--druck); border-radius: var(--radius-klein); }
+  .missionen a:hover { background: rgba(255, 255, 255, 0.04); }
+  .mpad { width: 14px; height: 14px; border-radius: 50%; border: 2px dashed var(--zinn-dunkel); }
+  .offen .mpad, .aktuell .mpad { border: 3px solid var(--kupfer); }
+  .simuliert .mpad { border: 3px solid var(--zinn); background: var(--zinn); }
+  .real .mpad { border: 3px solid var(--kupfer); background: var(--kupfer); }
+  .boss .mpad { border-radius: 3px; transform: rotate(45deg); }
+  .mnr { color: var(--zinn); font-variant-numeric: tabular-nums; }
+  .entwurf .mtitel { color: var(--zinn); }
+  .mstatus { font-size: 0.88rem; color: var(--zinn); }
+  .aktuell .mstatus { color: var(--kupfer-hell); font-weight: 700; }
+  .real .mstatus { color: var(--gut); }
+  @media (max-width: 520px) { .missionen a { grid-template-columns: 1.4rem 3.4rem 1fr; } .mstatus { grid-column: 2 / 4; } }
+</style>

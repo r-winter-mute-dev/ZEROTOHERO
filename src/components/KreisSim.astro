@@ -1,0 +1,124 @@
+---
+// Mini-Simulator für Mission 1.1: Kreis schließen, LED drehen, Widerstand entfernen.
+import Station from './Station.astro';
+interface Props { id: string; titel?: string; }
+const { id, titel = 'Simulator: Dein erster Stromkreis' } = Astro.props;
+---
+<Station id={id} titel={titel} art="Simulator">
+  <div class="kreissim" data-kw-kreissim>
+    <svg viewBox="0 0 520 280" role="img" aria-label="Stromkreis aus Batterie, Kabel, Widerstand und LED">
+      <path class="leitung" d="M80 110V50H210M310 50H440V110M440 170V230H300M220 230H80V170" />
+      <path class="fluss" data-ks-fluss d="M80 110V50H210M310 50H440V110M440 170V230H300M220 230H80V170" />
+      <g class="bat">
+        <line x1="50" y1="110" x2="110" y2="110" /><line x1="65" y1="124" x2="95" y2="124" />
+        <line x1="50" y1="156" x2="110" y2="156" /><line x1="65" y1="170" x2="95" y2="170" />
+        <line x1="80" y1="124" x2="80" y2="156" stroke-dasharray="3 5" />
+        <text x="30" y="108">+</text><text x="30" y="182">−</text>
+        <text x="120" y="146" data-ks-spannung>3,0 V</text>
+      </g>
+      <g data-ks-widerstand>
+        <rect x="210" y="36" width="100" height="28" rx="3" />
+        <text x="260" y="92" text-anchor="middle">220 Ω</text>
+      </g>
+      <line class="bruecke" data-ks-bruecke x1="210" y1="50" x2="310" y2="50" />
+      <g data-ks-led class="led">
+        <circle class="glimmen" cx="440" cy="140" r="34" />
+        <path data-ks-ledform d="M415 110H465L440 155Z" />
+        <line data-ks-ledbalken x1="415" y1="158" x2="465" y2="158" />
+        <line x1="440" y1="155" x2="440" y2="170" />
+        <text x="400" y="145" text-anchor="end">LED</text>
+        <text class="warn" data-ks-warn x="440" y="205" text-anchor="middle"></text>
+      </g>
+      <g data-ks-kabel class="kabel">
+        <path data-ks-kabelweg d="M220 230 Q260 200 300 230" />
+        <circle cx="220" cy="230" r="6" /><circle cx="300" cy="230" r="6" />
+      </g>
+    </svg>
+    <div class="steuer">
+      <button type="button" class="knopf zweit" data-ks-aktion="kabel" aria-pressed="false">Kabel stecken</button>
+      <button type="button" class="knopf zweit" data-ks-aktion="led" aria-pressed="false">LED umdrehen</button>
+      <button type="button" class="knopf zweit" data-ks-aktion="widerstand" aria-pressed="false">Widerstand entfernen</button>
+      <label class="regler">Spannung <input type="range" min="0" max="3" step="0.1" value="3" data-ks-regler /></label>
+    </div>
+    <ol class="ziele">
+      <li data-ks-ziel="leuchtet">Bring die LED zum Leuchten.</li>
+      <li data-ks-ziel="verpolt">Dreh die LED bei geschlossenem Kreis um.</li>
+      <li data-ks-ziel="ueberlast">Entferne den Widerstand bei geschlossenem Kreis (nur hier im Simulator!).</li>
+    </ol>
+  </div>
+</Station>
+
+<script>
+  import { fmt, station } from '../scripts/station';
+  document.querySelectorAll<HTMLElement>('[data-kw-kreissim]').forEach((box) => {
+    const s = station(box.closest('[data-kw-check]') as HTMLElement);
+    const $ = <T extends Element = HTMLElement>(sel: string) => box.querySelector<T>(sel)!;
+    const z = { kabel: false, verdreht: false, ohneR: false, u: 3 };
+    const erreicht = new Set<string>();
+
+    function zeichnen() {
+      const geschlossen = z.kabel;
+      const leitet = geschlossen && !z.verdreht && z.u >= 1.8;
+      const ueberlast = leitet && z.ohneR;
+      box.classList.toggle('strom', leitet && !ueberlast);
+      box.classList.toggle('ueberlast', ueberlast);
+      $('[data-ks-fluss]').style.animationDuration = `${Math.max(0.4, 3.4 - z.u)}s`;
+      $('[data-ks-bruecke]').style.display = z.ohneR ? '' : 'none';
+      $('[data-ks-widerstand]').style.display = z.ohneR ? 'none' : '';
+      $('[data-ks-kabelweg]').setAttribute('d', z.kabel ? 'M220 230H300' : 'M220 230 Q260 200 300 230');
+      $('[data-ks-kabel]').classList.toggle('offen', !z.kabel);
+      $('[data-ks-ledform]').setAttribute('d', z.verdreht ? 'M415 155H465L440 110Z' : 'M415 110H465L440 155Z');
+      $('[data-ks-ledbalken]').setAttribute('y1', z.verdreht ? '107' : '158');
+      $('[data-ks-ledbalken]').setAttribute('y2', z.verdreht ? '107' : '158');
+      $('[data-ks-spannung]').textContent = `${fmt(z.u, 1)} V`;
+      $('[data-ks-warn]').textContent = ueberlast ? 'Überlastet: zu viel Strom!' : geschlossen && z.verdreht ? 'Sperrt: kein Strom' : geschlossen && z.u < 1.8 ? 'Spannung zu klein' : '';
+      box.querySelectorAll<HTMLButtonElement>('[data-ks-aktion]').forEach((b) => {
+        const k = b.dataset.ksAktion!;
+        const an = k === 'kabel' ? z.kabel : k === 'led' ? z.verdreht : z.ohneR;
+        b.setAttribute('aria-pressed', String(an));
+        b.textContent = k === 'kabel' ? (an ? 'Kabel ziehen' : 'Kabel stecken') : k === 'led' ? (an ? 'LED richtig herum' : 'LED umdrehen') : (an ? 'Widerstand einsetzen' : 'Widerstand entfernen');
+      });
+
+      if (leitet && !ueberlast) erreicht.add('leuchtet');
+      if (geschlossen && z.verdreht) erreicht.add('verpolt');
+      if (ueberlast) erreicht.add('ueberlast');
+      box.querySelectorAll<HTMLElement>('[data-ks-ziel]').forEach((li) => li.classList.toggle('erledigt', erreicht.has(li.dataset.ksZiel!)));
+      if (erreicht.size === 3 && !s.bestanden()) s.bestehen('Alle drei Versuche gemacht. Du weißt jetzt: geschlossener Kreis, richtige Richtung, Widerstand als Schutz.');
+    }
+
+    box.querySelectorAll<HTMLButtonElement>('[data-ks-aktion]').forEach((b) => b.addEventListener('click', () => {
+      const k = b.dataset.ksAktion;
+      if (k === 'kabel') z.kabel = !z.kabel;
+      if (k === 'led') z.verdreht = !z.verdreht;
+      if (k === 'widerstand') z.ohneR = !z.ohneR;
+      zeichnen();
+    }));
+    $<HTMLInputElement>('[data-ks-regler]').addEventListener('input', (e) => { z.u = Number((e.target as HTMLInputElement).value); zeichnen(); });
+    zeichnen();
+  });
+</script>
+
+<style>
+  svg { width: 100%; height: auto; background: var(--maske); border-radius: var(--radius-klein); }
+  svg text { fill: var(--zinn); font-size: 15px; }
+  .leitung { fill: none; stroke: var(--druck); stroke-width: 3; }
+  .fluss { fill: none; stroke: var(--kupfer-hell); stroke-width: 5; stroke-dasharray: 2 18; stroke-linecap: round; opacity: 0; }
+  .kreissim.strom .fluss, .kreissim.ueberlast .fluss { opacity: 1; animation: fliessen linear infinite; }
+  .kreissim.ueberlast .fluss { animation-duration: 0.3s !important; stroke: var(--fehler); }
+  @keyframes fliessen { to { stroke-dashoffset: -200; } }
+  .bat line, [data-ks-widerstand] rect, .led path, .led line, .bruecke { stroke: var(--druck); stroke-width: 3; fill: none; }
+  .bat line { stroke-width: 4; }
+  .kabel path { stroke: #d24b3f; stroke-width: 5; fill: none; stroke-linecap: round; }
+  .kabel circle { fill: var(--druck); }
+  .kabel.offen path { stroke-dasharray: 6 6; }
+  .glimmen { fill: #ff4f3a; opacity: 0; transition: opacity 0.25s; }
+  .kreissim.strom .glimmen { opacity: 0.45; }
+  .kreissim.strom .led path { fill: #ff6b55; }
+  .kreissim.ueberlast .led path { fill: #555; }
+  .warn { fill: var(--warnung) !important; font-weight: 700; }
+  .steuer { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin: 1rem 0; }
+  .regler { display: inline-flex; gap: 0.5rem; align-items: center; }
+  .regler input { accent-color: var(--kupfer); }
+  .ziele li.erledigt { color: var(--gut); }
+  .ziele li.erledigt::after { content: ' – erledigt'; }
+</style>

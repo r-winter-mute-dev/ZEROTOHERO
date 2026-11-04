@@ -1,0 +1,24 @@
+---
+import Station from './Station.astro';
+interface Props { id: string; titel: string; text: string; knopf?: string; hardware?: boolean; art?: string; }
+const { id, titel, text, knopf = 'Bestätigen', hardware = true, art = 'Bestätigung' } = Astro.props;
+---
+<Station id={id} titel={titel} art={art} hardware={hardware}>
+  <form data-kw-bestaetigung>
+    <label class="haken"><input type="checkbox" required /> {text}</label>
+    <button class="knopf" type="submit">{knopf}</button>
+  </form>
+</Station>
+
+<script>
+  import { station } from '../scripts/station';
+  document.querySelectorAll<HTMLFormElement>('[data-kw-bestaetigung]').forEach((form) => {
+    const s = station(form.closest('[data-kw-check]') as HTMLElement);
+    form.addEventListener('submit', (e) => { e.preventDefault(); s.bestehen('Bestätigt.'); });
+  });
+</script>
+
+<style>
+  .haken { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.9rem; cursor: pointer; }
+  .haken input { margin-top: 0.35rem; width: 1.1rem; height: 1.1rem; accent-color: var(--kupfer); }
+</style>

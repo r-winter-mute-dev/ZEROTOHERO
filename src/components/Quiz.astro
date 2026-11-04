@@ -1,0 +1,75 @@
+---
+import Station from './Station.astro';
+interface Frage { frage: string; richtig: string; falsch: string[]; erklaerung?: string; }
+interface Props { id: string; titel?: string; fragen: Frage[]; }
+const { id, titel = 'Quiz', fragen } = Astro.props;
+---
+<Station id={id} titel={titel} art="Quiz">
+  <form class="quiz" data-kw-quiz data-fragen={JSON.stringify(fragen)}>
+    <p class="leise klein">Alle Fragen müssen stimmen. Du kannst es beliebig oft versuchen.</p>
+    <div data-quiz-fragen></div>
+    <button class="knopf" type="submit">Antworten prüfen</button>
+  </form>
+</Station>
+
+<script>
+  import { mischen, station } from '../scripts/station';
+
+  document.querySelectorAll<HTMLFormElement>('[data-kw-quiz]').forEach((form) => {
+    const s = station(form.closest('[data-kw-check]') as HTMLElement);
+    const fragen = JSON.parse(form.dataset.fragen!) as { frage: string; richtig: string; falsch: string[]; erklaerung?: string }[];
+    const box = form.querySelector('[data-quiz-fragen]')!;
+
+    function aufbauen() {
+      box.innerHTML = '';
+      mischen(fragen.map((f, i) => ({ ...f, i }))).forEach((f, n) => {
+        const fs = document.createElement('fieldset');
+        fs.className = 'frage';
+        fs.dataset.i = String(f.i);
+        const lg = document.createElement('legend');
+        lg.textContent = `${n + 1}. ${f.frage}`;
+        fs.append(lg);
+        mischen([f.richtig, ...f.falsch]).forEach((a) => {
+          const lab = document.createElement('label');
+          const inp = document.createElement('input');
+          inp.type = 'radio'; inp.name = `${s.cid}-${f.i}`; inp.value = a;
+          lab.append(inp, document.createTextNode(' ' + a));
+          fs.append(lab);
+        });
+        const erk = document.createElement('p');
+        erk.className = 'erklaerung'; erk.hidden = true;
+        fs.append(erk);
+        box.append(fs);
+      });
+    }
+    aufbauen();
+    if (s.bestanden()) s.melden('Bereits bestanden. Du kannst das Quiz trotzdem wiederholen.', 'gut');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      let richtig = 0;
+      box.querySelectorAll<HTMLFieldSetElement>('fieldset').forEach((fs) => {
+        const f = fragen[Number(fs.dataset.i)];
+        const wahl = fs.querySelector<HTMLInputElement>('input:checked')?.value;
+        const ok = wahl === f.richtig;
+        if (ok) richtig++;
+        fs.classList.toggle('falsch', !ok);
+        fs.classList.toggle('richtig', ok);
+        const erk = fs.querySelector<HTMLElement>('.erklaerung')!;
+        erk.hidden = ok || !f.erklaerung || !wahl;
+        erk.textContent = f.erklaerung ? `Tipp: ${f.erklaerung}` : '';
+      });
+      if (richtig === fragen.length) s.bestehen(`Alle ${fragen.length} Antworten richtig.`);
+      else s.fehl(`${richtig} von ${fragen.length} richtig. Sieh dir die markierten Fragen noch einmal an.`);
+    });
+  });
+</script>
+
+<style>
+  .quiz :global(fieldset) { border: 1px solid var(--platine); border-radius: var(--radius-klein); margin: 0 0 1rem; padding: 0.8rem 1rem; }
+  .quiz :global(legend) { font-weight: 700; padding: 0 0.3rem; }
+  .quiz :global(label) { display: block; padding: 0.3rem 0; cursor: pointer; }
+  .quiz :global(fieldset.falsch) { border-color: var(--fehler); }
+  .quiz :global(fieldset.richtig) { border-color: var(--gut); }
+  .quiz :global(.erklaerung) { margin: 0.4rem 0 0; color: var(--warnung); font-size: 0.95rem; }
+</style>

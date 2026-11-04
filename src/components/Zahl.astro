@@ -1,0 +1,42 @@
+---
+// Ein Messwert wird gegen ein Toleranzband geprüft.
+import Station from './Station.astro';
+interface Hilfe { unter?: number; ueber?: number; text: string; }
+interface Props {
+  id: string; titel: string; frage: string; einheit: string;
+  min: number; max: number; hilfe?: Hilfe[]; hardware?: boolean; vorlaeufig?: boolean;
+}
+const { id, titel, frage, einheit, min, max, hilfe = [], hardware = true, vorlaeufig = false } = Astro.props;
+---
+<Station id={id} titel={titel} art="Messwert" hardware={hardware}>
+  <form class="zahl" data-kw-zahl data-min={min} data-max={max} data-hilfe={JSON.stringify(hilfe)} data-einheit={einheit}>
+    <label>
+      <span>{frage}</span>
+      <span class="eingabe"><input type="text" inputmode="decimal" required autocomplete="off" /> {einheit}</span>
+    </label>
+    <button class="knopf" type="submit">Messwert prüfen</button>
+  </form>
+  {vorlaeufig && <p class="leise klein">Das erwartete Band ist vorläufig und wird mit dem Prototyp nachgemessen.</p>}
+</Station>
+
+<script>
+  import { fmt, station, zahl } from '../scripts/station';
+  document.querySelectorAll<HTMLFormElement>('[data-kw-zahl]').forEach((form) => {
+    const s = station(form.closest('[data-kw-check]') as HTMLElement);
+    const min = Number(form.dataset.min), max = Number(form.dataset.max), einheit = form.dataset.einheit;
+    const hilfe = JSON.parse(form.dataset.hilfe!) as { unter?: number; ueber?: number; text: string }[];
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const w = zahl(form.querySelector('input')!.value);
+      if (Number.isNaN(w)) return s.melden('Bitte eine Zahl eingeben, zum Beispiel 1,85.', 'warnung');
+      if (w >= min && w <= max) return s.bestehen(`${fmt(w)} ${einheit} liegt im erwarteten Bereich (${fmt(min)}–${fmt(max)} ${einheit}).`);
+      const h = hilfe.find((x) => (x.unter !== undefined && w < x.unter) || (x.ueber !== undefined && w > x.ueber));
+      s.fehl(`${fmt(w)} ${einheit} liegt außerhalb von ${fmt(min)}–${fmt(max)} ${einheit}. ${h?.text ?? 'Prüfe Aufbau und Messbereich und miss noch einmal.'}`);
+    });
+  });
+</script>
+
+<style>
+  .zahl label { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.8rem; }
+  .eingabe input { width: 8rem; }
+</style>

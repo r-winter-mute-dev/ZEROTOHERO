@@ -1,0 +1,43 @@
+---
+id: m-1-5
+checks:
+  - id: rechnen
+  - id: protokoll
+    hardware: true
+---
+import Karte from '../components/Karte.astro';
+import Rechnen from '../components/Rechnen.astro';
+import Protokoll from '../components/Protokoll.astro';
+
+In Akt 6 soll die Klingel melden, wie voll ihr Akku ist. Der Mikrocontroller verträgt an seinem Messeingang aber nur eine kleinere Spannung, als der Akku liefert. Die Lösung sind zwei Widerstände: ein Spannungsteiler. **Deine Mission: Bau einen Spannungsteiler und sag seine Ausgangsspannung vorher.**
+
+## Theorie
+
+<Karte nr={1} titel="Zwei Widerstände in Reihe">
+Du kennst es aus Mission 1.2: In einem Kreis teilt sich die Spannung auf die Bauteile auf. Bei zwei Widerständen in Reihe bekommt jeder einen Teil, und zwar **im Verhältnis seiner Größe**. Der größere Widerstand bekommt den größeren Teil.
+</Karte>
+
+<Karte nr={2} titel="Die Teilerformel">
+R1 liegt oben (an Plus), R2 unten (an Masse). Die Spannung am Mittelpunkt gegen Masse ist **U2 = U × R2 / (R1 + R2)**. Sind beide Widerstände gleich, bekommst du genau die Hälfte. Mit R1 = 1 kΩ und R2 = 2,2 kΩ an 3 V: 3 V × 2,2 / 3,2 = 2,06 V.
+</Karte>
+
+<Karte nr={3} titel="Wofür du das brauchst">
+Mit einem Spannungsteiler kannst du eine Spannung messbar machen, die eigentlich zu groß ist. Ein Li-Ion-Akku hat bis zu 4,2 V, der Mikrocontroller misst höchstens etwa 3,3 V. Ein Teiler im Verhältnis 1:1 macht daraus 2,1 V. Das baust du in Mission 6.4.
+</Karte>
+
+<Rechnen id="rechnen" typ="teiler" anzahl={3} />
+
+## Aufbau
+
+1. Batterie heraus. R1 = 1 kΩ (Braun-Schwarz-Rot) von Spalte 5 nach Spalte 10 stecken, R2 = 2,2 kΩ (Rot-Rot-Rot) von Spalte 10 nach Spalte 15.
+2. Plus des Batteriehalters in Spalte 5, Minus in Spalte 15. Batterie einlegen.
+3. Miss die Batteriespannung (Spalte 5 gegen 15), dann die Spannung an R2 (Spalte 10 gegen 15).
+4. Hast du andere Widerstände, nimm sie. Trag einfach deine Werte ins Protokoll ein.
+
+<Protokoll id="protokoll" titel="Messprotokoll: Spannungsteiler" typ="teiler" />
+
+<details>
+<summary><strong>Vertiefung: Der belastete Teiler</strong></summary>
+
+Die Formel gilt nur, solange am Mittelpunkt kaum Strom abfließt. Hängst du dort ein Bauteil an, das viel Strom zieht, liegt es parallel zu R2 und verkleinert ihn. Die Spannung sinkt. Ein Mikrocontroller-Eingang oder dein Multimeter ziehen fast keinen Strom, deshalb funktioniert der Teiler dort gut. Zum Versorgen einer LED oder eines Motors taugt er nicht.
+</details>
