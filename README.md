@@ -77,6 +77,16 @@ Statische Seite mit [Astro](https://astro.build) und MDX, ohne Server und ohne e
 
 Wer eine eigene Kopie betreiben will: Repository forken, unter **Settings → Pages** als Quelle **GitHub Actions** wählen, fertig. Der Workflow setzt den Pfad der Seite selbst.
 
+## Entstehung
+
+Dieser Kurs entsteht mit Unterstützung von **Claude**, einer KI von Anthropic. Die KI ist für dieses Projekt persönlich eingerichtet und auf wissenschaftliches Arbeiten ausgelegt:
+
+- **Belege zuerst:** Fakten stützen sich bevorzugt auf systematische Reviews und Meta-Analysen, begutachtete Studien, Datenblätter der Hersteller und Normen. Foren, Blogs und soziale Medien gelten nicht als Beleg.
+- **Kennzeichnung:** Werte, die nicht aus einem Datenblatt oder einer Messung stammen, sind im Kurs als vorläufig oder als Richtwert markiert.
+- **Lernpsychologie:** Der Aufbau der Missionen (kurze Schritte, Merksätze, Fragen direkt nach jeder Erklärung, Spickzettel, wenig Ablenkung) folgt der Forschung zu Arbeitsgedächtnis, Segmentierung und ADHS. Wo es keine direkte Studie zu einem Elektronikkurs gibt, ist das eine begründete Übertragung, kein Nachweis.
+
+Die Idee, die Ziele und die Entscheidungen kommen von einem Menschen. Texte, Übungen und Firmware schreibt die KI, ein Mensch prüft sie und gibt sie frei. Auch so können Fehler drinstecken: Die Sketches sind syntaktisch geprüft, aber noch nicht auf jeder Hardware getestet. Wenn dir etwas falsch vorkommt, [öffne ein Issue](https://github.com/r-winter-mute-dev/zerotohero/issues). Hinweise mit Quelle helfen am meisten.
+
 ## Lizenz
 
 - Inhalte (Missionen, Texte, Zeichnungen): [CC BY-SA 4.0](LICENSE-INHALTE.md). Du darfst sie teilen und bearbeiten, solange du die Quelle nennst und unter derselben Lizenz weitergibst.
