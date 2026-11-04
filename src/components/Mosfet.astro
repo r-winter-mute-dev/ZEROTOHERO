@@ -1,0 +1,145 @@
+---
+// MOSFET-Trainer: Ein P-Kanal-MOSFET schaltet den Akku zur Klingel (High-Side).
+// Vereinfachtes Modell: Akku 3,7 V an Source, Schwelle U_GS(th) = −1,0 V, ganz leitend ab −2,5 V.
+// Die Klingel zieht voll eingeschaltet 150 mA. Modellwerte zum Verstehen, keine Datenblattwerte.
+import Station from './Station.astro';
+interface Props { id: string; titel: string; }
+const { id, titel } = Astro.props;
+---
+<Station id={id} titel={titel} art="Trainer">
+  <div class="mf" data-kw-mosfet>
+    <p class="mf-aufgabe" data-mf-aufgabe aria-live="polite"></p>
+    <div class="mf-raster">
+      <svg viewBox="0 0 320 250" class="mf-svg" role="img" aria-label="Schaltplan: Akku an Source eines P-Kanal-MOSFET, Drain zur Klingel, Gate mit einstellbarer Spannung">
+        <text x="14" y="30" class="mf-txt">Akku +3,7 V</text>
+        <line x1="60" y1="40" x2="60" y2="70" class="mf-draht an" />
+        <line x1="60" y1="70" x2="150" y2="70" class="mf-draht an" />
+        <!-- MOSFET -->
+        <circle cx="175" cy="80" r="28" class="mf-bauteil" />
+        <line x1="150" y1="70" x2="165" y2="70" class="mf-draht an" />
+        <line x1="165" y1="58" x2="165" y2="102" class="mf-draht dick" data-mf-kanal />
+        <line x1="185" y1="70" x2="215" y2="70" class="mf-draht" data-mf-last />
+        <line x1="157" y1="62" x2="157" y2="98" class="mf-draht" />
+        <line x1="157" y1="112" x2="157" y2="98" class="mf-draht" data-mf-gate />
+        <text x="140" y="60" class="mf-txt klein">S</text>
+        <text x="196" y="60" class="mf-txt klein">D</text>
+        <text x="162" y="128" class="mf-txt klein">G</text>
+        <text x="150" y="30" class="mf-txt klein">P-Kanal-MOSFET</text>
+        <!-- Klingel -->
+        <line x1="215" y1="70" x2="260" y2="70" class="mf-draht" data-mf-last />
+        <rect x="235" y="90" width="50" height="50" rx="6" class="mf-bauteil" />
+        <line x1="260" y1="70" x2="260" y2="90" class="mf-draht" data-mf-last />
+        <circle cx="260" cy="115" r="12" class="mf-led" data-mf-led />
+        <text x="236" y="158" class="mf-txt klein">Klingel</text>
+        <line x1="260" y1="140" x2="260" y2="210" class="mf-draht" data-mf-last />
+        <line x1="246" y1="210" x2="274" y2="210" class="mf-draht dick" />
+        <text x="248" y="232" class="mf-txt klein">GND</text>
+        <!-- Gate -->
+        <line x1="157" y1="112" x2="157" y2="180" class="mf-draht" data-mf-gate />
+        <rect x="110" y="180" width="94" height="30" rx="4" class="mf-bauteil" />
+        <text x="118" y="200" class="mf-txt" data-mf-ug>Gate 3,7 V</text>
+        <!-- Wärme -->
+        <text x="210" y="112" class="mf-heiss" data-mf-heiss>~ heiß ~</text>
+      </svg>
+
+      <div class="mf-regler">
+        <label class="mf-schieber">
+          <span>Spannung am Gate: <strong data-mf-ugw>3,7 V</strong></span>
+          <input type="range" min="0" max="3.7" step="0.1" value="3.7" data-mf-schieber aria-label="Spannung am Gate in Volt" />
+        </label>
+        <div class="mf-schnell">
+          <button type="button" class="knopf zweit klein" data-mf-setze="3.7">Gate an Plus</button>
+          <button type="button" class="knopf zweit klein" data-mf-setze="0">Gate an GND</button>
+        </div>
+        <dl class="mf-werte">
+          <dt>U<sub>GS</sub> (Gate gegen Source)</dt><dd data-mf-ugs>0,0 V</dd>
+          <dt>Strom zur Klingel</dt><dd data-mf-i>0 mA</dd>
+          <dt>Wärme im MOSFET</dt><dd data-mf-p>0 mW</dd>
+        </dl>
+      </div>
+    </div>
+    <p class="mf-erkl" data-mf-erkl aria-live="polite">Schieb den Regler und beobachte die Klingel.</p>
+    <p class="leise klein">Modellwerte: Schwelle −1,0 V, voll leitend ab etwa −2,5 V, Klingel 150 mA. Echte MOSFETs haben je nach Typ andere Werte, die stehen im Datenblatt.</p>
+  </div>
+</Station>
+
+<script>
+  import { fmt, station } from '../scripts/station';
+
+  const UQ = 3.7, UTH = 1.0, UVOLL = 2.5, ILAST = 150, RDS = 0.05;
+
+  document.querySelectorAll<HTMLElement>('[data-kw-mosfet]').forEach((box) => {
+    const s = station(box.closest('[data-kw-check]') as HTMLElement);
+    const schieber = box.querySelector<HTMLInputElement>('[data-mf-schieber]')!;
+    interface Z { ug: number; ugs: number; f: number; i: number; p: number; }
+    const aufgaben = [
+      { text: 'Schalte die Klingel voll ein.', pruef: (z: Z) => z.f >= 1 },
+      { text: 'Schalte sie wieder ganz aus.', pruef: (z: Z) => z.i === 0 },
+      { text: 'Finde eine Einstellung, bei der der MOSFET heiß wird.', pruef: (z: Z) => z.p > 50 },
+    ];
+    let nr = 0;
+
+    function rechnen(): Z {
+      const ug = Number(schieber.value);
+      const ugs = ug - UQ;                        // negativ = Gate unter Source
+      const f = Math.max(0, Math.min(1, (-ugs - UTH) / (UVOLL - UTH)));
+      const i = Math.round(ILAST * f);
+      const uds = f >= 1 ? (i / 1000) * RDS : UQ * (1 - f);
+      const p = (i / 1000) * uds * 1000;          // mW
+      return { ug, ugs, f, i, p };
+    }
+
+    function zeichnen() {
+      const z = rechnen();
+      box.querySelector('[data-mf-ugw]')!.textContent = `${fmt(z.ug, 1)} V`;
+      box.querySelector('[data-mf-ug]')!.textContent = `Gate ${fmt(z.ug, 1)} V`;
+      box.querySelector('[data-mf-ugs]')!.textContent = `${fmt(z.ugs, 1)} V`;
+      box.querySelector('[data-mf-i]')!.textContent = `${z.i} mA`;
+      box.querySelector('[data-mf-p]')!.textContent = `${fmt(z.p, z.p < 10 ? 1 : 0)} mW`;
+      box.querySelector<SVGElement>('[data-mf-led]')!.style.opacity = String(0.1 + 0.9 * z.f);
+      box.querySelectorAll<SVGElement>('[data-mf-last]').forEach((l) => l.classList.toggle('an', z.i > 0));
+      box.querySelector<SVGElement>('[data-mf-kanal]')!.classList.toggle('an', z.i > 0);
+      box.querySelector<SVGElement>('[data-mf-heiss]')!.style.opacity = z.p > 50 ? '1' : '0';
+
+      let text: string, art = '';
+      if (z.i === 0) text = `U_GS = ${fmt(z.ugs, 1)} V. Das Gate liegt zu nah an der Source-Spannung, der Kanal ist zu. Kein Strom, die Klingel ist aus.`;
+      else if (z.f < 1) { text = `Halb offen: ${z.i} mA fließen, aber am MOSFET fallen ${fmt(UQ * (1 - z.f), 2)} V ab. Er verheizt ${fmt(z.p, 0)} mW und wird warm. Ein Schalter soll ganz an oder ganz aus sein.`; art = 'warnung'; }
+      else { text = `Voll an: U_GS = ${fmt(z.ugs, 1)} V. Der Kanal hat nur noch etwa ${fmt(RDS * 1000, 0)} mΩ, der MOSFET verheizt nur ${fmt(z.p, 1)} mW.`; art = 'gut'; }
+      const erkl = box.querySelector<HTMLElement>('[data-mf-erkl]')!;
+      erkl.textContent = text; erkl.className = `mf-erkl ${art}`;
+
+      if (nr < aufgaben.length && aufgaben[nr].pruef(z) && !s.gesperrt()) {
+        nr++;
+        if (nr >= aufgaben.length) s.bestehen('Trainer geschafft: Gate an GND schaltet ein, Gate an Plus schaltet aus, dazwischen wird es heiß.');
+        else s.melden('Aufgabe gelöst. Weiter mit der nächsten.', 'gut');
+      }
+      box.querySelector('[data-mf-aufgabe]')!.textContent = nr < aufgaben.length ? `Aufgabe ${nr + 1} von ${aufgaben.length}: ${aufgaben[nr].text}` : 'Geschafft. Probier ruhig weiter herum.';
+    }
+
+    schieber.addEventListener('input', zeichnen);
+    box.querySelectorAll<HTMLButtonElement>('[data-mf-setze]').forEach((b) => b.addEventListener('click', () => { schieber.value = b.dataset.mfSetze!; zeichnen(); }));
+    zeichnen();
+  });
+</script>
+
+<style>
+  .mf-aufgabe { font-weight: 700; }
+  .mf-erkl { margin: 0.8rem 0 0.5rem; padding: 0.6rem 0.8rem; border-radius: var(--radius-klein); background: rgba(255,255,255,0.04); }
+  .mf-erkl.gut { color: var(--gut); } .mf-erkl.warnung { color: var(--warnung); }
+  .mf-raster { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+  @media (max-width: 720px) { .mf-raster { grid-template-columns: 1fr; } }
+  .mf-svg { width: 100%; height: auto; background: var(--flaeche-leicht); border-radius: var(--radius-klein); }
+  .mf-txt { fill: var(--text); font-size: 13px; font-family: var(--schrift); }
+  .mf-txt.klein { font-size: 11px; fill: var(--leise); }
+  .mf-draht { stroke: var(--leise-dunkel); stroke-width: 2.5; fill: none; transition: stroke 0.2s; }
+  .mf-draht.dick { stroke-width: 4; }
+  .mf-draht.an { stroke: var(--akzent); }
+  .mf-bauteil { fill: var(--tief); stroke: var(--leise); stroke-width: 2; }
+  .mf-led { fill: #fff8e1; opacity: 0.1; transition: opacity 0.2s; }
+  .mf-heiss { fill: var(--fehler); font-size: 12px; opacity: 0; transition: opacity 0.2s; }
+  .mf-schieber { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.7rem; }
+  .mf-schieber input { width: 100%; accent-color: var(--akzent); min-height: 2.75rem; }
+  .mf-schnell { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.7rem; }
+  .mf-werte { display: grid; grid-template-columns: 1fr auto; gap: 0.3rem 0.8rem; margin: 0; }
+  .mf-werte dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+</style>

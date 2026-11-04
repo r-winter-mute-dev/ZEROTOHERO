@@ -1,7 +1,7 @@
 ---
 // Messprotokoll: mehrere echte Messwerte werden gegeneinander geprüft.
 import Station from './Station.astro';
-interface Props { id: string; titel: string; typ: 'led-strom' | 'summe' | 'teiler' | 'kalibrierung'; }
+interface Props { id: string; titel: string; typ: 'led-strom' | 'summe' | 'teiler' | 'kalibrierung' | 'vergleich'; }
 const { id, titel, typ } = Astro.props;
 
 const FELDER = {
@@ -19,6 +19,10 @@ const FELDER = {
   kalibrierung: [
     ['umulti', 'Akkuspannung laut Multimeter', 'V'],
     ['uklingel', 'Akkuspannung laut Klingel (mit KORREKTUR = 1.000)', 'V'],
+  ],
+  vergleich: [
+    ['alt', 'Ruhestrom aus Mission 6.5 (Tiefschlaf)', 'mA'],
+    ['neu', 'Ruhestrom jetzt (Klingel ganz aus)', 'µA'],
   ],
   teiler: [
     ['u', 'Spannung der Batterie', 'V'],
@@ -67,6 +71,13 @@ const FELDER = {
           return s.fehl(`Korrektur wäre ${fmt(k, 3)}. Das ist mehr als 15 % daneben, so viel weicht der ADC normalerweise nicht ab.${hinweis}`);
         }
         return s.bestehen(`Deine Korrektur: ${fmt(v.umulti, 3)} V / ${fmt(v.uklingel, 3)} V = ${fmt(k, 3)}. Trag im Sketch ein: const float KORREKTUR = ${k.toFixed(3)}; Dann hochladen und noch einmal klingeln.`);
+      }
+      if (typ === 'vergleich') {
+        if (v.neu <= 0) return s.fehl('0 µA kann dein Multimeter so nicht messen. Steht es im µA-Bereich, und ist die Brücke wirklich ab?');
+        const faktor = (v.alt * 1000) / v.neu;
+        if (faktor >= 100) return s.bestehen(`${fmt(v.alt)} mA = ${fmt(v.alt * 1000, 0)} µA vorher, jetzt ${fmt(v.neu)} µA. Faktor ${fmt(faktor, 0)}. Ziel erreicht: mindestens 100-mal weniger.`);
+        if (v.alt < 0.05) return s.fehl(`Der alte Wert von ${fmt(v.alt)} mA ist sehr klein. Hast du ihn in µA statt mA eingetragen? Dann durch 1000 teilen.`);
+        return s.fehl(`Faktor ${fmt(faktor, 0)}, das Ziel ist mindestens 100. Was hängt noch vor dem Schaltmodul? Nur Akku und Lademodul gehören dorthin. Teiler und Wandler müssen hinter VOUT hängen.`);
       }
       if (typ === 'summe') {
         const summe = v.ur + v.uled;

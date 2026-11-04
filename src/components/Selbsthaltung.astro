@@ -1,0 +1,168 @@
+---
+// Selbsthalte-Trainer: Der Klingelknopf schaltet das Modul ein, die Firmware schaltet es über OFF wieder aus.
+// Zeit läuft im Simulator viermal so schnell. Ströme sind Modellwerte.
+import Station from './Station.astro';
+interface Props { id: string; titel: string; }
+const { id, titel } = Astro.props;
+---
+<Station id={id} titel={titel} art="Trainer">
+  <div class="sh" data-kw-halten>
+    <p class="sh-aufgabe" data-sh-aufgabe aria-live="polite"></p>
+    <div class="sh-raster">
+      <div class="sh-bild">
+        <svg viewBox="0 0 320 200" class="sh-svg" role="img" aria-label="Akku, Schaltmodul, Klingel. Klingelknopf am Eingang A des Moduls, GPIO 13 am Eingang OFF.">
+          <rect x="10" y="60" width="60" height="44" rx="5" class="sh-bauteil" />
+          <text x="20" y="87" class="sh-txt">Akku</text>
+          <line x1="70" y1="82" x2="110" y2="82" class="sh-draht an" />
+          <rect x="110" y="50" width="90" height="64" rx="6" class="sh-bauteil" data-sh-modul />
+          <text x="120" y="72" class="sh-txt klein">Schaltmodul</text>
+          <circle cx="186" cy="64" r="5" class="sh-modul-led" data-sh-mled />
+          <text x="120" y="92" class="sh-txt" data-sh-zustand>AUS</text>
+          <line x1="200" y1="82" x2="240" y2="82" class="sh-draht" data-sh-last />
+          <rect x="240" y="60" width="70" height="44" rx="5" class="sh-bauteil" />
+          <text x="250" y="80" class="sh-txt klein">Klingel</text>
+          <text x="250" y="96" class="sh-txt klein" data-sh-phase>schläft nicht,</text>
+          <!-- Knopf an A -->
+          <line x1="130" y1="114" x2="130" y2="150" class="sh-draht" data-sh-knopfweg />
+          <text x="96" y="168" class="sh-txt klein">Knopf → A</text>
+          <!-- OFF von GPIO 13 -->
+          <line x1="275" y1="104" x2="275" y2="150" class="sh-draht" data-sh-offweg />
+          <line x1="275" y1="150" x2="180" y2="150" class="sh-draht" data-sh-offweg />
+          <line x1="180" y1="150" x2="180" y2="114" class="sh-draht" data-sh-offweg />
+          <text x="192" y="168" class="sh-txt klein">GPIO 13 → OFF</text>
+        </svg>
+        <button type="button" class="knopf sh-knopf" data-sh-knopf>Klingelknopf drücken</button>
+        <button type="button" class="knopf zweit klein sh-akku" data-sh-akku>Akku kurz abklemmen</button>
+      </div>
+      <div class="sh-regler">
+        <dl class="sh-werte">
+          <dt>Zeit seit dem Klingeln</dt><dd data-sh-zeit>–</dd>
+          <dt>Strom aus dem Akku</dt><dd data-sh-strom>0,005 mA</dd>
+        </dl>
+        <label><input type="checkbox" data-sh-router /> WLAN-Router ist ausgefallen</label>
+        <label><input type="checkbox" data-sh-grenze checked /> Programm hat eine Zeitgrenze (20 s)</label>
+        <pre class="sh-log" data-sh-log aria-live="polite"></pre>
+      </div>
+    </div>
+    <p class="leise klein">Der Simulator läuft viermal so schnell wie die Wirklichkeit. Ströme sind Modellwerte: aus etwa 0,005 mA, wach etwa 120 mA.</p>
+  </div>
+</Station>
+
+<script>
+  import { station } from '../scripts/station';
+
+  type Phase = { name: string; dauer: number; strom: number };
+  const ABLAUF: Phase[] = [
+    { name: 'startet', dauer: 0.6, strom: 60 },
+    { name: 'misst den Akku', dauer: 0.2, strom: 50 },
+    { name: 'verbindet WLAN', dauer: 3, strom: 120 },
+    { name: 'macht das Foto', dauer: 1, strom: 150 },
+    { name: 'sendet', dauer: 3, strom: 130 },
+  ];
+  const TEMPO = 4, GRENZE = 20, HAENGT = 30;
+
+  document.querySelectorAll<HTMLElement>('[data-kw-halten]').forEach((box) => {
+    const s = station(box.closest('[data-kw-check]') as HTMLElement);
+    const $ = <T extends Element = HTMLElement>(q: string) => box.querySelector<T>(q)!;
+    const router = $<HTMLInputElement>('[data-sh-router]'), grenze = $<HTMLInputElement>('[data-sh-grenze]');
+    let an = false, t = 0, timer = 0, phase = -1, haengt = false;
+    const erledigt = { normal: false, haengt: false, grenze: false };
+    const aufgaben = [
+      { text: 'Drück den Klingelknopf und sieh zu, bis sich die Klingel selbst ausschaltet.', ok: () => erledigt.normal },
+      { text: 'Lass den WLAN-Router ausfallen und nimm die Zeitgrenze weg. Klingle. Was passiert?', ok: () => erledigt.haengt },
+      { text: 'Jetzt mit Zeitgrenze, der Router ist immer noch aus. Klingle noch einmal.', ok: () => erledigt.grenze },
+    ];
+    let nr = 0;
+
+    const log = (z: string) => { const l = $('[data-sh-log]'); l.textContent = (l.textContent + z + '\n').split('\n').slice(-7).join('\n'); };
+    const fmtS = (x: number) => `${x.toFixed(1).replace('.', ',')} s`;
+
+    function anzeigen(strom: number, text: string) {
+      $('[data-sh-zustand]').textContent = an ? 'AN' : 'AUS';
+      $<SVGElement>('[data-sh-mled]').classList.toggle('an', an);
+      box.querySelectorAll<SVGElement>('[data-sh-last]').forEach((l) => l.classList.toggle('an', an));
+      $('[data-sh-phase]').textContent = text;
+      $('[data-sh-strom]').textContent = an ? `${strom} mA` : '0,005 mA';
+      $('[data-sh-zeit]').textContent = an ? fmtS(t) : '–';
+    }
+
+    function aus(grund: string) {
+      an = false; clearInterval(timer);
+      box.querySelectorAll<SVGElement>('[data-sh-offweg]').forEach((l) => l.classList.add('puls'));
+      setTimeout(() => box.querySelectorAll<SVGElement>('[data-sh-offweg]').forEach((l) => l.classList.remove('puls')), 600);
+      log(`${fmtS(t)}: ${grund} → OFF-Puls, Modul schaltet ab`);
+      anzeigen(0, 'ganz aus');
+    }
+
+    function schritt() {
+      t += 0.1;
+      // Zeitgrenze greift immer zuerst
+      if (grenze.checked && t >= GRENZE) {
+        if (haengt) { erledigt.grenze = true; }
+        aus('Zeitgrenze erreicht, Fehler gemeldet');
+        return pruefen();
+      }
+      let rest = t, i = 0;
+      while (i < ABLAUF.length && rest >= ABLAUF[i].dauer) { rest -= ABLAUF[i].dauer; i++; }
+      // WLAN hängt?
+      if (router.checked && i > 2) { i = 2; haengt = true; }
+      if (i !== phase) { phase = i; if (i < ABLAUF.length) log(`${fmtS(t)}: Klingel ${ABLAUF[i].name}`); }
+      if (i >= ABLAUF.length) { erledigt.normal = !haengt || erledigt.normal; aus('Foto ist im Chat'); return pruefen(); }
+      if (haengt && !grenze.checked && t >= HAENGT && !erledigt.haengt) { erledigt.haengt = true; log(`${fmtS(t)}: wartet immer noch auf das WLAN … und zieht dabei Strom`); pruefen(); }
+      anzeigen(ABLAUF[i].strom, haengt ? 'wartet auf WLAN …' : ABLAUF[i].name);
+    }
+
+    function pruefen() {
+      while (nr < aufgaben.length && aufgaben[nr].ok()) {
+        nr++;
+        if (nr >= aufgaben.length) { if (!s.gesperrt()) s.bestehen('Trainer geschafft: Knopf schaltet ein, die Firmware schaltet sich selbst aus, und die Zeitgrenze rettet den Akku.'); }
+        else s.melden('Aufgabe gelöst. Weiter mit der nächsten.', 'gut');
+      }
+      $('[data-sh-aufgabe]').textContent = nr < aufgaben.length ? `Aufgabe ${nr + 1} von ${aufgaben.length}: ${aufgaben[nr].text}` : 'Geschafft. Probier ruhig weiter herum.';
+    }
+
+    $('[data-sh-knopf]').addEventListener('click', () => {
+      if (an) { log(`${fmtS(t)}: Knopf gedrückt, die Klingel läuft schon (A schaltet nur ein)`); return; }
+      if (nr === 1 && (grenze.checked || !router.checked)) { s.melden('Für diese Aufgabe: Router ausfallen lassen und die Zeitgrenze abschalten.', 'warnung'); }
+      if (nr === 2 && (!grenze.checked || !router.checked)) { s.melden('Für diese Aufgabe: Router bleibt aus, Zeitgrenze einschalten.', 'warnung'); }
+      an = true; t = 0; phase = -1; haengt = false;
+      $('[data-sh-log]').textContent = '';
+      log('0,0 s: Knopf gedrückt → Modul schaltet ein');
+      clearInterval(timer);
+      timer = window.setInterval(schritt, 100 / TEMPO);
+      anzeigen(ABLAUF[0].strom, ABLAUF[0].name);
+    });
+    $('[data-sh-akku]').addEventListener('click', () => {
+      if (!an) return;
+      an = false; clearInterval(timer);
+      log(`${fmtS(t)}: Akku abgeklemmt, alles aus`);
+      anzeigen(0, 'ganz aus');
+    });
+    // Wer mitten im Hängen die Zeitgrenze einschaltet, bekommt sie sofort zu spüren.
+    grenze.addEventListener('change', () => { if (an && grenze.checked && t >= GRENZE) schritt(); });
+    anzeigen(0, 'ganz aus');
+    pruefen();
+  });
+</script>
+
+<style>
+  .sh-aufgabe { font-weight: 700; }
+  .sh-raster { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+  @media (max-width: 720px) { .sh-raster { grid-template-columns: 1fr; } }
+  .sh-svg { width: 100%; height: auto; background: var(--flaeche-leicht); border-radius: var(--radius-klein); }
+  .sh-txt { fill: var(--text); font-size: 13px; font-family: var(--schrift); }
+  .sh-txt.klein { font-size: 11px; fill: var(--leise); }
+  .sh-draht { stroke: var(--leise-dunkel); stroke-width: 2.5; fill: none; transition: stroke 0.2s; }
+  .sh-draht.an { stroke: var(--akzent); }
+  .sh-draht.puls { stroke: var(--warnung); stroke-width: 4; }
+  .sh-bauteil { fill: var(--tief); stroke: var(--leise); stroke-width: 2; }
+  .sh-modul-led { fill: #333; }
+  .sh-modul-led.an { fill: #f38ba8; }
+  .sh-knopf { margin-top: 0.7rem; width: 100%; min-height: 3rem; }
+  .sh-akku { margin-top: 0.5rem; width: 100%; }
+  .sh-werte { display: grid; grid-template-columns: 1fr auto; gap: 0.3rem 0.8rem; margin: 0 0 0.7rem; }
+  .sh-werte dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+  .sh-regler label { display: block; padding: 0.3rem 0; cursor: pointer; }
+  .sh-regler input { accent-color: var(--akzent); }
+  .sh-log { min-height: 8rem; font-size: 0.85rem; white-space: pre-wrap; background: var(--grund); padding: 0.6rem; border-radius: var(--radius-klein); }
+</style>

@@ -1,0 +1,90 @@
+---
+id: m-7-2
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: trainer
+  - id: eingebaut
+    hardware: true
+spick:
+  - t: "Selbsthaltung"
+    v: "Knopf schaltet ein, das Gerät schaltet sich selbst aus"
+  - t: "Modul"
+    v: "Pololu Mini Pushbutton Power Switch LV, ab 2,2 V"
+  - t: "Einschalten"
+    v: "Klingelknopf zwischen A und GND"
+  - t: "Ausschalten"
+    v: "GPIO 13 → OFF, kurzer HIGH-Puls über 1 V"
+  - t: "Reihenfolge"
+    v: "Akku → Lademodul → Modul → Wandler und Teiler → ESP32-CAM"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Selbsthaltung from '../components/Selbsthaltung.astro';
+import Bestaetigung from '../components/Bestaetigung.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+
+Ein MOSFET kann den Akku trennen. Aber wer schaltet ihn ein, wenn die Klingel aus ist? Und wer schaltet ihn wieder aus, wenn das Foto verschickt ist? Die Antwort ist eine alte Idee aus der Elektrotechnik: die **Selbsthaltung**. **Deine Mission: Verstehe die Selbsthaltung im Trainer und bau das Schaltmodul in deine Klingel ein.**
+
+## Theorie
+
+<Karte nr={1} titel="Einschalten mit dem Knopf, ausschalten mit dem Programm">
+Der Klingelknopf öffnet den MOSFET. Die Klingel startet. Ab jetzt muss etwas den MOSFET offen halten, auch wenn der Knopf längst losgelassen ist. Das übernimmt eine kleine Halteschaltung. Wenn das Foto verschickt ist, gibt die Firmware ein Signal, und die Halteschaltung lässt los. Der MOSFET sperrt, die ganze Klingel ist stromlos. Bis zum nächsten Druck.
+</Karte>
+
+<Merke>Knopf schaltet ein, die Halteschaltung hält, das Programm schaltet sich selbst aus.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Selbsthaltung" fragen={[
+  { frage: 'Warum bleibt die Klingel an, obwohl der Knopf schon losgelassen ist?', richtig: 'Eine Halteschaltung hält den MOSFET offen, bis das Programm ihn freigibt.', falsch: ['Weil der Knopf einrastet', 'Weil der Akku nachlädt'], erklaerung: 'Darum heißt es Selbsthaltung: Die Schaltung hält sich selbst, bis sie losgelassen wird.' },
+]} />
+
+<Karte nr={2} titel="Das fertige Modul">
+So eine Schaltung kann man aus einzelnen Bauteilen bauen. Die passenden MOSFETs gibt es für eine einzelne Li-Ion-Zelle aber fast nur als winzige SMD-Bauteile. Deshalb nimmst du ein fertiges Modul: den **Pololu Mini Pushbutton Power Switch LV**. Er enthält zwei MOSFETs und eine Halteschaltung. Laut Hersteller arbeitet er ab 2,2 V und zieht ausgeschaltet nur etwa 0,01 µA. Ein Taster zwischen A und GND schaltet nur ein. Ein HIGH-Puls über 1 V am Eingang OFF schaltet aus [Fachquelle: Pololu, Produktseite 2808].
+</Karte>
+
+<Merke>A gegen GND schaltet ein, ein Puls an OFF schaltet aus. Ausgeschaltet etwa 0,01 µA.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Modul" fragen={[
+  { frage: 'Jemand drückt zweimal schnell hintereinander. Was passiert mit dem Klingelknopf an A und GND?', richtig: 'Nichts Besonderes: A gegen GND schaltet nur ein, die Klingel läuft einfach weiter.', falsch: ['Der zweite Druck schaltet sie mitten im Senden aus.', 'Das Modul geht kaputt.'], erklaerung: 'So verdrahtet ist der Knopf ein reiner Einschalter. Ausschalten darf nur die Firmware.' },
+]} />
+
+<Karte nr={3} titel="Was hinter den Schalter gehört">
+Alles, was im Ruhezustand nicht ziehen soll, muss **hinter** dem Modul hängen, also an VOUT: der Wandler, die ESP32-CAM und der Spannungsteiler aus Mission 6.4. Vor dem Modul bleiben nur Akku und Lademodul, denn die musst du auch ohne Klingeln laden können. Und noch eine Kleinigkeit: Beim Einschalten weiß GPIO 13 kurz nicht, was er tun soll. Ein 10-kΩ-Widerstand von OFF nach GND hält OFF so lange sicher auf LOW, bis das Programm übernimmt.
+</Karte>
+
+<Merke>Wandler, Teiler und ESP32-CAM an VOUT. Akku und Lademodul davor. OFF mit 10 kΩ nach GND.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Wohin damit" fragen={[
+  { frage: 'Der Spannungsteiler hängt noch direkt an OUT+ des Lademoduls. Was ist das Problem?', richtig: 'Er zieht weiter 0,2 mA, auch wenn die Klingel aus ist.', falsch: ['Er misst dann falsch herum.', 'Gar keins, der Teiler zieht keinen Strom.'], erklaerung: 'Vor dem Schalter läuft alles weiter. Der Teiler gehört an VOUT.' },
+]} />
+
+## Trainer
+
+<Selbsthaltung id="trainer" titel="Trainer: Selbsthaltung mit Zeitgrenze" />
+
+## Einbauen
+
+<Hinweis art="sicherheit" titel="Erst aufbauen, dann Strom an">
+Akku die ganze Zeit aus dem Halter. Löte die Stiftleisten an das Modul wie in Mission 5.3: Lötstelle heiß machen, dann Zinn dazu.
+</Hinweis>
+
+<Checkliste id="aufbau" punkte={[
+  'Akku aus dem Halter nehmen.',
+  'Die Stiftleisten an das Modul löten und das Modul aufs Steckbrett stecken.',
+  '<strong>OUT+</strong> des Lademoduls an <strong>VIN</strong> des Moduls, GND an GND.',
+  'Von <strong>VOUT</strong> des Moduls zu <strong>IN+</strong> des Wandlers. Die alte direkte Verbindung von OUT+ zum Wandler entfernen.',
+  'Den Spannungsteiler aus Mission 6.4 von OUT+ auf <strong>VOUT</strong> umstecken.',
+  'Den Klingelknopf von IO13 lösen und zwischen <strong>A</strong> des Moduls und <strong>GND</strong> stecken.',
+  '<strong>IO13</strong> der ESP32-CAM mit <strong>OFF</strong> des Moduls verbinden. Einen 10-kΩ-Widerstand von OFF nach GND stecken.',
+  'Alles noch einmal mit dem Plan im Spickzettel vergleichen. Dann Akku einlegen: Die Klingel bleibt aus, die LED am Modul ist dunkel.',
+  'Klingelknopf drücken: Die LED am Modul leuchtet, die ESP32-CAM startet.',
+]} />
+
+<Bestaetigung id="eingebaut" titel="Modul eingebaut" text="Nach dem Einlegen des Akkus blieb alles aus. Ein Druck auf den Klingelknopf hat das Modul eingeschaltet (LED am Modul leuchtet)." />
+
+<Hinweis titel="Und jetzt?">
+Noch läuft Klingel v3 aus Mission 6.4. Sie weiß nichts vom Modul, geht in den Tiefschlaf, und das Modul bleibt an. Zum Ausschalten nimm vorerst den Akku heraus. In Mission 7.3 lernt die Firmware, sich selbst abzuschalten.
+</Hinweis>

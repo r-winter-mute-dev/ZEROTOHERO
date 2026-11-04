@@ -1,0 +1,363 @@
+---
+id: m-7-3
+abzeichen: Klingel v4
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: geraet
+    hardware: true
+  - id: aus
+    hardware: true
+spick:
+  - t: "Ablauf"
+    v: "Akku messen → Kamera → WLAN → Uhrzeit → Foto → senden → aus"
+  - t: "Ausschalten"
+    v: "GPIO 13 kurz HIGH, dann ist die Klingel stromlos"
+  - t: "Zeitgrenze"
+    v: "Spätestens nach 40 s aus, egal was hängt"
+  - t: "Nach Fehlern"
+    v: "Immer ausschalten"
+  - t: "An USB"
+    v: "Ausschalten klappt nicht, dann Notfall-Tiefschlaf"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Seriell from '../components/Seriell.astro';
+import Bestaetigung from '../components/Bestaetigung.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+import { url as seitenUrl } from '../config';
+
+Das Modul sitzt, der Knopf schaltet ein. Jetzt fehlt die andere Hälfte: Die Firmware muss die Klingel nach getaner Arbeit selbst ausschalten. Und zwar immer, auch wenn etwas schiefgeht. **Deine Mission: Bau Klingel v4. Ein Druck schaltet sie ein, sie schickt ein Foto mit Akkustand und schaltet sich danach selbst ab.**
+
+## Theorie
+
+<Karte nr={1} titel="Kein Schlaf mehr, sondern aus">
+Klingel v2 und v3 haben geschlafen. Klingel v4 ist zwischen zwei Klingeln wirklich **aus**. Das Programm wird dadurch sogar einfacher: Es gibt keinen Weckgrund und keine festgehaltenen Pins mehr. Jeder Start ist ein Klingeln. Der Ablauf geht einmal von oben nach unten durch und endet immer mit demselben Befehl: ausschalten.
+</Karte>
+
+<Merke>Jeder Start ist ein Klingeln. Jeder Ablauf endet mit Ausschalten.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Ablauf" fragen={[
+  { frage: 'Warum braucht Klingel v4 keinen Weckgrund mehr?', richtig: 'Sie startet nur, wenn jemand den Knopf drückt. Jeder Start ist also ein Klingeln.', falsch: ['Weil das WLAN den Grund kennt', 'Weil der RTC-Speicher voll ist'], erklaerung: 'Ohne Strom kein Start. Und Strom gibt es nur über den Knopf.' },
+]} />
+
+<Karte nr={2} titel="Ausschalten heißt: Puls an OFF">
+Zum Ausschalten setzt das Programm GPIO 13 kurz auf HIGH. Das Modul trennt den Akku, und die ESP32-CAM verliert ihre Versorgung, mitten in der nächsten Programmzeile. Was, wenn sie trotzdem weiterläuft? Dann hängt sie an USB oder OFF ist nicht verbunden. Für diesen Fall geht das Programm danach in den Tiefschlaf, ohne Wecker. So bleibt sie wenigstens nicht wach.
+</Karte>
+
+<Merke>Puls an OFF schaltet aus. Läuft sie trotzdem weiter, schläft sie zur Sicherheit.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Ausschalten" fragen={[
+  { frage: 'Die ESP32-CAM steckt auf der MB-Platine am USB-Kabel. Was passiert beim Ausschalten?', richtig: 'Das Modul schaltet ab, aber USB versorgt sie weiter. Sie geht in den Notfall-Tiefschlaf.', falsch: ['Der Laptop schaltet sich aus.', 'Das Modul geht kaputt.'], erklaerung: 'Das Modul trennt nur den Akku. Über USB kommt weiter Strom.' },
+]} />
+
+<Karte nr={3} titel="Eine Zeitgrenze für alles">
+Jeder Schritt hat schon seine eigene Zeitgrenze, das WLAN zum Beispiel 15 Sekunden. Dazu kommt jetzt eine Grenze für den ganzen Ablauf: Nach 40 Sekunden schaltet die Klingel ab, egal wo sie gerade hängt. Den Fall hast du im Trainer in Mission 7.2 gesehen: Ohne so eine Grenze bleibt eine hängende Klingel an, bis der Akku leer ist.
+</Karte>
+
+<Merke>Eine Grenze für den ganzen Ablauf: spätestens nach 40 s aus.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Zeitgrenze" fragen={[
+  { frage: 'Das Senden hängt, weil der Server nicht antwortet. Was rettet den Akku?', richtig: 'Die Zeitgrenze für den ganzen Ablauf schaltet die Klingel nach 40 s ab.', falsch: ['Der Klingelknopf, wenn man ihn noch einmal drückt', 'Gar nichts, der Akku ist dann leer'], erklaerung: 'Ein zweiter Druck schaltet nur ein, nicht aus. Deshalb braucht die Firmware ihre eigene Grenze.' },
+]} />
+
+## Das Programm
+
+<Checkliste id="hochladen" punkte={[
+  'Akku heraus. ESP32-CAM auf die MB-Platine, USB anschließen.',
+  'Neuen Sketch <code>klingel-v4</code> anlegen, <code>wurzeln.h</code> hinzufügen, <code>secrets.h</code> als Tab anlegen. Deine <code>KORREKTUR</code> aus Mission 6.4 eintragen.',
+  'Hochladen. Im seriellen Monitor steht am Ende „Noch Strom da?“: Das ist richtig, denn USB versorgt weiter.',
+  'USB abziehen, ESP32-CAM zurück aufs Steckbrett, Akku einlegen.',
+  'Klingelknopf drücken. Die LED am Modul leuchtet, nach einigen Sekunden kommt das Foto, dann geht die LED aus.',
+]} />
+
+<p><a class="knopf zweit" href={seitenUrl('firmware/wurzeln.h')} download="wurzeln.h">wurzeln.h herunterladen</a></p>
+
+```cpp
+// 0 to Hero – Mission 7.3: Klingel v4 mit Selbstabschaltung
+// Kein Tiefschlaf mehr: Ohne Klingeln ist die Klingel ganz aus. Ein Schaltmodul
+// (Pololu Mini Pushbutton Power Switch LV) trennt sie vom Akku.
+//   - Klingelknopf zwischen A des Moduls und GND: Ein Druck schaltet ein.
+//   - GPIO 13 an OFF des Moduls: Ein kurzer HIGH-Puls schaltet alles wieder aus.
+// Ablauf bei jedem Klingeln: Akku messen, Foto, senden, ausschalten. Auch nach jedem Fehler.
+//
+// Spannungsteiler wie in Mission 6.4, aber hinter dem Modul: VOUT -> 10 kΩ -> GPIO 14 -> 10 kΩ -> GND.
+// In diesem Ordner brauchst du: secrets.h (aus secrets.example.h) und wurzeln.h.
+// Board: "AI Thinker ESP32-CAM". Keine SD-Karte einstecken.
+
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <HTTPClient.h>
+#include <time.h>
+#include "esp_sleep.h"            // nur für den Notfall: tief schlafen, falls das Abschalten nicht klappt
+#include "wurzeln.h"
+#if __has_include("secrets.h")
+#include "secrets.h"
+#else
+#error "secrets.h fehlt: Kopiere secrets.example.h, nenne die Kopie secrets.h und trag deine Daten ein."
+#endif
+
+// ---------- Kamera (AI-Thinker ESP32-CAM) ----------
+// Pinbelegung laut AI-Thinker-Schaltplan. Für andere Kameraboards sind die Pins anders.
+#include "esp_camera.h"
+
+bool kameraStarten(framesize_t groesse, int qualitaet) {
+  camera_config_t c = {};
+  c.pin_pwdn = 32;  c.pin_reset = -1;  c.pin_xclk = 0;
+  c.pin_sccb_sda = 26;  c.pin_sccb_scl = 27;
+  c.pin_d7 = 35;  c.pin_d6 = 34;  c.pin_d5 = 39;  c.pin_d4 = 36;
+  c.pin_d3 = 21;  c.pin_d2 = 19;  c.pin_d1 = 18;  c.pin_d0 = 5;
+  c.pin_vsync = 25;  c.pin_href = 23;  c.pin_pclk = 22;
+  c.xclk_freq_hz = 20000000;            // Takt für den Bildsensor: 20 MHz
+  c.ledc_timer = LEDC_TIMER_0;
+  c.ledc_channel = LEDC_CHANNEL_0;
+  c.pixel_format = PIXFORMAT_JPEG;      // der Sensor liefert gleich ein fertiges JPEG
+  c.frame_size = groesse;
+  c.jpeg_quality = qualitaet;           // 10 = sehr gut, 63 = sehr schlecht
+  c.fb_count = 2;                       // zwei Bildpuffer ...
+  c.fb_location = CAMERA_FB_IN_PSRAM;   // ... im großen PSRAM
+  c.grab_mode = CAMERA_GRAB_LATEST;     // immer das neueste Bild nehmen
+
+  esp_err_t fehler = esp_camera_init(&c);
+  if (fehler != ESP_OK) {
+    Serial.printf("Kamera startet nicht: Fehler 0x%x (%s)\n", (unsigned)fehler, esp_err_to_name(fehler));
+    return false;
+  }
+  return true;
+}
+
+// Die ersten Bilder nach dem Start sind oft zu dunkel oder grünstichig,
+// weil die automatische Belichtung erst ein paar Bilder braucht. Die werfen wir weg.
+camera_fb_t* fotoMachen() {
+  for (int i = 0; i < 3; i++) {
+    camera_fb_t* alt = esp_camera_fb_get();
+    if (alt) esp_camera_fb_return(alt);
+    delay(100);
+  }
+  return esp_camera_fb_get();
+}
+
+// ---------- WLAN und Uhrzeit (wie in Akt 3) ----------
+bool wlanVerbinden(unsigned long maxMs) {
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WLAN_NAME, WLAN_PASSWORT);
+  unsigned long start = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - start < maxMs) delay(100);
+  return WiFi.status() == WL_CONNECTED;
+}
+
+bool uhrzeitHolen(unsigned long maxMs) {
+  configTime(0, 0, "pool.ntp.org", "time.google.com");
+  unsigned long start = millis();
+  while (time(nullptr) < 1700000000 && millis() - start < maxMs) delay(100);
+  return time(nullptr) >= 1700000000;
+}
+
+// ---------- Foto verschicken (multipart/form-data) ----------
+// Der Inhalt besteht aus mehreren Teilen, getrennt durch eine Grenzlinie.
+// Ein Teil ist Text (die Nachricht), ein Teil ist die JPEG-Datei.
+const char* GRENZE = "0toHeroKlingelGrenze";
+
+String teilText(const char* name, const String& wert) {
+  return String("--") + GRENZE + "\r\n"
+       + "Content-Disposition: form-data; name=\"" + name + "\"\r\n\r\n"
+       + wert + "\r\n";
+}
+
+String teilDateiKopf(const char* name) {
+  return String("--") + GRENZE + "\r\n"
+       + "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"klingel.jpg\"\r\n"
+       + "Content-Type: image/jpeg\r\n\r\n";
+}
+
+int fotoSenden(camera_fb_t* fb, const String& text) {
+  String url, kopf;
+#if DIENST == 1
+  url = DISCORD_WEBHOOK;
+  kopf = teilText("payload_json", String("{\"content\":\"") + text + "\"}") + teilDateiKopf("files[0]");
+#elif DIENST == 2
+  url = String("https://api.telegram.org/bot") + TELEGRAM_TOKEN + "/sendPhoto";
+  kopf = teilText("chat_id", String(TELEGRAM_CHAT_ID)) + teilText("caption", text) + teilDateiKopf("photo");
+#else
+#error "DIENST in secrets.h muss 1 (Discord) oder 2 (Telegram) sein."
+#endif
+  String fuss = String("\r\n--") + GRENZE + "--\r\n";
+
+  // Alles in einem Stück im PSRAM zusammensetzen: Kopf + Bild + Fuß
+  size_t laenge = kopf.length() + fb->len + fuss.length();
+  uint8_t* inhalt = (uint8_t*)ps_malloc(laenge);
+  if (!inhalt) { Serial.println("Kein Speicher für den Versand."); return -200; }
+  memcpy(inhalt, kopf.c_str(), kopf.length());
+  memcpy(inhalt + kopf.length(), fb->buf, fb->len);
+  memcpy(inhalt + kopf.length() + fb->len, fuss.c_str(), fuss.length());
+
+  WiFiClientSecure client;
+  client.setCACert(WURZELN);
+  HTTPClient https;
+  https.setTimeout(20000);                 // große Dateien brauchen etwas länger
+  int code = -100;
+  if (https.begin(client, url)) {
+    https.addHeader("Content-Type", String("multipart/form-data; boundary=") + GRENZE);
+    code = https.POST(inhalt, laenge);
+    if (code < 0) { Serial.print("Verbindungsfehler: "); Serial.println(https.errorToString(code)); }
+    else if (code >= 400) { Serial.print("Antwort vom Server: "); Serial.println(https.getString()); }
+    https.end();
+  }
+  free(inhalt);
+  return code;
+}
+
+bool angekommen(int code) {
+#if DIENST == 1
+  return code == 200 || code == 204;
+#else
+  return code == 200;
+#endif
+}
+
+// ---------- Ein und aus ----------
+const int AUS = 13;                     // an OFF des Schaltmoduls: HIGH-Puls = alles aus
+const int BLITZ = 4;                    // Blitz-LED (über Transistor)
+const bool MIT_BLITZ = false;           // auf true setzen, wenn es an der Tür dunkel ist
+const unsigned long GRENZE_MS = 40000;  // spätestens nach 40 s abschalten, egal was hängt
+unsigned long startzeit = 0;
+
+bool zuSpaet() { return millis() - startzeit > GRENZE_MS; }
+
+void ausschalten(const String& grund) {
+  Serial.println(String("Ausschalten: ") + grund);
+  Serial.printf("Wach gewesen: %lu ms\n", millis() - startzeit);
+  Serial.flush();
+  digitalWrite(BLITZ, LOW);
+  esp_camera_deinit();
+  WiFi.disconnect(true);
+  WiFi.mode(WIFI_OFF);
+  digitalWrite(AUS, HIGH);              // Puls an OFF: Das Modul trennt den Akku ...
+  delay(200);
+  digitalWrite(AUS, LOW);
+  // ... und ab hier ist die Klingel stromlos. Läuft sie trotzdem weiter, hängt sie an USB
+  // oder OFF ist nicht verbunden. Dann wenigstens tief schlafen, ohne Wecker.
+  Serial.println("Noch Strom da? Dann hängt die Klingel an USB, oder OFF ist nicht verbunden.");
+  Serial.flush();
+  esp_deep_sleep_start();
+}
+
+// ---------- Akkustand ----------
+const int AKKU_PIN = 14;          // Mitte des Spannungsteilers
+const float TEILER = 2.0;         // zwei gleiche Widerstände: Akku = 2 × Spannung am Pin
+const float KORREKTUR = 1.000;    // aus Mission 6.4: Multimeterwert geteilt durch Klingelwert
+
+float akkuMessen() {
+  analogSetPinAttenuation(AKKU_PIN, ADC_11db);   // höchste Dämpfung: Messbereich bis etwa 2,45 V
+  uint32_t summe = 0;
+  for (int i = 0; i < 32; i++) {                 // 32 Messungen mitteln, das glättet Rauschen
+    summe += analogReadMilliVolts(AKKU_PIN);     // schon mit der Werkskalibrierung des Chips
+    delay(1);
+  }
+  float pin = summe / 32.0f / 1000.0f;           // Spannung am Pin in Volt
+  return pin * TEILER * KORREKTUR;
+}
+
+String volt(float v) {                           // 3.95 -> "3,95"
+  char t[8];
+  snprintf(t, sizeof(t), "%.2f", v);
+  for (char* p = t; *p; p++) if (*p == '.') *p = ',';
+  return String(t);
+}
+
+const char* akkuWort(float v) {                  // grobe Einordnung, siehe Mission 6.4
+  if (v >= 3.9f) return "voll";
+  if (v >= 3.6f) return "mittel";
+  if (v >= 3.3f) return "bald laden";
+  return "leer, bitte laden";
+}
+
+// ---------- Textnachricht in den Chat (wie in Mission 3.5) ----------
+int postJson(const String& url, const String& json) {
+  WiFiClientSecure client;
+  client.setCACert(WURZELN);
+  HTTPClient https;
+  if (!https.begin(client, url)) return -100;
+  https.addHeader("Content-Type", "application/json");
+  int code = https.POST(json);
+  https.end();
+  return code;
+}
+
+int nachrichtSenden(const String& text) {
+#if DIENST == 1
+  return postJson(DISCORD_WEBHOOK, String("{\"content\":\"") + text + "\"}");
+#else
+  return postJson(String("https://api.telegram.org/bot") + TELEGRAM_TOKEN + "/sendMessage",
+                  String("{\"chat_id\":\"") + TELEGRAM_CHAT_ID + "\",\"text\":\"" + text + "\"}");
+#endif
+}
+
+String kennung() {
+  char k[13];
+  snprintf(k, sizeof(k), "%012llX", (unsigned long long)ESP.getEfuseMac());
+  return String(k);
+}
+
+// ---------- Ablauf: einschalten, messen, Foto, senden, ausschalten ----------
+void setup() {
+  startzeit = millis();
+  pinMode(AUS, OUTPUT);
+  digitalWrite(AUS, LOW);               // sofort festlegen: kein versehentlicher Aus-Puls
+  pinMode(BLITZ, OUTPUT);
+  digitalWrite(BLITZ, LOW);
+  Serial.begin(115200);
+  Serial.println("\nEs klingelt!");
+
+  // Zuerst den Akku messen: Danach startet das WLAN, und ADC2 ist gesperrt.
+  float akku = akkuMessen();
+  Serial.printf("Akku: %.3f V (Korrektur %.3f)\n", akku, KORREKTUR);
+  if (akku < 3.0f) ausschalten("Akku zu leer, bitte laden");
+
+  String fehler = "";
+  if (!kameraStarten(FRAMESIZE_VGA, 12)) fehler = "Kamera startet nicht";
+  else if (!wlanVerbinden(15000)) fehler = "kein WLAN";
+  else if (zuSpaet() || !uhrzeitHolen(10000)) fehler = "keine Uhrzeit";
+
+  if (fehler == "" && !zuSpaet()) {
+    if (MIT_BLITZ) digitalWrite(BLITZ, HIGH);
+    camera_fb_t* bild = fotoMachen();
+    digitalWrite(BLITZ, LOW);
+    if (!bild) fehler = "kein Bild";
+    else {
+      char nachweis[64];
+      snprintf(nachweis, sizeof(nachweis), "KW-CHECK:m-7-3:%s:%lu:%d",
+               kennung().c_str(), millis() - startzeit, (int)(akku * 1000 + 0.5f));
+      String text = String("Es klingelt! Akku: ") + volt(akku) + " V (" + akkuWort(akku) + "). Nachweis: " + nachweis;
+      int code = fotoSenden(bild, text);
+      esp_camera_fb_return(bild);
+      if (!angekommen(code)) fehler = String("Statuscode ") + String(code);
+      else Serial.println(text);
+    }
+  }
+  if (fehler == "" && zuSpaet()) fehler = "Zeitgrenze erreicht";
+
+  if (fehler != "") {
+    Serial.println(String("Fehler: ") + fehler);
+    if (WiFi.status() == WL_CONNECTED && !zuSpaet())
+      nachrichtSenden(String("Klingel: ") + fehler + ", Akku " + volt(akku) + " V");
+    ausschalten(fehler);
+  }
+  ausschalten("fertig");
+}
+
+void loop() {}                          // wird nie erreicht
+```
+
+## Nachweis
+
+<Seriell id="geraet" titel="Nachweis: Klingel v4 im Chat" muster="^KW-CHECK:m-7-3:[0-9A-F]{12}:\d{3,5}:(2[5-9]|3\d|4[0-2])\d\d$" hinweis="Kopiere die Zeile ab KW-CHECK unter dem Foto. Die erste Zahl ist die Wachzeit in Millisekunden, die zweite die Akkuspannung in Millivolt." />
+
+<Bestaetigung id="aus" titel="Schaltet sich selbst aus" text="Nach dem Foto ging die LED am Modul von selbst aus. Ein neuer Druck brachte ein neues Foto." />
+
+<Hinweis titel="Neues Programm hochladen">
+Die Klingel ist jetzt die meiste Zeit stromlos. Zum Hochladen kommt sie wie immer auf die MB-Platine. Über USB läuft sie dann auch ohne Modul.
+</Hinweis>
