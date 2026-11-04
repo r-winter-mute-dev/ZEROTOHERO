@@ -1,0 +1,112 @@
+---
+id: m-8-2
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: netze
+  - id: kurzschluss
+    hardware: true
+  - id: durchgang
+    hardware: true
+  - id: foto
+    hardware: true
+spick:
+  - t: "Netz"
+    v: "Alle Punkte, die elektrisch verbunden sind"
+  - t: "Erst planen"
+    v: "Auf Papier, dann löten"
+  - t: "Steckbar lassen"
+    v: "Module in Buchsenleisten, nicht direkt verlöten"
+  - t: "Prüfen ohne Akku"
+    v: "Durchgang in jedem Netz, kein Durchgang zwischen den Netzen"
+  - t: "Kritisch"
+    v: "VOUT, 3V3 und B+ dürfen nie mit GND verbunden sein"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Bestaetigung from '../components/Bestaetigung.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+
+Die Klingel funktioniert auf dem Steckbrett. Jetzt kommt sie auf eine Lochrasterplatine: dieselbe Schaltung, nur gelötet. Das Wichtigste dabei passiert vor dem ersten Lötpunkt, nämlich auf Papier. **Deine Mission: Plane die Platine anhand der Netzliste, löte sie und prüfe jede Verbindung, bevor der Akku hineinkommt.**
+
+## Theorie
+
+<Karte nr={1} titel="Denken in Netzen">
+Ein **Netz** sind alle Punkte, die elektrisch miteinander verbunden sind. Auf dem Steckbrett war das eine Kontaktreihe. Auf der Lochrasterplatine verbindest du die Punkte eines Netzes mit Draht und Zinn. Deine Klingel hat nur neun Netze. Die Liste unten zeigt sie alle. Wer Netz für Netz lötet und abhakt, vergisst nichts.
+</Karte>
+
+<Merke>Ein Netz sind alle Punkte, die verbunden sind. Netz für Netz löten und abhaken.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Netze" fragen={[
+  { frage: 'Zu welchem Netz gehört das Minusbein des Elkos?', richtig: 'GND', falsch: ['3V3', 'VOUT'], erklaerung: 'Der Elko hängt zwischen 3V3 und GND. Das Bein am Streifen ist Minus und gehört zu GND.' },
+]} />
+
+<Karte nr={2} titel="Module stecken, nicht verlöten">
+Die ESP32-CAM musst du zum Programmieren abnehmen können. Auch ein Modul, das kaputtgeht, sollte sich tauschen lassen. Deshalb lötest du **Buchsenleisten** auf die Platine und steckst die Module hinein. Ausnahme ist der Elko: Er gehört so nah wie möglich an 3V3 und GND der ESP32-CAM, also direkt neben ihre Buchsenleiste.
+</Karte>
+
+<Merke>Buchsenleisten löten, Module stecken. Der Elko direkt an die Buchsen der ESP32-CAM.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Buchsenleisten" fragen={[
+  { frage: 'Warum lötest du die ESP32-CAM nicht direkt ein?', richtig: 'Damit du sie zum Programmieren auf die MB-Platine stecken kannst', falsch: ['Weil sie die Hitze nicht verträgt', 'Weil das Gehäuse sonst nicht passt'], erklaerung: 'Neue Firmware kommt über die MB-Platine. Dafür muss die ESP32-CAM herausnehmbar sein.' },
+]} />
+
+<Karte nr={3} titel="Erst messen, dann Akku">
+Bevor der Akku hineinkommt, prüfst du zwei Dinge mit dem Durchgangsprüfer. Erstens: **Innerhalb** jedes Netzes piept es zwischen allen Punkten. Zweitens: **Zwischen** den Netzen, die Spannung führen, und GND piept es nicht. Ein Piepen zwischen B+ und GND hieße Kurzschluss am Akku, und das verbietet Regel 2 aus Mission 0.2. Kleine Ausnahme: Zwischen 3V3 und GND kann es kurz piepen und dann aufhören. Das ist der Elko, der sich über das Multimeter auflädt.
+</Karte>
+
+<Merke>Ohne Akku prüfen: Im Netz piept es, zwischen Plus und GND nicht.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Prüfen" fragen={[
+  { frage: 'Zwischen B+ und GND piept der Durchgangsprüfer dauerhaft. Was tust du?', richtig: 'Akku auf keinen Fall einlegen und die Brücke zwischen den Netzen suchen', falsch: ['Akku einlegen und schauen, ob es geht', 'Das ist der Elko, kein Problem'], erklaerung: 'Ein dauerhafter Durchgang zwischen Plus und GND ist ein Kurzschluss. Mit Akku würde es heiß.' },
+]} />
+
+## Die Netzliste
+
+| Netz | Diese Punkte gehören zusammen |
+|---|---|
+| **B+** | Plus des Batteriehalters, B+ des Lademoduls |
+| **B−** | Minus des Batteriehalters, B− des Lademoduls |
+| **OUT+** | OUT+ des Lademoduls, VIN des Schaltmoduls |
+| **VOUT** | VOUT des Schaltmoduls, IN+ des Wandlers, oberer 10-kΩ-Widerstand des Teilers |
+| **3V3** | Ausgang des Wandlers, 3V3 der ESP32-CAM, Plus des Elkos |
+| **AKKU** | Mitte des Teilers, IO14 der ESP32-CAM |
+| **AUS** | IO13 der ESP32-CAM, OFF des Schaltmoduls, 10-kΩ-Widerstand nach GND |
+| **KNOPF** | A des Schaltmoduls, ein Anschluss des Klingelknopfs |
+| **GND** | OUT− des Lademoduls, GND des Schaltmoduls, GND des Wandlers, GND der ESP32-CAM, Minus des Elkos, unterer Teiler-Widerstand, Widerstand an OFF, zweiter Anschluss des Klingelknopfs |
+
+<Quiz id="netze" titel="Prüfung: Netzliste lesen" fragen={[
+  { frage: 'Wo hängt der obere Widerstand des Teilers?', richtig: 'An VOUT, hinter dem Schaltmodul', falsch: ['An B+, direkt am Akku', 'An 3V3'], erklaerung: 'Hinter dem Schaltmodul zieht der Teiler nur Strom, wenn die Klingel an ist (Mission 7.2).' },
+  { frage: 'Welche zwei Netze verbindet der Klingelknopf?', richtig: 'KNOPF und GND', falsch: ['3V3 und AUS', 'VOUT und GND'], erklaerung: 'Der Knopf zieht A des Schaltmoduls auf GND, das schaltet ein.' },
+  { frage: 'Zu welchem Netz gehört IO13?', richtig: 'AUS', falsch: ['KNOPF', 'AKKU'], erklaerung: 'Seit Akt 7 ist IO13 kein Knopf mehr, sondern der Aus-Puls an OFF.' },
+]} />
+
+## Löten
+
+<Checkliste id="plan" punkte={[
+  'Auf Papier oder einem Foto der Platine einzeichnen, wo jedes Modul sitzt. Kurze Wege für die Leitungen mit viel Strom: B+, OUT+, VOUT, 3V3, GND.',
+  'Buchsenleisten auf die richtige Länge kürzen, für die Module einstecken und anlöten. Tipp: Module beim Löten einstecken, dann sitzen die Leisten gerade.',
+  'Den Elko direkt an 3V3 und GND der ESP32-CAM löten, Streifen an GND.',
+  'Netz für Netz verdrahten und nach jedem Netz in der Liste oben abhaken.',
+  'Den Batteriehalter und den Klingelknopf mit Kabeln anlöten, die lang genug für das Gehäuse sind.',
+  'Alle Lötstellen anschauen wie in Mission 8.1.',
+]} />
+
+<Hinweis art="sicherheit" titel="Akku draußen lassen">
+Bis zur Prüfung unten bleibt der Akku außerhalb. Löte nie, solange ein Akku im Halter steckt.
+</Hinweis>
+
+<Bestaetigung id="kurzschluss" titel="Kein Kurzschluss" text="Ohne Akku und ohne gesteckte Module: Zwischen B+ und GND, OUT+ und GND, VOUT und GND sowie 3V3 und GND piept der Durchgangsprüfer nicht dauerhaft." />
+
+<Bestaetigung id="durchgang" titel="Alle Netze verbunden" text="Ich habe in jedem der neun Netze den Durchgang zwischen allen Punkten geprüft. Überall piept es." />
+
+<Checkliste id="einschalten" punkte={[
+  'Module in die Buchsenleisten stecken. Richtung jedes Moduls mit dem Steckbrett-Aufbau vergleichen.',
+  'Akku einlegen. Nichts darf warm werden. Die LED am Schaltmodul ist aus.',
+  'Klingelknopf drücken.',
+]} />
+
+<Bestaetigung id="foto" titel="Läuft auf der Platine" text="Die Klingel auf der Lochrasterplatine hat nach einem Druck ein Foto mit Akkustand in meinen Chat geschickt und sich danach selbst ausgeschaltet." />

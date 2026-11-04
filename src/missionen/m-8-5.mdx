@@ -1,0 +1,93 @@
+---
+id: m-8-5
+abzeichen: Klingel-Meister
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: abschluss
+  - id: montiert
+    hardware: true
+spick:
+  - t: "Kamera"
+    v: "Nur nach dem Klingeln, nur der Eingangsbereich, ein Foto, dann aus"
+  - t: "Fotos im Chat"
+    v: "Regelmäßig löschen, bei Telegram automatisches Löschen einschalten"
+  - t: "Laden"
+    v: "Wenn die Klingel „bald laden“ meldet. Nur drinnen."
+  - t: "Neue Firmware"
+    v: "ESP32-CAM aus der Buchsenleiste, auf die MB-Platine"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Bestaetigung from '../components/Bestaetigung.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+
+Das ist die letzte Mission. Die Klingel ist gebaut, verlötet, im Gehäuse und hat am Montageort genug WLAN. Bevor sie an die Tür kommt, geht es um die Menschen, die sie fotografiert. **Deine Mission: Richte die Klingel datenschutzfreundlich ein, besteh die Abschlussprüfung und häng sie auf.**
+
+## Theorie
+
+<Karte nr={1} titel="Eine Kamera an der Tür fotografiert andere Menschen">
+Wer klingelt, wird fotografiert: Nachbarn, Paketboten, Kinder. Die deutschen Datenschutzaufsichtsbehörden haben dazu eine Orientierungshilfe veröffentlicht. Darin halten sie eine Klingelkamera, die auch öffentlichen Raum erfasst, nur unter vier Bedingungen für unbedenklich: Sie überträgt erst nach dem Klingeln, sie speichert Aufnahmen nicht dauerhaft, sie zeigt nicht mehr als ein Blick durch den Türspion, und sie schaltet nach wenigen Sekunden von selbst ab [Primärquelle: Datenschutzkonferenz, Orientierungshilfe Videoüberwachung durch nicht-öffentliche Stellen, 2020, Abschnitt 5.6]. Das ist keine Rechtsberatung, sondern die Sicht der Behörden. Andere Länder haben andere Regeln.
+</Karte>
+
+<Merke>Erst nach dem Klingeln, nicht dauerhaft speichern, nur der Türspion-Blick, schnell wieder aus.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Die vier Bedingungen" fragen={[
+  { frage: 'Welche Bedingung erfüllt deine Klingel schon durch ihre Bauweise?', richtig: 'Sie macht erst nach dem Klingeln ein Foto und schaltet sich danach ab.', falsch: ['Sie filmt ständig, speichert aber nichts.', 'Sie zeigt den ganzen Gehweg, aber unscharf.'], erklaerung: 'Ohne Knopfdruck ist sie stromlos. Es gibt kein Dauerbild und keine Bewegungserkennung.' },
+]} />
+
+<Karte nr={2} titel="Was du noch einstellen musst">
+Zwei der vier Bedingungen hängen von dir ab. Erstens der **Bildausschnitt**: Richte die Kamera so aus, dass sie nur den unmittelbaren Eingangsbereich zeigt, so wie der Türspion. Gehweg, Straße und Nachbargrundstück gehören nicht ins Bild. Zweitens die **Speicherung**: Dein Chat hebt jedes Foto auf. Lösch die Fotos regelmäßig. Bei Telegram kannst du für den Chat mit deinem Bot ein automatisches Löschen einschalten, zum Beispiel nach einem Tag [Primärquelle: Telegram, Auto-Delete]. Bei Discord musst du selbst löschen. Wohnst du in einem Mehrfamilienhaus, sprich vorher mit Vermieter und Nachbarn: Die Haustür gehört allen.
+</Karte>
+
+<Merke>Bildausschnitt wie ein Türspion. Fotos im Chat regelmäßig oder automatisch löschen.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Einstellen" fragen={[
+  { frage: 'Auf deinen Testfotos ist der halbe Gehweg zu sehen. Was tust du?', richtig: 'Die Kamera so drehen oder neigen, dass nur der Eingangsbereich im Bild ist', falsch: ['Nichts, die Klingel speichert ja nur Fotos', 'Die Auflösung erhöhen'], erklaerung: 'Den öffentlichen Raum zu fotografieren, ist für Privatpersonen nach Ansicht der Behörden in der Regel nicht erlaubt.' },
+]} />
+
+<Karte nr={3} titel="Wartung">
+Die Klingel braucht wenig. Schau ab und zu auf die Akkuspannung unter den Fotos. Steht dort „bald laden“, holst du sie herein und lädst sie bei Raumtemperatur (Mission 8.3). Sieht der Akku verändert aus, aufgebläht oder verfärbt, kommt er nicht mehr in die Klingel (Regel 5 aus Mission 0.2). Ändert sich dein WLAN-Passwort, braucht die Klingel neue Firmware: ESP32-CAM aus der Buchsenleiste, auf die MB-Platine, neue `secrets.h`, hochladen.
+</Karte>
+
+<Merke>Bei „bald laden“ drinnen laden. Neues WLAN-Passwort heißt neue Firmware.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Wartung" fragen={[
+  { frage: 'Du hast dein WLAN-Passwort geändert. Seitdem kommt kein Foto. Was ist zu tun?', richtig: 'secrets.h anpassen und die Firmware neu hochladen', falsch: ['Den Akku tauschen', 'Die Klingel öfter drücken'], erklaerung: 'Das Passwort steckt in der Firmware. Die Klingel kann es nicht selbst erfahren.' },
+]} />
+
+## Abschlussprüfung
+
+Zehn Fragen aus dem ganzen Kurs. Du darfst den Spickzettel und alle Missionen benutzen.
+
+<Quiz id="abschluss" titel="Abschlussprüfung: 0 to Hero" fragen={[
+  { frage: 'Eine rote LED (1,8 V) soll an 3,3 V mit 10 mA leuchten. Welcher Vorwiderstand?', richtig: '150 Ω', falsch: ['330 Ω', '15 Ω'], erklaerung: 'R = (3,3 V − 1,8 V) / 0,01 A = 150 Ω (Mission 1.3).' },
+  { frage: 'Warum misst du Strom immer in Reihe?', richtig: 'Weil der Strom durch das Messgerät fließen muss', falsch: ['Weil das Multimeter sonst zu warm wird', 'Weil Spannung und Strom gleich sind'], erklaerung: 'Parallel an einer Spannungsquelle wäre das Multimeter im Strombereich ein Kurzschluss (Mission 1.3 und 6.2).' },
+  { frage: 'Was macht ein Pull-up-Widerstand an einem Eingang?', richtig: 'Er hält den Eingang auf HIGH, solange nichts anderes ihn auf LOW zieht.', falsch: ['Er verstärkt das Signal', 'Er schützt vor Netzspannung'], erklaerung: 'Ohne Pull-up schwebt der Eingang und fängt Störungen ein (Akt 2 und Boss 6).' },
+  { frage: 'Warum prüft der ESP32 das Zertifikat des Servers?', richtig: 'Damit er weiß, dass er wirklich mit Discord oder Telegram spricht', falsch: ['Damit die Verbindung schneller wird', 'Weil sonst das WLAN nicht geht'], erklaerung: 'Verschlüsselt heißt nicht automatisch echt (Mission 3.3).' },
+  { frage: 'Warum braucht die Klingel PSRAM?', richtig: 'Weil schon ein Kamerabild größer sein kann als der interne Arbeitsspeicher', falsch: ['Für das WLAN-Passwort', 'Damit der Akku länger hält'], erklaerung: 'Ein VGA-Rohbild hat 600 KiB, intern gibt es 520 KiB (Mission 4.2).' },
+  { frage: 'Welche Spannung hat eine volle Li-Ion-Zelle?', richtig: 'Etwa 4,2 V', falsch: ['Genau 3,3 V', 'Etwa 5 V'], erklaerung: '4,2 V ist der Ladeschluss (Mission 5.2).' },
+  { frage: 'Warum reicht der AMS1117 nicht für den Akku?', richtig: 'Sein Dropout ist zu groß: Bei halbvollem Akku kommen zu wenig Volt beim Chip an.', falsch: ['Er wird mit Akkus zu kalt', 'Er kann nur Wechselspannung'], erklaerung: 'Ein Linearregler braucht etwa 1,1 V mehr am Eingang. Der Buck-Boost-Wandler kann auch hochsetzen (Mission 5.5).' },
+  { frage: 'Was entscheidet am meisten über die Laufzeit einer Akku-Klingel?', richtig: 'Der Strom im Ruhezustand', falsch: ['Die Anzahl der Fotos pro Tag', 'Die Farbe des Gehäuses'], erklaerung: 'Der Ruhezustand dauert fast den ganzen Tag (Mission 6.1).' },
+  { frage: 'Warum misst die Klingel den Akku vor dem WLAN?', richtig: 'GPIO 14 hängt am ADC2, den das WLAN sonst belegt', falsch: ['Weil der Akku beim Senden leer ist', 'Weil das WLAN den Teiler beschädigt'], erklaerung: 'ADC2 ist nur ohne laufendes WLAN nutzbar (Mission 6.4).' },
+  { frage: 'Was schaltet Klingel v4 nach dem Foto aus?', richtig: 'Ein HIGH-Puls von GPIO 13 an OFF des Schaltmoduls', falsch: ['Der Klingelknopf beim Loslassen', 'Der Tiefschlaf-Timer'], erklaerung: 'Das Schaltmodul trennt dann den Akku vom Rest der Klingel (Mission 7.3).' },
+]} />
+
+## Montieren
+
+<Checkliste id="montage" punkte={[
+  'Testfoto vom Montageort machen und den Bildausschnitt prüfen: nur der Eingangsbereich, kein Gehweg, kein Nachbar.',
+  'Bei Telegram im Chat mit dem Bot das automatische Löschen einschalten. Bei Discord ein Erinnerungsdatum zum Löschen setzen.',
+  'Akkuspannung unter dem Testfoto ansehen: „voll“ ist der beste Start.',
+  'Gehäuse befestigen, zum Beispiel mit Schrauben in Dübeln oder starkem Montageklebeband. Dabei keine Leitungen in der Wand anbohren.',
+  'Die Kamera noch einmal ausrichten und ein letztes Mal klingeln.',
+]} />
+
+<Bestaetigung id="montiert" titel="Die Klingel hängt" text="Meine Klingel hängt an der Tür. Der Bildausschnitt zeigt nur den Eingangsbereich, und ein Druck auf den Knopf schickt ein Foto mit Akkustand in meinen Chat." />
+
+<Hinweis titel="Geschafft">
+Du hast mit einer LED angefangen und mit einer akkubetriebenen, verschlüsselt sendenden Kamera-Klingel aufgehört, die fast keinen Strom zieht, solange niemand klingelt. Unterwegs hast du gemessen, gerechnet, programmiert, gelötet und Fehler gefunden. Das kannst du jetzt auch für deine nächste Idee.
+</Hinweis>

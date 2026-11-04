@@ -137,11 +137,11 @@ export const KAMPAGNE: Akt[] = [
     nr: 8, titel: 'Das Gehäuse', teil: 'gehaeuse', teilName: 'Gehäuse',
     ziel: 'Die Klingel hängt an der Tür.',
     missionen: [
-      m('m-8-1', '8.1', 'Löten', 'Eine Übungsplatine löten.', 'Temperatur, Flussmittel, gute Lötstellen', 'Fotovergleich'),
-      m('m-8-2', '8.2', 'Lochraster', 'Die Schaltung vom Steckbrett übertragen.', 'Layout planen', 'Durchgangsprüfung'),
-      m('m-8-3', '8.3', 'Gehäuse', 'Gehäuse drucken oder bearbeiten.', 'Kamerafenster, Taster, Ladebuchse', 'Checkliste'),
-      m('m-8-4', '8.4', 'Draußen', 'Den Montageort prüfen.', 'WLAN-Reichweite, Kälte und Akku', 'Gerätenachweis: Signalstärke'),
-      m('m-8-5', '8.5', 'Inbetriebnahme', 'Die Klingel montieren.', '–', 'Abschlussprüfung'),
+      m('m-8-1', '8.1', 'Löten', 'Eine Übungsplatine löten.', 'Gute und schlechte Lötstellen, Reihenfolge', 'Lötstellen-Quiz und Übungsplatine', { bereit: true }),
+      m('m-8-2', '8.2', 'Lochraster', 'Die Schaltung vom Steckbrett auf eine Lochrasterplatine übertragen.', 'Netze, Netzliste, Buchsenleisten', 'Netzliste und Durchgangsprüfung', { bereit: true }),
+      m('m-8-3', '8.3', 'Gehäuse', 'Das Gehäuse mit Kamerafenster und Klingelknopf bauen.', 'IP65, Kondenswasser, Temperaturgrenzen des Akkus', 'Quiz und Einbau', { bereit: true }),
+      m('m-8-4', '8.4', 'Draußen', 'Am Montageort prüfen, ob das WLAN reicht.', 'RSSI, Dämpfung, Abhilfe', 'Nachweis: Signalstärke vom Montageort', { bereit: true }),
+      m('m-8-5', '8.5', 'Inbetriebnahme', 'Die Klingel datenschutzfreundlich einrichten und montieren.', 'Klingelkamera und Datenschutz, Wartung', 'Abschlussprüfung', { bereit: true }),
     ],
   },
 ];
@@ -169,4 +169,5 @@ export const LEVEL = [
   { ab: 1500, name: 'Funker' },
   { ab: 2100, name: 'Energiemeister' },
   { ab: 2700, name: 'Klingel-Ingenieur' },
+  { ab: 3150, name: 'Hero' },               // alle Missionen geschafft
 ];

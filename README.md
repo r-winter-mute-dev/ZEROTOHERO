@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/r-winter-mute-dev/ZEROTOHERO/actions/workflows/deploy.yml"><img src="https://github.com/r-winter-mute-dev/ZEROTOHERO/actions/workflows/deploy.yml/badge.svg" alt="Veröffentlichung"></a>
-  <img src="https://img.shields.io/badge/spielbar-Akt_0–7-a6e3a1?labelColor=2a2a2a" alt="Spielbar: Akt 0 bis 7">
+  <img src="https://img.shields.io/badge/spielbar-alle_8_Akte-a6e3a1?labelColor=2a2a2a" alt="Spielbar: alle acht Akte">
   <img src="https://img.shields.io/badge/kostenlos-ohne_Anmeldung-cba6f7?labelColor=2a2a2a" alt="Kostenlos, ohne Anmeldung">
   <img src="https://img.shields.io/badge/Inhalte-CC_BY--SA_4.0-a0a0a0?labelColor=2a2a2a" alt="Inhalte: CC BY-SA 4.0">
   <img src="https://img.shields.io/badge/Code-MIT-a0a0a0?labelColor=2a2a2a" alt="Code: MIT">
@@ -54,9 +54,9 @@ Der Weg dorthin beginnt mit einer einzelnen LED.
 | 5 | Herz | Li-Ion-Akku und Sicherheit, erste Lötstellen, Laden, Spannungswandler, Kondensatoren. Ergebnis: Die Klingel läuft am Akku | ✅ |
 | 6 | Schlaf | Energiebudget, Strom messen, Tiefschlaf, Akkustand | ✅ |
 | 7 | Schalter | MOSFET, Selbsthalteschaltung, Ruhestrom fast null | ✅ |
-| 8 | Gehäuse | Löten, Lochraster, Gehäuse, Montage | 🚧 |
+| 8 | Gehäuse | Löten, Lochraster, Gehäuse, Montage | ✅ |
 
-✅ spielbar · 🚧 in Arbeit, die geplanten Missionen sind auf der Karte schon sichtbar
+✅ spielbar
 
 ## Was du brauchst
 
@@ -77,9 +77,9 @@ Fehler gefunden, eine Erklärung unverständlich oder Lust, eine Mission zu schr
 Am meisten hilft gerade:
 
 - [ ] **Testen mit echter Hardware.** Einige Messbereiche sind vorläufig und brauchen Werte von echten Aufbauten.
-- [ ] **Feedback zu Akt 2 bis 7.** Die Sketches sind syntaktisch geprüft, aber noch nicht auf jedem Board getestet.
+- [ ] **Feedback zu Akt 2 bis 8.** Die Sketches sind syntaktisch geprüft, aber noch nicht auf jedem Board getestet.
 - [ ] **Feedback von Einsteigern.** Wo bist du hängen geblieben?
-- [ ] **Missionen für Akt 8.**
+- [ ] **Ideen für die nächste Kampagne.** Was soll nach der Klingel kommen?
 
 ## Entstehung
 

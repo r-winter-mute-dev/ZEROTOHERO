@@ -48,6 +48,7 @@ import { SEITE, url } from '../config';
 
 <script>
   import { aktuelleMission, beiAenderung, laden, level, xpGesamt } from '../scripts/engine';
+  import { ALLE_MISSIONEN, LEVEL } from '../data/kampagne';
   import { url } from '../config';
   function zeigen() {
     const z = laden();
@@ -55,15 +56,16 @@ import { SEITE, url } from '../config';
     const l = level(xp);
     const naechst = document.querySelector('[data-kw-naechster]')!;
     naechst.textContent = l.naechstesAb ? `noch ${l.naechstesAb - xp} XP bis ${l.naechsterName}` : 'höchster Rang erreicht';
-    const vorher = [0, 300, 900, 1500, 2100, 2700][l.nr - 1];
+    const vorher = LEVEL[l.nr - 1].ab;
     const anteil = l.naechstesAb ? (xp - vorher) / (l.naechstesAb - vorher) : 1;
     (document.querySelector('[data-kw-balken]') as HTMLElement).style.width = `${Math.round(anteil * 100)}%`;
     const m = aktuelleMission();
     const weiter = document.querySelector<HTMLAnchorElement>('[data-kw-weiter]')!;
     if (Object.keys(z.missionen).length > 0) {
-      weiter.textContent = `Weiter mit ${m.nr}: ${m.titel}`;
-      weiter.href = url(`mission/${m.id}`);
-      document.querySelector('[data-kw-weiter-info]')!.textContent = `${Object.keys(z.missionen).length} Missionen geschafft.`;
+      const alle = ALLE_MISSIONEN.every((x) => z.missionen[x.id]);
+      weiter.textContent = alle ? 'Kurs geschafft: Fortschritt ansehen' : `Weiter mit ${m.nr}: ${m.titel}`;
+      weiter.href = alle ? url('fortschritt') : url(`mission/${m.id}`);
+      document.querySelector('[data-kw-weiter-info]')!.textContent = alle ? `Alle ${ALLE_MISSIONEN.length} Missionen geschafft. Deine Klingel hängt.` : `${Object.keys(z.missionen).length} Missionen geschafft.`;
     }
   }
   zeigen();
