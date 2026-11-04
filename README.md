@@ -84,7 +84,7 @@ Am meisten hilft gerade:
 ## Entstehung
 
 > [!NOTE]
-> Dieser Kurs entsteht mit Unterstützung von **Claude**, einer KI von Anthropic. Die KI ist für dieses Projekt persönlich eingerichtet und auf wissenschaftliches Arbeiten ausgelegt.
+> Dieser Kurs entsteht mit Unterstützung von **Claude**, einer KI von Anthropic. Die KI ist für dieses Projekt verändert und auf wissenschaftliches Arbeiten ausgelegt.
 
 - **Belege zuerst:** Fakten stützen sich bevorzugt auf systematische Reviews und Meta-Analysen, begutachtete Studien, Datenblätter der Hersteller und Normen. Foren, Blogs und soziale Medien gelten nicht als Beleg.
 - **Kennzeichnung:** Werte, die nicht aus einem Datenblatt oder einer Messung stammen, sind im Kurs als vorläufig oder als Richtwert markiert.
