@@ -142,3 +142,5 @@ html[data-fokus='an'] .pfad { display: none; }
 .station .skip button:hover, .station .skip button:focus-visible { color: var(--akzent-hell); }
 .station .skip button[data-sicher="1"] { color: var(--warnung); }
 .station .skip:has(button[hidden]) { display: none; }
+.station .ohne-hw { margin: 0.8rem 0 0; }
+.station .ohne-hw:has(button[hidden]) { display: none; }
