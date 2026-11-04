@@ -2,7 +2,7 @@
 // Virtueller Messplatz an einem LED-Stromkreis.
 // modus="aufgaben": bestimmte Spannungen messen. modus="fehler": Fehler finden (Bosskampf).
 import Station from './Station.astro';
-interface Aufgabe { text: string; punkte: [string, string]; }
+interface Aufgabe { text: string; punkte: [string, string]; genau?: boolean; }
 interface Props { id: string; titel: string; modus: 'aufgaben' | 'fehler'; aufgaben?: Aufgabe[]; anzahl?: number; }
 const { id, titel, modus, aufgaben = [], anzahl = 3 } = Astro.props;
 
@@ -47,7 +47,7 @@ const P = { A: [70, 60], B: [150, 60], C: [430, 60], D: [430, 240], E: [70, 240]
           <label><input type="radio" name={`spitze-${id}`} value="rot" checked /> <span class="rot">Rot (+)</span>: <b data-mp-rot>–</b></label>
           <label><input type="radio" name={`spitze-${id}`} value="schwarz" /> <span class="schwarz">Schwarz (COM)</span>: <b data-mp-schwarz>–</b></label>
         </fieldset>
-        <p class="leise klein">Tippe auf einen Messpunkt im Schaltplan.</p>
+        <p class="leise klein">Tippe auf einen Messpunkt: Der erste Tipp setzt Rot, der zweite Schwarz, dann wieder Rot.</p>
         <p class="leise klein" data-mp-zaehler></p>
       </div>
     </div>
@@ -85,7 +85,9 @@ const P = { A: [70, 60], B: [150, 60], C: [430, 60], D: [430, 240], E: [70, 240]
     const s = station(box.closest('[data-kw-check]') as HTMLElement);
     const $ = (sel: string) => box.querySelector<HTMLElement>(sel)!;
     const modus = box.dataset.modus;
-    const aufgaben = JSON.parse(box.dataset.aufgaben!) as { text: string; punkte: [Pkt, Pkt] }[];
+    const aufgaben = JSON.parse(box.dataset.aufgaben!) as { text: string; punkte: [Pkt, Pkt]; genau?: boolean }[];
+    // Punkte, die nur ein Draht verbindet, liegen elektrisch auf demselben Knoten.
+    const NETZ: Record<Pkt, string> = { A: 'plus', B: 'plus', C: 'mitte', D: 'minus', E: 'minus' };
     const anzahl = Number(box.dataset.anzahl);
     let pot: Pot = NORMAL;
     let rot: Pkt | null = null, schwarz: Pkt | null = null;
@@ -106,8 +108,8 @@ const P = { A: [70, 60], B: [150, 60], C: [430, 60], D: [430, 240], E: [70, 240]
     function setzen(p: Pkt) {
       const wahl = box.querySelector<HTMLInputElement>('input[type=radio]:checked')!;
       if (wahl.value === 'rot') { rot = p; (box.querySelector('input[value=schwarz]') as HTMLInputElement).checked = true; }
-      else schwarz = p;
-      if (rot && schwarz) { messungen++; pruefeAufgabe(); }
+      else { schwarz = p; (box.querySelector('input[value=rot]') as HTMLInputElement).checked = true; }
+      if (rot && schwarz) { messungen++; if (modus === 'aufgaben' && !s.gesperrt()) pruefeAufgabe(); }
       anzeigen();
     }
 
@@ -131,12 +133,16 @@ const P = { A: [70, 60], B: [150, 60], C: [430, 60], D: [430, 240], E: [70, 240]
       const a = aufgaben[schritt];
       if (!a) return;
       const [x, y] = a.punkte;
-      const passt = (rot === x && schwarz === y) || (rot === y && schwarz === x);
-      if (!passt) return;
-      const umgekehrt = rot === y && schwarz === x && pot[x] !== pot[y];
+      const gleich = (p: Pkt, q: Pkt) => (a.genau ? p === q : NETZ[p] === NETZ[q]);
+      const vorwaerts = gleich(rot, x) && gleich(schwarz, y);
+      const rueckwaerts = gleich(rot, y) && gleich(schwarz, x);
+      if (!vorwaerts && !rueckwaerts) return;
+      const umgekehrt = !vorwaerts && pot[x] !== pot[y];
+      const wert = (pot[rot!] - pot[schwarz!] + 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      rot = null; schwarz = null;
       schritt++;
-      if (schritt >= aufgaben.length) { s.bestehen('Alle Messaufgaben richtig gemessen.'); }
-      else s.melden(umgekehrt ? 'Richtig gemessen. Das Minus zeigt: Rot und Schwarz sind vertauscht. Der Betrag stimmt trotzdem.' : 'Richtig gemessen. Nächste Aufgabe.', 'gut');
+      if (schritt >= aufgaben.length) { s.bestehen(`Richtig: ${wert} V. Alle Messaufgaben geschafft.`); }
+      else s.melden(umgekehrt ? `Richtig gemessen: ${wert} V. Das Minus zeigt, dass Rot und Schwarz vertauscht sind. Der Betrag stimmt trotzdem.` : `Richtig gemessen: ${wert} V. Nächste Aufgabe.`, 'gut');
       aufgabeZeigen();
     }
 
@@ -157,6 +163,7 @@ const P = { A: [70, 60], B: [150, 60], C: [430, 60], D: [430, 240], E: [70, 240]
       $('[data-mp-diagnose]').hidden = false;
       fallZeigen();
       $('[data-mp-abgeben]').addEventListener('click', () => {
+        if (s.gesperrt()) return;
         const wahl = box.querySelector<HTMLSelectElement>('[data-mp-wahl]')!.value;
         if (!wahl) return s.melden('Wähle zuerst eine Ursache aus.', 'warnung');
         if (messungen === 0) return s.melden('Miss zuerst. Eine Diagnose ohne Messung ist geraten.', 'warnung');

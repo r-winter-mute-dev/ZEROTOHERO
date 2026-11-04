@@ -1,11 +1,24 @@
 ---
 id: m-1-2
 checks:
+  - id: k2
+  - id: k3
+  - id: k4
   - id: messplatz
-  - id: quiz
   - id: protokoll
     hardware: true
+spick:
+  - t: "Spannung"
+    v: "Immer zwischen zwei Punkten"
+  - t: "GND"
+    v: "Der Bezugspunkt mit 0 V"
+  - t: "Maschenregel"
+    v: "Teilspannungen zusammen = Quellenspannung"
+  - t: "Schwarze Spitze"
+    v: "Auf den Bezugspunkt"
 ---
+import Checkliste from '../components/Checkliste.astro';
+import Merke from '../components/Merke.astro';
 import Karte from '../components/Karte.astro';
 import Messplatz from '../components/Messplatz.astro';
 import Quiz from '../components/Quiz.astro';
@@ -20,17 +33,37 @@ Später hängen an deiner Klingel mehrere Bauteile an einer Stromquelle: Mikroco
 Ein einzelner Punkt hat keine Spannung. Spannung gibt es nur **zwischen zwei Punkten**, so wie ein Höhenunterschied immer zwei Orte braucht. Deshalb hat dein Multimeter zwei Spitzen.
 </Karte>
 
+<Merke>Ein einzelner Punkt hat keine Spannung. Es braucht immer zwei.</Merke>
+
 <Karte nr={2} titel="Masse, GND, 0 Volt">
 Damit man nicht jedes Mal zwei Punkte nennen muss, legt man einen Punkt als Bezug fest: **Masse**, englisch **GND** (Ground). Meist ist das der Minuspol. Er gilt als 0 V. Sagt jemand „an Punkt C liegen 1,9 V“, meint er: zwischen C und Masse. Beim Messen steckt die schwarze Spitze dann auf Masse.
 </Karte>
+
+<Merke>GND ist der Bezugspunkt mit 0 V. „C liegt auf 1,9 V“ heißt: zwischen C und GND.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Masse" fragen={[
+  { frage: 'Was bedeutet „Punkt C liegt auf 1,9 V“?', richtig: 'Zwischen C und Masse liegen 1,9 V.', falsch: ['Durch C fließen 1,9 A.', 'C hat für sich allein 1,9 V.'], erklaerung: 'Ein einzelner Punkt hat keine Spannung, gemeint ist immer gegen Masse.' },
+]} />
 
 <Karte nr={3} titel="Spannungen teilen sich auf">
 Gehst du im Kreis von Plus nach Minus, verteilt sich die Batteriespannung auf die Bauteile. Am Widerstand fällt ein Teil ab, an der LED der Rest. Zusammen ergeben sie wieder die Batteriespannung. Das heißt **Maschenregel**. An einem einfachen Draht fällt dagegen fast nichts ab.
 </Karte>
 
+<Merke>Die Teilspannungen im Kreis ergeben zusammen die Batteriespannung.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Maschenregel" fragen={[
+  { frage: 'Am Widerstand misst du 1,1 V, an der LED 1,9 V. Wie groß ist die Batteriespannung ungefähr?', richtig: '3,0 V', falsch: ['1,9 V', '0,8 V'], erklaerung: 'Die Spannungen im Kreis addieren sich: 1,1 V + 1,9 V = 3,0 V.' },
+]} />
+
 <Karte nr={4} titel="Gemeinsame Masse">
 Hat eine Schaltung zwei Stromquellen, zum Beispiel ein Mikrocontroller am USB-Kabel und ein Sensor an einer Batterie, müssen ihre Minuspole verbunden sein. Sonst fehlt der gemeinsame Bezug: Ein Signal mit „3 V“ bedeutet für den anderen Teil nichts, weil er nicht weiß, wogegen gemessen wird.
 </Karte>
+
+<Merke>Zwei Stromquellen in einer Schaltung: Minuspole immer verbinden.</Merke>
+
+<Quiz id="k4" titel="Kurzcheck: Gemeinsame Masse" fragen={[
+  { frage: 'Ein Sensor hängt an einer Batterie, der Mikrocontroller am USB-Kabel. Was ist nötig, damit der Mikrocontroller das Signal lesen kann?', richtig: 'Die Minuspole beider Teile verbinden (gemeinsame Masse)', falsch: ['Die Pluspole beider Teile verbinden', 'Nichts, das Signal reicht'], erklaerung: 'Ohne gemeinsame Masse fehlt der Bezug.' },
+]} />
 
 ## Am virtuellen Messplatz
 
@@ -40,23 +73,20 @@ Der Kreis ist derselbe wie in Mission 1.1. Die Punkte A bis E sind Messpunkte. W
   { text: 'Miss die Spannung der Batterie (zwischen Plus und Minus).', punkte: ['A', 'E'] },
   { text: 'Miss die Spannung am Widerstand.', punkte: ['B', 'C'] },
   { text: 'Miss die Spannung an der LED.', punkte: ['C', 'D'] },
-  { text: 'Miss die Spannung an einem einfachen Draht, zwischen A und B.', punkte: ['A', 'B'] },
+  { text: 'Miss die Spannung an einem einfachen Draht, zwischen A und B.', punkte: ['A', 'B'], genau: true },
   { text: 'Miss Punkt C gegen Masse.', punkte: ['C', 'E'] },
 ]} />
 
-<Quiz id="quiz" titel="Quiz: Masse und Bezugspunkt" fragen={[
-  { frage: 'Am Widerstand misst du 1,1 V, an der LED 1,9 V. Wie groß ist die Batteriespannung ungefähr?', richtig: '3,0 V', falsch: ['1,9 V', '0,8 V'], erklaerung: 'Die Spannungen im Kreis addieren sich zur Batteriespannung (Karte 3).' },
-  { frage: 'Was bedeutet „Punkt C liegt auf 1,9 V“?', richtig: 'Zwischen C und Masse liegen 1,9 V.', falsch: ['Durch C fließen 1,9 A.', 'C hat für sich allein 1,9 V.'], erklaerung: 'Ein einzelner Punkt hat keine Spannung, gemeint ist immer gegen Masse (Karte 2).' },
-  { frage: 'Ein Sensor hängt an einer Batterie, der Mikrocontroller am USB-Kabel. Was ist nötig, damit der Mikrocontroller das Signal lesen kann?', richtig: 'Die Minuspole beider Teile verbinden (gemeinsame Masse)', falsch: ['Die Pluspole beider Teile verbinden', 'Nichts, das Signal reicht'], erklaerung: 'Ohne gemeinsame Masse fehlt der Bezug (Karte 4).' },
-]} />
 
 ## Am echten Aufbau
 
 Nimm deinen LED-Kreis aus Mission 1.1. Miss nacheinander mit dem Multimeter auf V⎓:
 
-1. die Batterie: rote Spitze an Plus, schwarze an Minus,
-2. den Widerstand: Spitzen direkt an seine beiden Beine,
-3. die LED: rote Spitze an das lange Bein, schwarze an das kurze.
+<Checkliste id="messen" punkte={[
+  'Die Batterie: rote Spitze an Plus, schwarze an Minus.',
+  'Den Widerstand: Spitzen direkt an seine beiden Beine.',
+  'Die LED: rote Spitze an das lange Bein, schwarze an das kurze.',
+]} />
 
 <Protokoll id="protokoll" titel="Messprotokoll: Die Maschenregel" typ="summe" />
 

@@ -166,4 +166,7 @@ export function importCode(code: string): { ok: boolean; fehler?: string } {
   }
 }
 
-export function zuruecksetzen() { speichern(leer()); }
+export function zuruecksetzen() {
+  speichern(leer());
+  try { localStorage.removeItem('kw:schritte'); localStorage.removeItem('kw:checklisten'); } catch { /* egal */ }
+}

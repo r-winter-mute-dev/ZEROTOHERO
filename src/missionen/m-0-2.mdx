@@ -2,32 +2,105 @@
 id: m-0-2
 abzeichen: Sicher unterwegs
 checks:
-  - id: quiz
+  - id: netz
+  - id: kurzschluss
+  - id: umbauen
+  - id: messen
+  - id: spaeter
+spick:
+  - t: Regel 1
+    v: Nur Kleinspannung, höchstens 5 V
+  - t: Regel 2
+    v: Plus nie direkt mit Minus verbinden
+  - t: Regel 3
+    v: Erst aufbauen, dann Strom an
+  - t: Regel 4
+    v: Strom nur in Reihe messen
+  - t: Regel 5 (ab Akt 5)
+    v: Li-Ion-Akku nur mit Schutzschaltung
+  - t: Regel 6 (ab Akt 8)
+    v: Lötkolben immer in den Ständer
+  - t: Regel 7 (ab Akt 4)
+    v: Kamera nur auf den eigenen Eingang
+  - t: Wird etwas heiß?
+    v: Sofort Strom trennen
 ---
 import Quiz from '../components/Quiz.astro';
 import Hinweis from '../components/Hinweis.astro';
+import Merke from '../components/Merke.astro';
 
-Elektronik mit Batterien ist ungefährlich, solange du ein paar Regeln kennst. Diese Mission sammelt sie. Wo im Kurs ein Risiko neu dazukommt, zum Beispiel beim Akku in Akt 5, wiederholen wir die Regeln dort.
+Elektronik mit Batterien ist ungefährlich, wenn du sieben Regeln kennst. Du lernst sie hier einzeln: erst kurz lesen, dann eine kleine Frage dazu. Rechts (auf dem Handy unten) steht ein Spickzettel mit allen Regeln. Du musst dir also nichts merken.
 
-## Die Regeln
+Die Regeln kommen im Kurs wieder, sobald sie wichtig werden, zum Beispiel beim Akku in Akt 5.
 
-1. **Keine Netzspannung.** Alles in diesem Kurs läuft mit Batterien, USB oder einem Akku, also mit höchstens 5 Volt. Steckdosen, Netzteile von innen und die vorhandene Klingelanlage im Haus fasst du nicht an. 230 V können tödlich sein.
-2. **Batterien nie kurzschließen.** Verbindest du Plus und Minus direkt mit einem Draht, fließt ein sehr großer Strom. Draht und Batterie werden heiß. Wenn etwas warm wird, das nicht warm werden sollte: sofort trennen.
-3. **Erst aufbauen, dann Strom an.** Steckst du Bauteile um, nimm vorher die Batterie heraus oder zieh das USB-Kabel.
-4. **Strommessung nur in Reihe.** Ein Multimeter im Strombereich ist innen fast ein Kurzschluss. Hältst du es so direkt an eine Batterie, brennt seine Sicherung durch. Das lernst du in Mission 0.4 genau.
-5. **Li-Ion-Akkus (ab Akt 5)** nur mit Schutzschaltung verwenden, nicht unbeaufsichtigt laden, beschädigte oder aufgeblähte Akkus nie benutzen.
-6. **Löten (ab Akt 8):** Der Lötkolben ist mehrere hundert Grad heiß. Immer in den Ständer legen, für Lüftung sorgen, Schutzbrille tragen, danach Hände waschen.
-7. **Kamera (ab Akt 4):** Richte die Kamera so aus, dass sie nur deinen eigenen Eingangsbereich zeigt. Was rechtlich erlaubt ist, hängt vom Land ab. Informiere dich vor der Montage.
+## Regel 1: Keine Netzspannung
+
+Alles in diesem Kurs läuft mit Batterien, USB oder einem Akku. Das sind **höchstens 5 Volt**. Diese kleinen Spannungen spürst du nicht einmal, wenn du beide Pole anfasst.
+
+Die Steckdose hat **230 Volt**. Das ist fast fünfzigmal so viel. Dort kann Strom durch deinen Körper fließen und das Herz aus dem Takt bringen. Deshalb fasst du Steckdosen, das Innere von Netzteilen und die vorhandene Klingelanlage im Haus nicht an.
+
+<Merke>Dieser Kurs nutzt nur Kleinspannung bis 5 V. An 230 V arbeitest du nie.</Merke>
+
+<Quiz id="netz" titel="Kurzcheck: Netzspannung" fragen={[
+  { frage: 'Welche Spannungen nutzt dieser Kurs?', richtig: 'Nur Kleinspannung aus Batterie, USB oder Akku (höchstens 5 V)', falsch: ['Auch 230 V, aber nur kurz', 'Jede Spannung, wenn man vorsichtig ist'], erklaerung: 'Netzspannung ist tabu.' },
+]} />
+
+## Regel 2: Nie kurzschließen
+
+Ein **Kurzschluss** ist eine Verbindung von Plus nach Minus ohne ein Bauteil dazwischen, zum Beispiel ein einzelner Draht. Dann bremst nichts den Strom. Es fließt sehr viel davon, und Draht und Batterie werden schnell heiß.
+
+Woran du es merkst: Etwas wird warm, das nicht warm werden sollte, oder es riecht verschmort.
+
+<Merke>Wird etwas heiß: sofort die Stromquelle trennen. Erst danach suchst du den Fehler.</Merke>
+
+<Quiz id="kurzschluss" titel="Kurzcheck: Kurzschluss" fragen={[
+  { frage: 'Ein Draht auf deinem Steckbrett wird plötzlich heiß. Was tust du?', richtig: 'Sofort die Stromquelle trennen', falsch: ['Weiterbauen, das ist normal', 'Den Draht festhalten und schauen, woher es kommt'], erklaerung: 'Hitze bedeutet meist Kurzschluss. Erst trennen, dann suchen.' },
+]} />
+
+## Regel 3: Erst aufbauen, dann Strom an
+
+Beim Umstecken rutscht leicht ein Bein in die falsche Reihe. Ist die Batterie dabei angeschlossen, entsteht vielleicht kurz ein Kurzschluss, oder ein Bauteil bekommt die falsche Spannung.
+
+Deshalb gilt eine feste Reihenfolge:
+
+1. Stromquelle abklemmen (Batterie raus oder USB-Kabel ziehen).
+2. Umbauen.
+3. Kurz prüfen, ob alles richtig steckt.
+4. Strom wieder an.
+
+<Merke>Umbauen immer ohne Strom.</Merke>
+
+<Quiz id="umbauen" titel="Kurzcheck: Umbauen" fragen={[
+  { frage: 'Du willst eine LED auf eine andere Spalte stecken. Was zuerst?', richtig: 'Die Batterie herausnehmen', falsch: ['Nichts, das geht auch so', 'Das Multimeter anschließen'], erklaerung: 'Erst aufbauen, dann Strom an.' },
+]} />
+
+## Regel 4: Strom nur in Reihe messen
+
+Das Multimeter lernst du in Mission 0.4 kennen. Eine Sache vorab: Stellst du es auf **Strom** (A oder mA), ist es innen fast nur ein Stück Draht. Hältst du es dann direkt an eine Batterie, ist das ein Kurzschluss (Regel 2). Die kleine Sicherung im Gerät brennt durch.
+
+Zum Strommessen baust du das Multimeter deshalb **in den Stromkreis ein**, so dass der Strom durch das Gerät fließt. Das heißt „in Reihe“. Wie das geht, zeigt dir Mission 0.4 Schritt für Schritt.
+
+<Merke>Steht das Multimeter auf Strom, hältst du es nie direkt an eine Batterie.</Merke>
+
+<Quiz id="messen" titel="Kurzcheck: Strom messen" fragen={[
+  { frage: 'Was passiert, wenn du ein Multimeter im Strombereich direkt an eine Batterie hältst?', richtig: 'Es fließt ein riesiger Strom, die Sicherung im Gerät brennt durch', falsch: ['Es zeigt die Spannung an', 'Nichts, das Gerät schaltet automatisch um'], erklaerung: 'Im Strombereich ist das Multimeter fast ein Draht. Strom misst man nur in Reihe.' },
+]} />
+
+## Regeln 5 bis 7: Für später
+
+Diese drei Regeln brauchst du erst später im Kurs. Du sollst sie aber schon einmal gesehen haben.
+
+**Regel 5, Akku (ab Akt 5):** Ein Li-Ion-Akku (Typ 18650) speichert viel Energie. Ist er beschädigt, kann er brennen. Benutze ihn nur mit Schutzschaltung, lade ihn nicht unbeaufsichtigt, und einen aufgeblähten oder verbeulten Akku benutzt du nie wieder. Er kommt zur Sammelstelle für Batterien.
+
+**Regel 6, Löten (ab Akt 8):** Die Spitze des Lötkolbens ist mehrere hundert Grad heiß. Leg ihn immer in den Ständer, sorg für frische Luft, trag eine Schutzbrille und wasch dir danach die Hände.
+
+**Regel 7, Kamera (ab Akt 4):** Richte die Kamera so aus, dass sie nur deinen eigenen Eingangsbereich zeigt, nicht den Gehweg und nicht das Nachbarhaus. Was erlaubt ist, hängt vom Land ab. Informiere dich vor der Montage.
 
 <Hinweis art="sicherheit" titel="Für Jüngere">
 Wenn du unter 16 bist: Bitte für Akku und Löten eine erwachsene Person dazuholen.
 </Hinweis>
 
-<Quiz id="quiz" titel="Sicherheitsquiz" fragen={[
-  { frage: 'Welche Spannungen nutzt dieser Kurs?', richtig: 'Nur Kleinspannung aus Batterie, USB oder Akku (höchstens 5 V)', falsch: ['Auch 230 V, aber nur kurz', 'Jede Spannung, wenn man vorsichtig ist'], erklaerung: 'Netzspannung ist tabu (Regel 1).' },
-  { frage: 'Ein Draht auf deinem Steckbrett wird plötzlich heiß. Was tust du?', richtig: 'Sofort die Stromquelle trennen', falsch: ['Weiterbauen, das ist normal', 'Den Draht festhalten und schauen, woher es kommt'], erklaerung: 'Hitze bedeutet meist Kurzschluss (Regel 2).' },
-  { frage: 'Du willst eine LED auf eine andere Spalte stecken. Was zuerst?', richtig: 'Die Batterie herausnehmen', falsch: ['Nichts, das geht auch so', 'Das Multimeter anschließen'], erklaerung: 'Erst aufbauen, dann Strom an (Regel 3).' },
-  { frage: 'Was passiert, wenn du ein Multimeter im Strombereich direkt an eine Batterie hältst?', richtig: 'Es fließt ein riesiger Strom, die Sicherung im Gerät brennt durch', falsch: ['Es zeigt die Spannung an', 'Nichts, das Gerät schaltet automatisch um'], erklaerung: 'Strom misst man nur in Reihe (Regel 4).' },
-  { frage: 'Dein Li-Ion-Akku ist aufgebläht. Was machst du?', richtig: 'Nicht mehr benutzen und fachgerecht entsorgen', falsch: ['Vorsichtig weiter laden', 'Mit Klebeband fixieren'], erklaerung: 'Beschädigte Akkus können brennen (Regel 5).' },
+<Quiz id="spaeter" titel="Kurzcheck: Akku und Löten" fragen={[
+  { frage: 'Dein Li-Ion-Akku ist aufgebläht. Was machst du?', richtig: 'Nicht mehr benutzen und zur Sammelstelle bringen', falsch: ['Vorsichtig weiter laden', 'Mit Klebeband fixieren'], erklaerung: 'Beschädigte Akkus können brennen (Regel 5).' },
   { frage: 'Wohin gehört der heiße Lötkolben, wenn du ihn gerade nicht brauchst?', richtig: 'In den Lötkolbenständer', falsch: ['Auf den Tisch', 'Auf das Steckbrett'], erklaerung: 'Regel 6.' },
 ]} />

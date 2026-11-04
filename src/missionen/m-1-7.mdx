@@ -1,10 +1,23 @@
 ---
 id: m-1-7
 checks:
-  - id: quiz
+  - id: k1
+  - id: k2
+  - id: k3
   - id: aufbau
     hardware: true
+spick:
+  - t: "Schließer"
+    v: "Gedrückt = verbunden"
+  - t: "Öffner"
+    v: "Gedrückt = getrennt"
+  - t: "Durchgang"
+    v: "Nur stromlos prüfen"
+  - t: "Prellen"
+    v: "Kontakt schließt mehrfach in wenigen ms"
 ---
+import Checkliste from '../components/Checkliste.astro';
+import Merke from '../components/Merke.astro';
 import Karte from '../components/Karte.astro';
 import Prellen from '../components/Prellen.astro';
 import Quiz from '../components/Quiz.astro';
@@ -18,27 +31,42 @@ Jetzt kommt das Teil, das der Klingel ihren Namen gibt: der Knopf. Elektrisch is
 Ein **Schließer** leitet, solange du drückst. Das ist ein Klingelknopf. Ein **Öffner** leitet, solange du **nicht** drückst. Den findest du zum Beispiel im Kühlschrank am Licht. Dein Taster ist ein Schließer. In Reihe in den LED-Kreis gesetzt, schließt er die Lücke aus Mission 1.1.
 </Karte>
 
+<Merke>Ein Klingelknopf ist ein Schließer: Er leitet nur, solange du drückst.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Schließer" fragen={[
+  { frage: 'Ein Klingelknopf soll nur leiten, solange man drückt. Was ist er?', richtig: 'Ein Schließer', falsch: ['Ein Öffner', 'Ein Widerstand'], erklaerung: 'Ein Schließer schließt den Kreis beim Drücken.' },
+]} />
+
 <Karte nr={2} titel="Vier Beine, zwei Paare">
 Ein üblicher 6×6-mm-Taster hat vier Beine. Je zwei davon sind innen immer verbunden, der Druck verbindet dann die beiden Paare. Welche Beine zusammengehören, siehst du von außen schlecht. Deshalb **misst** du es: Durchgangsprüfer an zwei Beine. Piept es ohne Drücken, gehören sie zu einem Paar. Piept es nur beim Drücken, sind es zwei verschiedene Paare.
 </Karte>
+
+<Merke>Welche Beine zusammengehören, misst du mit dem Durchgangsprüfer, statt zu raten.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Beinpaare" fragen={[
+  { frage: 'Der Durchgangsprüfer piept zwischen zwei Beinen, ohne dass du drückst. Was heißt das?', richtig: 'Die beiden Beine sind innen fest verbunden.', falsch: ['Der Taster ist kaputt.', 'Der Taster ist gedrückt.'], erklaerung: 'Je zwei Beine gehören zu einem Paar.' },
+]} />
 
 <Karte nr={3} titel="Prellen">
 Beim Drücken treffen zwei Metallflächen aufeinander, und die federn ein paar Mal zurück. Für wenige Millisekunden geht der Kontakt mehrmals auf und zu. Eine LED merkt davon nichts, für dein Auge ist das zu schnell. Ein Mikrocontroller dagegen zählt jedes Zucken als eigenen Druck. Probier es im Oszilloskop aus.
 </Karte>
 
+<Merke>Ein Taster prellt: Für ein paar Millisekunden geht der Kontakt mehrmals auf und zu.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Prellen" fragen={[
+  { frage: 'Warum ist Prellen für einen Mikrocontroller ein Problem, für eine LED aber nicht?', richtig: 'Der Mikrocontroller ist schnell genug, jedes Zucken als eigenen Druck zu zählen.', falsch: ['Die LED ist robuster gebaut.', 'Prellen gibt es nur bei Mikrocontrollern.'], erklaerung: 'Das Zucken dauert nur Millisekunden. Das Auge sieht es nicht, ein Mikrocontroller schon.' },
+]} />
+
 <Prellen />
 
 ## Aufbau
 
-1. Batterie heraus. Mit dem Durchgangsprüfer herausfinden, welche Beine deines Tasters zusammengehören.
-2. Den Taster **über die Mittelrinne** stecken, sodass jedes Paar in einer eigenen Spalte steckt.
-3. Das rote Kabel des Batteriehalters nicht mehr direkt zum Widerstand führen, sondern an ein Bein des Tasters. Vom Bein des **anderen** Paars eine Steckbrücke zum Widerstand.
-4. Batterie einlegen. Die LED leuchtet nur, solange du drückst.
-
-<Quiz id="quiz" titel="Quiz: Der Taster" fragen={[
-  { frage: 'Ein Klingelknopf soll nur leiten, solange man drückt. Was ist er?', richtig: 'Ein Schließer', falsch: ['Ein Öffner', 'Ein Widerstand'], erklaerung: 'Karte 1.' },
-  { frage: 'Der Durchgangsprüfer piept zwischen zwei Beinen, ohne dass du drückst. Was heißt das?', richtig: 'Die beiden Beine sind innen fest verbunden.', falsch: ['Der Taster ist kaputt.', 'Der Taster ist gedrückt.'], erklaerung: 'Je zwei Beine gehören zu einem Paar (Karte 2).' },
-  { frage: 'Warum ist Prellen für einen Mikrocontroller ein Problem, für eine LED aber nicht?', richtig: 'Der Mikrocontroller ist schnell genug, jedes Zucken als eigenen Druck zu zählen.', falsch: ['Die LED ist robuster gebaut.', 'Prellen gibt es nur bei Mikrocontrollern.'], erklaerung: 'Das Zucken dauert nur Millisekunden. Das Auge sieht es nicht, ein Mikrocontroller schon (Karte 3).' },
+<Checkliste id="aufbau-liste" punkte={[
+  'Batterie heraus. Mit dem Durchgangsprüfer herausfinden, welche Beine deines Tasters zusammengehören.',
+  'Den Taster <strong>über die Mittelrinne</strong> stecken, sodass jedes Paar in einer eigenen Spalte steckt.',
+  'Das rote Kabel des Batteriehalters nicht mehr direkt zum Widerstand führen, sondern an ein Bein des Tasters. Vom Bein des <strong>anderen</strong> Paars eine Steckbrücke zum Widerstand.',
+  'Batterie einlegen. Die LED leuchtet nur, solange du drückst.',
 ]} />
+
 
 <Bestaetigung id="aufbau" titel="Dein Taster schaltet" text="Ich habe die Beinpaare gemessen, und meine LED leuchtet nur, solange ich den Taster drücke." />

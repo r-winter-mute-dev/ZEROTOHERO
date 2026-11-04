@@ -3,7 +3,15 @@ id: m-2-boss
 abzeichen: Boot-Flüsterer
 checks:
   - id: boss
+spick:
+  - t: "Baudrate"
+    v: "115200, sonst Zeichensalat"
+  - t: "Vorgehen"
+    v: "Log lesen, Symptom benennen, Ursachen einzeln ausschließen"
+  - t: "Boot-Pins"
+    v: "GPIO 0, 2, 12 und 15 beeinflussen den Start"
 ---
+import Merke from '../components/Merke.astro';
 import Logdiagnose from '../components/Logdiagnose.astro';
 import Hinweis from '../components/Hinweis.astro';
 
@@ -21,6 +29,8 @@ Ein Mikrocontroller hat keinen Bildschirm. Wenn er nicht startet oder sich nicht
 <Hinweis titel="Lesetipp">
 Die Logs sind gekürzte Beispiele. Echte Ausgaben sind länger, aber die entscheidende Zeile sieht ähnlich aus. Such nach Wörtern wie „error“, „failed“, „brownout“ oder „boot:“.
 </Hinweis>
+
+<Merke>Die Ursache steht oft fast wörtlich im Log. Erst lesen, dann handeln.</Merke>
 
 <Logdiagnose id="boss" titel="Bosskampf: Das Board startet nicht" anzahl={4} faelle={[
   {
@@ -72,3 +82,5 @@ Die Logs sind gekürzte Beispiele. Echte Ausgaben sind länger, aber die entsche
 1. **Erst Kabel und Strom prüfen**, dann die Software.
 2. **Boot-Pins** (0, 2, 12, 15) nur verwenden, wenn du weißt, was beim Start an ihnen hängt.
 3. **Lies die Meldung.** Die Ursache steht erstaunlich oft fast wörtlich darin.
+
+<Merke>Kabel und Strom zuerst, Boot-Pins meiden, Meldung lesen.</Merke>

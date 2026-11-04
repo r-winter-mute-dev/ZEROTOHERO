@@ -110,3 +110,29 @@ input:focus, textarea:focus, select:focus { border-color: var(--akzent-hell); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
+/* Anzeige-Einstellungen (siehe src/scripts/einstellungen.ts) */
+html[data-schrift='gross'] body { font-size: 1.2rem; }
+html[data-schrift='sehr-gross'] body { font-size: 1.36rem; }
+html[data-abstand='weit'] { --zeile: 1.85; }
+html[data-abstand='weit'] body { letter-spacing: 0.015em; word-spacing: 0.08em; }
+html[data-abstand='weit'] p, html[data-abstand='weit'] li { margin-bottom: 1.25em; }
+html[data-bewegung='reduziert'] *, html[data-bewegung='reduziert'] *::before, html[data-bewegung='reduziert'] *::after {
+  animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important;
+}
+html[data-fokus='an'] .pfad { display: none; }
+
+/* Merksatz: die eine Aussage, die hängen bleiben soll */
+.merke {
+  margin: 1.2rem 0; padding: 0.75rem 1rem 0.75rem 1.1rem;
+  border-left: 4px solid var(--akzent); background: var(--flaeche-leicht);
+  border-radius: 0 var(--radius) var(--radius) 0; font-weight: 700; color: #fff;
+}
+.merke::before { content: 'Merke'; display: block; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--akzent-hell); margin-bottom: 0.15rem; }
+.merke p:last-child { margin-bottom: 0; }
+
+/* Checkliste für Aufbauschritte */
+.checkliste { list-style: none; padding: 0; }
+.checkliste li { display: flex; gap: 0.7rem; align-items: flex-start; padding: 0.35rem 0; }
+.checkliste input { width: 1.15rem; height: 1.15rem; margin-top: 0.25rem; accent-color: var(--gut); flex: none; }
+.checkliste li.erledigt span { color: var(--leise); text-decoration: line-through; text-decoration-color: var(--leise-dunkel); }

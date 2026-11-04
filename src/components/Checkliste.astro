@@ -1,0 +1,29 @@
+---
+// Abhakliste für Aufbauschritte. Der Haken wird im Browser gemerkt, damit man nach einer Pause weiß, wo man war.
+interface Props { id: string; punkte: string[]; }
+const { id, punkte } = Astro.props;
+---
+<ul class="checkliste" data-kw-checkliste={id}>
+  {punkte.map((p, i) => (
+    <li><input type="checkbox" id={`cl-${id}-${i}`} data-i={i} /><label for={`cl-${id}-${i}`}><span set:html={p} /></label></li>
+  ))}
+</ul>
+<script>
+  const KEY = 'kw:checklisten';
+  function lesen(): Record<string, number[]> { try { return JSON.parse(localStorage.getItem(KEY) ?? '{}'); } catch { return {}; } }
+  document.querySelectorAll<HTMLElement>('[data-kw-checkliste]').forEach((ul) => {
+    const mid = ul.closest<HTMLElement>('[data-mission]')?.dataset.mission ?? '';
+    const key = `${mid}:${ul.dataset.kwCheckliste}`;
+    const boxen = [...ul.querySelectorAll<HTMLInputElement>('input')];
+    const an = new Set(lesen()[key] ?? []);
+    const zeichnen = () => boxen.forEach((b) => b.closest('li')!.classList.toggle('erledigt', b.checked));
+    boxen.forEach((b) => (b.checked = an.has(Number(b.dataset.i))));
+    zeichnen();
+    ul.addEventListener('change', () => {
+      const alle = lesen();
+      alle[key] = boxen.filter((b) => b.checked).map((b) => Number(b.dataset.i));
+      try { localStorage.setItem(KEY, JSON.stringify(alle)); } catch { /* egal */ }
+      zeichnen();
+    });
+  });
+</script>

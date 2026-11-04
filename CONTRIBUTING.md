@@ -27,6 +27,7 @@ hardware/                Schaltpläne, Lochraster-Layouts, Gehäuse (in Arbeit)
 2. Die Datei `src/missionen/<id>.mdx` anlegen. Als Vorlage eignet sich `m-1-1.mdx`.
 3. Im Frontmatter alle Prüfungen unter `checks` auflisten. `hardware: true` heißt: Diese Prüfung braucht echte Bauteile und wird im Modus „ohne Hardware“ übersprungen.
 4. Jede Prüfungskomponente bekommt eine `id`, die genau so in `checks` steht.
+5. Unter `spick` die Formeln und Werte eintragen, die man in dieser Mission braucht. Sie stehen neben jeder Aufgabe, damit niemand sich etwas merken muss. In Bosskämpfen keine Lösungen hineinschreiben.
 
 ```mdx
 ---
@@ -36,6 +37,9 @@ checks:
   - id: quiz
   - id: geraet
     hardware: true
+spick:
+  - t: Baudrate
+    v: 115200
 ---
 import Quiz from '../components/Quiz.astro';
 import Seriell from '../components/Seriell.astro';
@@ -51,6 +55,8 @@ Text der Mission …
 | Komponente | Zweck |
 | --- | --- |
 | `Karte` | Theorie-Karte (höchstens etwa 120 Wörter) |
+| `Merke` | Der eine Satz, der hängen bleiben soll. Höchstens einer pro Abschnitt |
+| `Checkliste` | Abhakliste für Aufbauschritte, der Stand wird im Browser gemerkt |
 | `Hinweis` | Kasten für Sicherheit, Hintergrund oder vorläufige Werte |
 | `Quiz` | Multiple Choice, alle Antworten müssen stimmen |
 | `Zahl` | Ein Messwert wird gegen ein Toleranzband geprüft, mit Hilfetexten je nach Abweichung |
@@ -76,6 +82,8 @@ Text der Mission …
 6. Jeder Zahlenwert ist belegt (Datenblatt, Messung) oder als vorläufig markiert.
 7. Der Weg ohne Hardware bleibt immer möglich.
 8. Sprache: kurze Sätze, Du-Form, Fachbegriffe beim ersten Auftreten erklären.
+9. Kleine Schritte: Die Seite zeigt jede Zwischenüberschrift und jede Theorie-Karte als eigenen Bildschirm. Eine Übung steht auf demselben Bildschirm wie die Erklärung davor. Lieber kurz erklären und gleich fragen, als lange erklären und am Ende viel abfragen (Vorlage: `m-0-2.mdx`).
+10. Keine Zeitlimits, keine Serien, die man verlieren kann, keine blinkenden Belohnungen. Fortschritt soll sichtbar sein, nicht Druck machen.
 
 ## Firmware (ab Akt 2)
 

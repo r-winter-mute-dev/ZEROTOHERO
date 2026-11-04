@@ -1,10 +1,22 @@
 ---
 id: m-1-5
 checks:
+  - id: k1
+  - id: k2
   - id: rechnen
   - id: protokoll
     hardware: true
+spick:
+  - t: "Spannungsteiler"
+    v: "U<sub>aus</sub> = U<sub>ein</sub> × R2 / (R1 + R2)"
+  - t: "R2"
+    v: "Der Widerstand nach Masse"
+  - t: "Belastet"
+    v: "Last parallel zu R2 senkt U<sub>aus</sub>"
 ---
+import Checkliste from '../components/Checkliste.astro';
+import Quiz from '../components/Quiz.astro';
+import Merke from '../components/Merke.astro';
 import Karte from '../components/Karte.astro';
 import Rechnen from '../components/Rechnen.astro';
 import Protokoll from '../components/Protokoll.astro';
@@ -17,22 +29,38 @@ In Akt 6 soll die Klingel melden, wie voll ihr Akku ist. Der Mikrocontroller ver
 Du kennst es aus Mission 1.2: In einem Kreis teilt sich die Spannung auf die Bauteile auf. Bei zwei Widerständen in Reihe bekommt jeder einen Teil, und zwar **im Verhältnis seiner Größe**. Der größere Widerstand bekommt den größeren Teil.
 </Karte>
 
+<Merke>Der größere Widerstand bekommt den größeren Teil der Spannung.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Aufteilung" fragen={[
+  { frage: 'R1 = 1 kΩ und R2 = 3 kΩ in Reihe. An welchem fällt mehr Spannung ab?', richtig: 'An R2', falsch: ['An R1', 'An beiden gleich viel'], erklaerung: 'Die Spannung teilt sich im Verhältnis der Widerstände.' },
+]} />
+
 <Karte nr={2} titel="Die Teilerformel">
 R1 liegt oben (an Plus), R2 unten (an Masse). Die Spannung am Mittelpunkt gegen Masse ist **U2 = U × R2 / (R1 + R2)**. Sind beide Widerstände gleich, bekommst du genau die Hälfte. Mit R1 = 1 kΩ und R2 = 2,2 kΩ an 3 V: 3 V × 2,2 / 3,2 = 2,06 V.
 </Karte>
+
+<Merke>U2 = U × R2 / (R1 + R2). Zwei gleiche Widerstände halbieren die Spannung.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Teilerformel" fragen={[
+  { frage: 'Zwei gleiche 10-kΩ-Widerstände teilen 4 V. Was liegt am Mittelpunkt?', richtig: '2 V', falsch: ['4 V', '1 V'], erklaerung: 'Gleiche Widerstände: genau die Hälfte.' },
+]} />
 
 <Karte nr={3} titel="Wofür du das brauchst">
 Mit einem Spannungsteiler kannst du eine Spannung messbar machen, die eigentlich zu groß ist. Ein Li-Ion-Akku hat bis zu 4,2 V, der Mikrocontroller misst höchstens etwa 3,3 V. Ein Teiler im Verhältnis 1:1 macht daraus 2,1 V. Das baust du in Mission 6.4.
 </Karte>
 
+<Merke>Ein Spannungsteiler macht eine zu große Spannung messbar, versorgt aber nichts.</Merke>
+
 <Rechnen id="rechnen" typ="teiler" anzahl={3} />
 
 ## Aufbau
 
-1. Batterie heraus. R1 = 1 kΩ (Braun-Schwarz-Rot) von Spalte 5 nach Spalte 10 stecken, R2 = 2,2 kΩ (Rot-Rot-Rot) von Spalte 10 nach Spalte 15.
-2. Plus des Batteriehalters in Spalte 5, Minus in Spalte 15. Batterie einlegen.
-3. Miss die Batteriespannung (Spalte 5 gegen 15), dann die Spannung an R2 (Spalte 10 gegen 15).
-4. Hast du andere Widerstände, nimm sie. Trag einfach deine Werte ins Protokoll ein.
+<Checkliste id="aufbau" punkte={[
+  'Batterie heraus. R1 = 1 kΩ (Braun-Schwarz-Rot) von Spalte 5 nach Spalte 10 stecken, R2 = 2,2 kΩ (Rot-Rot-Rot) von Spalte 10 nach Spalte 15.',
+  'Plus des Batteriehalters in Spalte 5, Minus in Spalte 15. Batterie einlegen.',
+  'Miss die Batteriespannung (Spalte 5 gegen 15), dann die Spannung an R2 (Spalte 10 gegen 15).',
+  'Hast du andere Widerstände, nimm sie. Trag einfach deine Werte ins Protokoll ein.',
+]} />
 
 <Protokoll id="protokoll" titel="Messprotokoll: Spannungsteiler" typ="teiler" />
 

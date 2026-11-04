@@ -1,14 +1,19 @@
 ---
 id: m-0-1
 checks:
+  - id: kurs
   - id: verstanden
 ---
+import Quiz from '../components/Quiz.astro';
+import Merke from '../components/Merke.astro';
 import Bestaetigung from '../components/Bestaetigung.astro';
 import Hinweis from '../components/Hinweis.astro';
 import TeileListe from '../components/TeileListe.astro';
 import { url as seitenUrl } from '../config';
 
 Am Ende dieses Kurses hängt an deiner Tür eine Klingel, die du selbst gebaut hast. Jemand drückt den Knopf, die Klingel wacht aus dem Tiefschlaf auf, macht ein Foto und schickt es dir auf dein Handy, über Telegram oder Discord. Sie läuft mit einem Akku und braucht kein Kabel.
+
+<Merke>Ziel des Kurses: eine Akku-Klingel, die beim Klingeln ein Foto auf dein Handy schickt.</Merke>
 
 ## Woraus die Klingel besteht
 
@@ -26,6 +31,8 @@ Die Zeichnung auf der Startseite zeigt die neun Teile. Jeder Akt baut eines davo
 | 7 | Schalter | Ein Transistor schaltet im Ruhezustand fast alles ab |
 | 8 | Gehäuse | Schützt die Klingel draußen an der Tür |
 
+<Merke>Neun Teile, neun Akte. Jeder Akt baut ein Teil der Klingel.</Merke>
+
 ## So funktioniert der Kurs
 
 1. **Missionen sind kurz.** Jede hat eine Idee, ein paar Theorie-Karten und eine Bauanleitung.
@@ -33,6 +40,12 @@ Die Zeichnung auf der Startseite zeigt die neun Teile. Jeder Akt baut eines davo
 3. **Bosskämpfe** am Ende eines Akts sind Fehlersuchen. Dort lernst du, systematisch zu messen statt zu raten.
 4. **Missionen bauen aufeinander auf.** Die Prüfungen einer Mission zählen erst, wenn die vorherige geschafft ist. Lesen kannst du alles.
 5. **Ohne Hardware geht es trotzdem weiter.** Setze auf einer Mission den Haken „Ich habe die Hardware (noch) nicht“. Dann zählen nur die Prüfungen ohne Hardware, und dein Teil der Klingel wird grau statt farbig. Die echten Prüfungen kannst du später nachholen.
+
+<Merke>Fehlt dir Hardware, setz den Haken „ohne Hardware“. Du kommst trotzdem weiter.</Merke>
+
+<Quiz id="kurs" titel="Kurzcheck: So läuft der Kurs" fragen={[
+  { frage: 'Du hast noch kein Multimeter. Was tust du?', richtig: 'Den Haken „ohne Hardware“ setzen und im Simulator weitermachen', falsch: ['Warten, bis das Paket da ist', 'Die Mission überspringen und eine spätere öffnen'], erklaerung: 'Ohne Hardware geht es weiter. Die echten Prüfungen holst du später nach.' },
+]} />
 
 ## Was du für Akt 0 und 1 brauchst
 

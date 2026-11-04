@@ -1,12 +1,26 @@
 ---
 id: m-1-4
 checks:
+  - id: k1
+  - id: k2
   - id: rechnen
   - id: reihe
     hardware: true
   - id: parallel
     hardware: true
+spick:
+  - t: "Reihe"
+    v: "R = R1 + R2"
+  - t: "Parallel (zwei)"
+    v: "R = R1 × R2 / (R1 + R2)"
+  - t: "Faustregel"
+    v: "Parallel ist kleiner als der kleinste Einzelwert"
+  - t: "Zwei gleiche parallel"
+    v: "Halber Wert"
 ---
+import Checkliste from '../components/Checkliste.astro';
+import Quiz from '../components/Quiz.astro';
+import Merke from '../components/Merke.astro';
 import Karte from '../components/Karte.astro';
 import Rechnen from '../components/Rechnen.astro';
 import Zahl from '../components/Zahl.astro';
@@ -20,13 +34,27 @@ Manchmal hast du den passenden Widerstand nicht im Sortiment. Dann kombinierst d
 Bauteile **in Reihe** liegen hintereinander auf einem Weg. Durch alle fließt **derselbe Strom**. Die Widerstände **addieren sich**: R = R1 + R2. Zwei 220-Ω-Widerstände in Reihe ergeben 440 Ω.
 </Karte>
 
+<Merke>In Reihe: gleicher Strom, Widerstände addieren sich.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: In Reihe" fragen={[
+  { frage: 'Ein 100-Ω- und ein 330-Ω-Widerstand liegen in Reihe. Gesamtwiderstand?', richtig: '430 Ω', falsch: ['230 Ω', '77 Ω'], erklaerung: 'In Reihe addieren: 100 + 330 = 430 Ω.' },
+]} />
+
 <Karte nr={2} titel="Parallel: nebeneinander">
 Bauteile **parallel** liegen nebeneinander zwischen denselben zwei Punkten. An allen liegt **dieselbe Spannung**. Der Strom hat mehrere Wege, deshalb wird der Gesamtwiderstand **kleiner**: R = (R1 × R2) / (R1 + R2). Zwei 220-Ω-Widerstände parallel ergeben 110 Ω.
 </Karte>
 
+<Merke>Parallel: gleiche Spannung, der Gesamtwiderstand wird kleiner als der kleinste.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Parallel" fragen={[
+  { frage: 'Ein 1-kΩ-Widerstand und ein 100-Ω-Widerstand liegen parallel. Was stimmt?', richtig: 'Der Gesamtwiderstand ist kleiner als 100 Ω', falsch: ['Er liegt zwischen 100 Ω und 1 kΩ', 'Er ist größer als 1 kΩ'], erklaerung: 'Parallel ist immer kleiner als der kleinste Einzelwert, hier etwa 91 Ω.' },
+]} />
+
 <Karte nr={3} titel="Wo das in der Klingel vorkommt">
 Dein Messgerät misst Spannung **parallel** (es liegt neben dem Bauteil) und Strom **in Reihe** (es liegt im Weg). Der Klingelknopf liegt in Reihe zum Summer. Und mehrere Bauteile an einem Akku hängen parallel an derselben Spannung.
 </Karte>
+
+<Merke>Spannung misst man parallel, Strom in Reihe.</Merke>
 
 <Rechnen id="rechnen" typ="reihe,parallel" anzahl={4} />
 
@@ -34,10 +62,12 @@ Dein Messgerät misst Spannung **parallel** (es liegt neben dem Bauteil) und Str
 
 Widerstand misst du **ohne Spannung**: Die Widerstände stecken allein auf dem Steckbrett, ohne Batterie.
 
-1. Multimeter auf **Ω** stellen.
-2. **In Reihe:** Zwei 220-Ω-Widerstände so stecken, dass sie sich eine Spalte teilen (zum Beispiel a10–a14 und b14–b18). Miss von Spalte 10 bis Spalte 18.
-3. **Parallel:** Beide Widerstände zwischen dieselben zwei Spalten stecken (zum Beispiel a20–a24 und b20–b24). Miss von Spalte 20 bis Spalte 24.
-4. Fass die Metallspitzen beim Messen nicht mit beiden Händen an. Dein Körper ist sonst ein dritter, paralleler Widerstand.
+<Checkliste id="messen" punkte={[
+  'Multimeter auf <strong>Ω</strong> stellen.',
+  '<strong>In Reihe:</strong> Zwei 220-Ω-Widerstände so stecken, dass sie sich eine Spalte teilen (zum Beispiel a10–a14 und b14–b18). Miss von Spalte 10 bis Spalte 18.',
+  '<strong>Parallel:</strong> Beide Widerstände zwischen dieselben zwei Spalten stecken (zum Beispiel a20–a24 und b20–b24). Miss von Spalte 20 bis Spalte 24.',
+  'Fass die Metallspitzen beim Messen nicht mit beiden Händen an. Dein Körper ist sonst ein dritter, paralleler Widerstand.',
+]} />
 
 <Zahl id="reihe" titel="Messwert: 2 × 220 Ω in Reihe" frage="Welchen Widerstand misst du?" einheit="Ω" min={418} max={462} hilfe={[
   { unter: 300, text: 'Deutlich zu wenig. Stecken die Widerstände wirklich hintereinander und nicht nebeneinander?' },

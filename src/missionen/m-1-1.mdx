@@ -2,19 +2,37 @@
 id: m-1-1
 abzeichen: Es werde Licht
 checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: k4
   - id: sim
-  - id: quiz
   - id: led-spannung
     hardware: true
   - id: leuchtet
     hardware: true
+spick:
+  - t: "Spannung U"
+    v: "Volt (V), der „Druck“"
+  - t: "Strom I"
+    v: "Ampere (A), 1 mA = 0,001 A"
+  - t: "Geschlossener Kreis"
+    v: "Nur dann fließt Strom"
+  - t: "LED"
+    v: "Langes Bein = Anode (+)"
+  - t: "Vorwiderstand"
+    v: "220 Ω = rot-rot-braun"
+  - t: "Schaltplan"
+    v: "Plus → 220 Ω → LED lang → LED kurz → Minus"
 ---
+import Merke from '../components/Merke.astro';
 import Karte from '../components/Karte.astro';
 import KreisSim from '../components/KreisSim.astro';
 import Quiz from '../components/Quiz.astro';
 import Zahl from '../components/Zahl.astro';
 import Bestaetigung from '../components/Bestaetigung.astro';
 import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
 
 Jede Klingel fängt gleich an: Ein Knopf schließt einen Weg, und durch diesen Weg fließt Strom. Bevor wir einen Knopf einbauen, brauchen wir diesen Weg. **Deine Mission: Bring eine LED zum Leuchten.** Das ist dein erster Stromkreis und das Fundament für alles, was noch kommt.
 
@@ -26,17 +44,42 @@ Jede Klingel fängt gleich an: Ein Knopf schließt einen Weg, und durch diesen W
 Strom fließt nur, wenn der Weg vom Pluspol der Batterie durch alle Bauteile zurück zum Minuspol lückenlos ist. Eine einzige Lücke, und alles steht still. Genau das macht später der Klingelknopf: Er schließt die Lücke.
 </Karte>
 
+<Merke>Strom fließt nur im geschlossenen Kreis. Eine Lücke reicht, und alles steht still.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Geschlossener Kreis" fragen={[
+  { frage: 'Ein Kabel ist lose. Warum leuchtet die LED nicht?', richtig: 'Der Kreis ist offen, es fließt kein Strom.', falsch: ['Die Batterie ist leer.', 'Die Spannung ist zu hoch.'], erklaerung: 'Strom braucht einen lückenlosen Weg.' },
+]} />
+
 <Karte nr={2} titel="Spannung">
 Spannung ist der „Druck“, der den Strom antreibt. Sie wird in **Volt (V)** gemessen, und zwar immer **zwischen zwei Punkten**. Deine zwei AA-Zellen liefern zusammen etwa 3 V. Im Simulator unten kannst du die Spannung mit dem Regler verändern.
 </Karte>
+
+<Merke>Spannung (Volt) misst man immer zwischen zwei Punkten.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Spannung" fragen={[
+  { frage: 'Wo misst man eine Spannung?', richtig: 'Zwischen zwei Punkten', falsch: ['An einem einzelnen Punkt', 'Im Inneren eines Kabels'], erklaerung: 'Spannung ist immer ein Unterschied zwischen zwei Punkten.' },
+]} />
 
 <Karte nr={3} titel="Strom">
 Strom ist die Menge an Ladung, die pro Sekunde durch den Kreis fließt. Er wird in **Ampere (A)** gemessen. Eine LED braucht nur wenige **Milliampere (mA)**, also Tausendstel Ampere. Wichtig: Der Strom wird nicht verbraucht. Was in die LED hineinfließt, fließt auch wieder heraus. Verbraucht wird Energie.
 </Karte>
 
+<Merke>Strom (Ampere) wird nicht verbraucht. Überall im Kreis fließt gleich viel.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Strom" fragen={[
+  { frage: 'Fließt hinter der LED weniger Strom als davor?', richtig: 'Nein, überall im Kreis fließt gleich viel.', falsch: ['Ja, die LED verbraucht Strom.', 'Ja, ungefähr die Hälfte.'], erklaerung: 'Strom wird nicht verbraucht, nur Energie wird umgewandelt.' },
+]} />
+
 <Karte nr={4} titel="Die LED hat eine Richtung">
 Eine LED lässt Strom nur in eine Richtung durch. Das **lange Bein ist die Anode (+)**, das kurze Bein an der abgeflachten Kante ist die **Kathode (−)**. Ohne Widerstand fließt zu viel Strom, und die LED geht kaputt. Wie groß der Widerstand sein muss, rechnest du in Mission 1.3 selbst aus. Heute ist er vorgegeben: 220 Ω.
 </Karte>
+
+<Merke>Langes Bein an Plus. Und nie ohne Vorwiderstand.</Merke>
+
+<Quiz id="k4" titel="Kurzcheck: LED" fragen={[
+  { frage: 'Welches Bein der LED ist die Anode (+)?', richtig: 'Das lange Bein', falsch: ['Das kurze Bein', 'Egal, beide sind gleich'], erklaerung: 'Lang = Anode = Plus.' },
+  { frage: 'Die LED ist falsch herum eingebaut. Was passiert?', richtig: 'Sie bleibt dunkel.', falsch: ['Sie leuchtet schwächer.', 'Sie leuchtet in einer anderen Farbe.'], erklaerung: 'Die LED lässt Strom nur in eine Richtung durch.' },
+]} />
 
 <Hinweis titel="Wo die Wasser-Analogie aufhört">
 Man vergleicht Spannung gern mit Wasserdruck und Strom mit der Wassermenge. Das hilft, hat aber Grenzen: Aus einem offenen Rohr läuft Wasser heraus, aus einem offenen Kabel kein Strom.
@@ -48,21 +91,16 @@ Man vergleicht Spannung gern mit Wasserdruck und Strom mit der Wassermenge. Das 
 
 **Schaltplan:** Batterie-Plus → Widerstand 220 Ω → LED (langes Bein) → LED (kurzes Bein) → Batterie-Minus.
 
-1. Die Batterien **noch nicht** einlegen.
-2. Den Widerstand in zwei verschiedene Spalten des Steckbretts stecken, zum Beispiel a5 und a9.
-3. Das **lange Bein** der LED in dieselbe Spalte wie das rechte Ende des Widerstands (b9), das kurze Bein in eine neue Spalte (b12).
-4. Das rote Kabel des Batteriehalters in die Spalte am linken Ende des Widerstands (c5).
-5. Das schwarze Kabel in die Spalte des kurzen LED-Beins (c12).
-6. Alles mit dem Schaltplan vergleichen, dann die Batterien einlegen. Die LED leuchtet.
-7. Multimeter auf Gleichspannung (V⎓) stellen und die Spannung **direkt an den beiden Beinen der LED** messen: Rot an das lange Bein, Schwarz an das kurze.
-
-<Quiz id="quiz" titel="Quiz: Grundbegriffe" fragen={[
-  { frage: 'Ein Kabel ist lose. Warum leuchtet die LED nicht?', richtig: 'Der Kreis ist offen, es fließt kein Strom.', falsch: ['Die Batterie ist leer.', 'Die Spannung ist zu hoch.'], erklaerung: 'Strom braucht einen geschlossenen Weg (Karte 1).' },
-  { frage: 'Welches Bein der LED ist die Anode (+)?', richtig: 'Das lange Bein', falsch: ['Das kurze Bein', 'Egal, beide sind gleich'], erklaerung: 'Lang = Anode = Plus (Karte 4).' },
-  { frage: 'Die LED ist falsch herum eingebaut. Was passiert?', richtig: 'Sie bleibt dunkel.', falsch: ['Sie leuchtet schwächer.', 'Sie leuchtet in einer anderen Farbe.'], erklaerung: 'Die LED lässt Strom nur in eine Richtung durch.' },
-  { frage: 'Wo misst man eine Spannung?', richtig: 'Zwischen zwei Punkten', falsch: ['An einem einzelnen Punkt', 'Im Inneren eines Kabels'], erklaerung: 'Spannung ist immer ein Unterschied zwischen zwei Punkten (Karte 2).' },
-  { frage: 'Fließt hinter der LED weniger Strom als davor?', richtig: 'Nein, überall im Kreis fließt gleich viel.', falsch: ['Ja, die LED verbraucht Strom.', 'Ja, ungefähr die Hälfte.'], erklaerung: 'Strom wird nicht verbraucht, nur Energie (Karte 3).' },
+<Checkliste id="aufbau" punkte={[
+  'Die Batterien <strong>noch nicht</strong> einlegen.',
+  'Den Widerstand in zwei verschiedene Spalten des Steckbretts stecken, zum Beispiel a5 und a9.',
+  'Das <strong>lange Bein</strong> der LED in dieselbe Spalte wie das rechte Ende des Widerstands (b9), das kurze Bein in eine neue Spalte (b12).',
+  'Das rote Kabel des Batteriehalters in die Spalte am linken Ende des Widerstands (c5).',
+  'Das schwarze Kabel in die Spalte des kurzen LED-Beins (c12).',
+  'Alles mit dem Schaltplan vergleichen, dann die Batterien einlegen. Die LED leuchtet.',
+  'Multimeter auf Gleichspannung (V⎓) stellen und die Spannung <strong>direkt an den beiden Beinen der LED</strong> messen: Rot an das lange Bein, Schwarz an das kurze.',
 ]} />
+
 
 <Zahl id="led-spannung" titel="Messwert: Spannung an der LED" frage="Welche Spannung hast du direkt an der LED gemessen?" einheit="V" min={1.6} max={2.4} vorlaeufig hilfe={[
   { ueber: 2.6, text: 'Fast die volle Batteriespannung an der LED heißt: Es fließt kein Strom. Ist die LED verpolt oder defekt? Dreh sie um.' },

@@ -1,12 +1,28 @@
 ---
 id: m-2-5
 checks:
+  - id: k1
+  - id: k2
+  - id: k3
   - id: rechnen
   - id: spannung
     hardware: true
   - id: geraet
     hardware: true
+spick:
+  - t: "Externe LED"
+    v: "GPIO 23 → 220 Ω → LED → GND"
+  - t: "Logikpegel"
+    v: "HIGH = 3,3 V"
+  - t: "Pin als Ausgang"
+    v: "pinMode(23, OUTPUT);"
+  - t: "Schalten"
+    v: "digitalWrite(23, HIGH);"
+  - t: "Merke"
+    v: "Pins nur für kleine Ströme, nie Motoren direkt"
 ---
+import Quiz from '../components/Quiz.astro';
+import Merke from '../components/Merke.astro';
 import Karte from '../components/Karte.astro';
 import Rechnen from '../components/Rechnen.astro';
 import Zahl from '../components/Zahl.astro';
@@ -21,13 +37,31 @@ Bisher hat das ESP32 nur seine eigene kleine LED geschaltet. Deine Klingel soll 
 `digitalWrite(23, HIGH)` legt an GPIO 23 die Betriebsspannung des ESP32 an: **3,3 V**. `LOW` heißt 0 V, also Masse. Der Pin ist damit eine kleine Batterie, die du per Programm ein- und ausschalten kannst. Wie in Mission 1.1 braucht die LED einen Vorwiderstand.
 </Karte>
 
+<Merke>HIGH = 3,3 V, LOW = 0 V. Auch am GPIO braucht die LED einen Vorwiderstand.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: HIGH und LOW" fragen={[
+  { frage: 'Welche Spannung liegt bei digitalWrite(23, HIGH) an GPIO 23?', richtig: 'Etwa 3,3 V', falsch: ['5 V', '0 V'], erklaerung: 'HIGH ist die Betriebsspannung des ESP32, 3,3 V.' },
+]} />
+
 <Karte nr={2} titel="Ein GPIO ist keine Steckdose">
 Ein GPIO kann nur wenig Strom liefern. Für eine LED reichen ein paar Milliampere, das ist sicher. Motoren, Lautsprecher oder viele LEDs schaltest du dagegen nie direkt, sondern über einen Transistor (Akt 4). Bleib pro Pin bei höchstens etwa 20 mA [Richtwert, die Grenzwerte stehen im Espressif-Datenblatt].
 </Karte>
 
+<Merke>Ein GPIO schaltet nur kleine Ströme. Für Motoren und Lautsprecher braucht es einen Transistor.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Strom pro Pin" fragen={[
+  { frage: 'Du willst einen kleinen Motor einschalten. Wie?', richtig: 'Über einen Transistor, den der GPIO schaltet', falsch: ['Direkt an den GPIO, mit Vorwiderstand', 'Direkt an den GPIO, ohne Widerstand'], erklaerung: 'Ein GPIO liefert nur wenige Milliampere.' },
+]} />
+
 <Karte nr={3} titel="Nie 5 V an einen GPIO">
 Die Pins des ESP32 vertragen höchstens 3,3 V. Auf dem Board gibt es auch einen Pin mit 5 V (oft `5V` oder `VIN` beschriftet). Den verbindest du **nie** mit einem GPIO. Das kann den Chip zerstören.
 </Karte>
+
+<Merke>Nie 5 V an einen GPIO.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: 5 V" fragen={[
+  { frage: 'Darfst du den 5-V-Pin des Boards mit einem GPIO verbinden?', richtig: 'Nein, das kann den Chip zerstören', falsch: ['Ja, wenn der GPIO auf Ausgang steht', 'Ja, für kurze Zeit'], erklaerung: 'Die GPIOs vertragen höchstens 3,3 V.' },
+]} />
 
 <Rechnen id="rechnen" typ="gpio" anzahl={3} />
 

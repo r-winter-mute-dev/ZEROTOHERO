@@ -6,7 +6,7 @@ const { id, titel = 'Quiz', fragen } = Astro.props;
 ---
 <Station id={id} titel={titel} art="Quiz">
   <form class="quiz" data-kw-quiz data-fragen={JSON.stringify(fragen)}>
-    <p class="leise klein">Alle Fragen müssen stimmen. Du kannst es beliebig oft versuchen.</p>
+    <p class="leise klein">{fragen.length > 1 ? 'Alle Fragen müssen stimmen. ' : ''}Du kannst es beliebig oft versuchen.</p>
     <div data-quiz-fragen></div>
     <button class="knopf" type="submit">Antworten prüfen</button>
   </form>
@@ -59,7 +59,7 @@ const { id, titel = 'Quiz', fragen } = Astro.props;
         erk.hidden = ok || !f.erklaerung || !wahl;
         erk.textContent = f.erklaerung ? `Tipp: ${f.erklaerung}` : '';
       });
-      if (richtig === fragen.length) s.bestehen(`Alle ${fragen.length} Antworten richtig.`);
+      if (richtig === fragen.length) s.bestehen(fragen.length === 1 ? 'Richtig.' : `Alle ${fragen.length} Antworten richtig.`);
       else s.fehl(`${richtig} von ${fragen.length} richtig. Sieh dir die markierten Fragen noch einmal an.`);
     });
   });
