@@ -1,0 +1,186 @@
+---
+id: m-3-3
+abzeichen: Schlüsselmeister
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: k4
+  - id: geraet
+    hardware: true
+spick:
+  - t: "HTTPS"
+    v: "HTTP + TLS: verschlüsselt und mit Ausweis"
+  - t: "Kette"
+    v: "Server → Zwischenstelle → Wurzel"
+  - t: "Wurzeln laden"
+    v: "client.setCACert(WURZELN);"
+  - t: "Uhrzeit holen"
+    v: "configTime(0, 0, \"pool.ntp.org\");"
+  - t: "Statuscode positiv"
+    v: "Verbindung hat geklappt (auch bei 401 oder 404)"
+  - t: "Statuscode negativ"
+    v: "Verbindung gescheitert, oft am Zertifikat"
+  - t: "Nie im fertigen Gerät"
+    v: "setInsecure()"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Seriell from '../components/Seriell.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+import { url as seitenUrl } from '../config';
+
+In Mission 3.2 hast du gesehen: Wer deine Webhook-Adresse kennt, kann in deinem Namen schreiben. Schickt die Klingel sie unverschlüsselt durchs WLAN, kann sie jeder mitlesen, der im selben Netz ist. Darum sprechen Discord und Telegram nur **HTTPS**. **Deine Mission: Bau eine verschlüsselte Verbindung auf und prüf, ob der Server echt ist.**
+
+## Theorie
+
+<Karte nr={1} titel="Verschlüsseln und Ausweis zeigen">
+**HTTPS** ist HTTP mit einer Schutzschicht namens **TLS**. Sie leistet zwei Dinge: Sie **verschlüsselt** alles, was hin- und hergeht, sodass Mitlesende nur Zeichensalat sehen. Und sie lässt den Server einen **Ausweis** zeigen, das **Zertifikat**. Damit prüft der ESP32, dass er wirklich mit discord.com spricht und nicht mit einem Betrüger dazwischen.
+</Karte>
+
+<Merke>HTTPS verschlüsselt und prüft den Ausweis des Servers. Beides zusammen macht die Verbindung sicher.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: HTTPS" fragen={[
+  { frage: 'Wozu dient das Zertifikat bei HTTPS?', richtig: 'Der Server beweist damit, dass er wirklich der ist, für den er sich ausgibt.', falsch: ['Es macht die Verbindung schneller.', 'Es ersetzt das WLAN-Passwort.'], erklaerung: 'Verschlüsselung allein reicht nicht: Man muss auch wissen, mit wem man spricht.' },
+]} />
+
+<Karte nr={2} titel="Die Vertrauenskette">
+Wer stellt den Ausweis aus? Eine **Zertifizierungsstelle**. Das Zertifikat von discord.com ist von einer Zwischenstelle unterschrieben, und die wiederum von einer **Wurzel** (Root). Dein Handy und dein Browser kennen weit über hundert solcher Wurzeln von Haus aus. Dem ESP32 musst du sie selbst mitgeben. Stimmt die Kette bis zu einer bekannten Wurzel, gilt der Server als echt.
+</Karte>
+
+<Merke>Server → Zwischenstelle → Wurzel. Der ESP32 vertraut nur Wurzeln, die du ihm mitgibst.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Kette" fragen={[
+  { frage: 'Warum musst du dem ESP32 Wurzelzertifikate mitgeben, deinem Handy aber nicht?', richtig: 'Das Handy bringt eine Liste mit, der ESP32 hat dafür keinen Platz eingebaut.', falsch: ['Weil der ESP32 kein WLAN hat', 'Weil Discord nur mit Handys spricht'], erklaerung: 'Betriebssysteme und Browser bringen einen Zertifikatsspeicher mit. Auf dem ESP32 entscheidest du selbst.' },
+]} />
+
+<Karte nr={3} titel="Ohne Uhrzeit kein Vertrauen">
+Jedes Zertifikat gilt nur in einem bestimmten Zeitraum. Um das zu prüfen, braucht der ESP32 die richtige Uhrzeit. Er hat aber keine Uhr mit Batterie: Nach dem Einschalten glaubt er, es sei der 1. Januar 1970. Deshalb holt er sich die Zeit zuerst über das Internet, mit **NTP** (Network Time Protocol). Das dauert meist nur einen Moment.
+</Karte>
+
+<Merke>Erst die Uhrzeit holen (NTP), dann HTTPS. Sonst hält der ESP32 jedes Zertifikat für ungültig.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Uhrzeit" fragen={[
+  { frage: 'Warum holt sich der ESP32 vor der HTTPS-Verbindung die Uhrzeit?', richtig: 'Um zu prüfen, ob das Zertifikat gerade gültig ist', falsch: ['Damit die Nachricht einen Zeitstempel hat', 'Weil WLAN ohne Uhrzeit nicht funktioniert'], erklaerung: 'Zertifikate haben ein Gültig-ab- und ein Gültig-bis-Datum.' },
+]} />
+
+<Karte nr={4} titel="Die Abkürzung, die du nicht nimmst">
+In vielen Anleitungen steht `client.setInsecure()`. Damit verschlüsselt der ESP32 zwar, prüft aber den Ausweis nicht mehr. Jeder kann sich dann als Discord ausgeben und deinen Token abgreifen. Zum kurzen Ausprobieren mag das gehen. In deiner Klingel hat es nichts zu suchen.
+</Karte>
+
+<Merke>setInsecure() schaltet die Ausweisprüfung ab. Nicht in der fertigen Klingel.</Merke>
+
+<Quiz id="k4" titel="Kurzcheck: setInsecure" fragen={[
+  { frage: 'Was passiert mit setInsecure()?', richtig: 'Die Verbindung ist verschlüsselt, aber der Server wird nicht mehr geprüft.', falsch: ['Die Verbindung ist gar nicht mehr verschlüsselt.', 'Nichts, das ist nur eine Warnung.'], erklaerung: 'Ohne Prüfung weißt du nicht, mit wem du verschlüsselt sprichst.' },
+]} />
+
+## Die Wurzeln für deine Klingel
+
+Die Datei **wurzeln.h** enthält neun Wurzelzertifikate aus dem Zertifikatsspeicher von Mozilla. Damit erreicht der ESP32 Telegram und Discord. Discord läuft über den Dienst Cloudflare, und der wechselt zwischen mehreren Zertifizierungsstellen. Deshalb sind mehrere Wurzeln drin, nicht nur eine. Am Anfang der Datei stehen Name, Ablaufdatum und Fingerabdruck jeder Wurzel. Die erste läuft 2035 ab.
+
+<p><a class="knopf zweit" href={seitenUrl('firmware/wurzeln.h')} download="wurzeln.h">wurzeln.h herunterladen</a></p>
+
+<Checkliste id="vorbereiten" punkte={[
+  'In der Arduino IDE einen neuen Sketch anlegen und speichern, zum Beispiel als <code>verschluesselt</code>.',
+  'Über <strong>Sketch → Datei hinzufügen …</strong> die heruntergeladene <code>wurzeln.h</code> auswählen. Sie erscheint als eigener Tab.',
+  'Den Code unten in den Haupt-Tab kopieren und WLAN-Namen und Passwort eintragen.',
+  'Hochladen und den seriellen Monitor mit 115200 Baud öffnen.',
+]} />
+
+```cpp
+// 0 to Hero – Mission 3.3: Verschlüsselt
+// Baut zwei HTTPS-Verbindungen auf und prüft dabei die Zertifikate.
+// Kommt ein HTTP-Statuscode zurück (egal welcher), hat die Verschlüsselung geklappt.
+// Eine negative Zahl heißt: Die Verbindung kam gar nicht zustande.
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <HTTPClient.h>
+#include <time.h>
+#include "wurzeln.h"
+
+const char* WLAN_NAME = "DEIN_WLAN";
+const char* WLAN_PASSWORT = "DEIN_PASSWORT";
+
+// Zertifikate sind nur in einem bestimmten Zeitraum gültig.
+// Deshalb braucht der ESP32 zuerst die richtige Uhrzeit aus dem Internet (NTP).
+bool uhrzeitHolen() {
+  configTime(0, 0, "pool.ntp.org", "time.google.com");
+  Serial.print("Hole Uhrzeit");
+  for (int i = 0; i < 40; i++) {
+    if (time(nullptr) > 1700000000) {       // nach November 2023: Uhrzeit ist gesetzt
+      time_t jetzt = time(nullptr);
+      Serial.print("\nUhrzeit (UTC): ");
+      Serial.print(ctime(&jetzt));
+      return true;
+    }
+    Serial.print(".");
+    delay(250);
+  }
+  Serial.println("\nKeine Uhrzeit bekommen.");
+  return false;
+}
+
+int httpsAbrufen(const char* url) {
+  WiFiClientSecure client;
+  client.setCACert(WURZELN);     // nur Server akzeptieren, deren Kette bei einer dieser Wurzeln endet
+  HTTPClient https;
+  if (!https.begin(client, url)) return -100;
+  int code = https.GET();
+  Serial.print("GET ");
+  Serial.print(url);
+  Serial.print(" -> ");
+  Serial.println(code);
+  if (code < 0) {
+    Serial.print("Fehler: ");
+    Serial.println(https.errorToString(code));
+  }
+  https.end();
+  return code;
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(500);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WLAN_NAME, WLAN_PASSWORT);
+  Serial.print("WLAN");
+  while (WiFi.status() != WL_CONNECTED) { Serial.print("."); delay(250); }
+  Serial.println(" verbunden");
+
+  uhrzeitHolen();
+
+  int discord = httpsAbrufen("https://discord.com/api/v10/gateway");
+  int telegram = httpsAbrufen("https://api.telegram.org/bot123:ungueltig/getMe");
+
+  if (discord > 0 && telegram > 0) {
+    Serial.println("Beide Verbindungen verschlüsselt und geprüft.");
+    Serial.printf("KW-CHECK:m-3-3:%012llX:%d:%d\n", (unsigned long long)ESP.getEfuseMac(), discord, telegram);
+  } else {
+    Serial.println("Mindestens eine Verbindung ist gescheitert. Siehe Fehlermeldung oben.");
+  }
+}
+
+void loop() {}
+```
+
+## Was du sehen solltest
+
+Bei Discord fragt das Programm eine öffentliche Adresse ab, die jeder abrufen darf. Dort sollte **200** zurückkommen. Bei Telegram schickt es absichtlich einen erfundenen Token. Dort kommt ein **4xx-Code** zurück, zum Beispiel 401 oder 404. Das ist hier ein gutes Zeichen: Der Server hat geantwortet, also hat die verschlüsselte Verbindung mit geprüftem Zertifikat geklappt. Abgelehnt wurde nur der falsche Token.
+
+<Merke>Jede positive Zahl heißt: TLS hat geklappt. Eine negative Zahl heißt: Die Verbindung ist schon vorher gescheitert.</Merke>
+
+<Hinweis titel="Negative Zahl?">
+Steht dort `-1` und darüber eine Meldung mit `X509` oder `Certificate verification failed`, passt keine Wurzel. Prüfe, ob `wurzeln.h` im Sketch steckt und ob „Uhrzeit (UTC)“ ein heutiges Datum zeigt. Nutzt dein Router einen Filter, der HTTPS aufbricht (manche Firmen- und Schulnetze tun das), klappt es dort nicht. Dann probier es zu Hause.
+</Hinweis>
+
+## Gerätenachweis
+
+<Seriell id="geraet" titel="Gerätenachweis: Zwei geprüfte Verbindungen" muster="^KW-CHECK:m-3-3:[0-9A-F]{12}:\d{3}:\d{3}$" hinweis="Die Zeile erscheint nur, wenn beide Server geantwortet haben." />
+
+<details>
+<summary><strong>Vertiefung: Wie lange halten die Wurzeln?</strong></summary>
+
+Wurzelzertifikate gelten viele Jahre. Die Zwischenstellen und die Zertifikate der Server wechseln dagegen alle paar Monate. Weil der ESP32 nur die Wurzel kennen muss, merkt er davon nichts. Kritisch wird es erst, wenn ein Dienst zu einer Zertifizierungsstelle wechselt, deren Wurzel nicht in `wurzeln.h` steht. Dann erzeugt man die Datei neu. Das Werkzeug dafür liegt im Repository unter `firmware/werkzeuge/wurzeln_erzeugen.py`.
+</details>

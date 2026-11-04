@@ -1,0 +1,146 @@
+---
+// HTTP-Baukasten: Eine Anfrage aus Methode, Adresse, Header und Inhalt zusammenstecken
+// und an einen simulierten Discord-Webhook schicken. Der Server ist vereinfacht nachgebaut,
+// die Statuscodes und Fehlermeldungen orientieren sich an der Discord-Dokumentation.
+import Station from './Station.astro';
+interface Aufgabe { text: string; ziel: number; tipp: string; }
+interface Props { id: string; titel: string; aufgaben: Aufgabe[]; }
+const { id, titel, aufgaben } = Astro.props;
+const adressen = [
+  'https://discord.com/api/webhooks/1234/geheim',
+  'https://discord.com/api/webhooks/1234/falsch',
+  'https://discord.com/api/webhooks/9999/geheim',
+  'http://discord.com/api/webhooks/1234/geheim',
+];
+---
+<Station id={id} titel={titel} art="Übung">
+  <div class="af" data-kw-anfrage data-aufgaben={JSON.stringify(aufgaben)}>
+    <p class="af-aufgabe" data-af-aufgabe aria-live="polite"></p>
+    <p class="leise klein">Dein Übungs-Webhook hat die Adresse <code>…/webhooks/1234/geheim</code>. Der Teil hinter der Zahl ist der Token, also das Passwort.</p>
+
+    <div class="af-raster">
+      <fieldset>
+        <legend>1. Methode</legend>
+        {['GET', 'POST', 'DELETE'].map((m) => (
+          <label><input type="radio" name={`${id}-methode`} value={m} checked={m === 'GET'} /> <code>{m}</code></label>
+        ))}
+      </fieldset>
+      <fieldset>
+        <legend>2. Header Content-Type</legend>
+        {['keiner', 'application/json', 'text/plain'].map((h) => (
+          <label><input type="radio" name={`${id}-typ`} value={h} checked={h === 'keiner'} /> <code>{h}</code></label>
+        ))}
+      </fieldset>
+    </div>
+    <fieldset>
+      <legend>3. Adresse (URL)</legend>
+      {adressen.map((a, i) => (
+        <label class="af-url"><input type="radio" name={`${id}-url`} value={a} checked={i === 0} /> <code>{a}</code></label>
+      ))}
+    </fieldset>
+    <label class="af-body-label" for={`${id}-body`}><strong>4. Inhalt (Body)</strong> <span class="leise klein">nur bei POST wichtig</span></label>
+    <textarea id={`${id}-body`} data-af-body rows="3" spellcheck="false">{'{"content": "Es klingelt!"}'}</textarea>
+
+    <div class="af-knoepfe">
+      <button class="knopf" type="button" data-af-senden>Anfrage senden</button>
+      <button class="knopf zweit" type="button" data-af-neu hidden>Webhook neu anlegen</button>
+    </div>
+
+    <div class="af-paar">
+      <div>
+        <p class="af-kopf">Das schickt der ESP32</p>
+        <pre data-af-anfrage></pre>
+      </div>
+      <div>
+        <p class="af-kopf">Das antwortet der Server</p>
+        <pre data-af-antwort>(noch nichts gesendet)</pre>
+      </div>
+    </div>
+  </div>
+</Station>
+
+<script>
+  import { station } from '../scripts/station';
+
+  interface Antwort { code: number; text: string; kopf?: string[]; body?: string; fehler?: string; }
+  const STATUS: Record<number, string> = { 200: 'OK', 204: 'No Content', 301: 'Moved Permanently', 400: 'Bad Request', 401: 'Unauthorized', 404: 'Not Found', 405: 'Method Not Allowed' };
+
+  document.querySelectorAll<HTMLElement>('[data-kw-anfrage]').forEach((box) => {
+    const s = station(box.closest('[data-kw-check]') as HTMLElement);
+    const aufgaben = JSON.parse(box.dataset.aufgaben!) as { text: string; ziel: number; tipp: string }[];
+    let nr = 0;
+    let geloescht = false;
+    const wert = (name: string) => box.querySelector<HTMLInputElement>(`input[name="${s.cid}-${name}"]:checked`)!.value;
+    const body = box.querySelector<HTMLTextAreaElement>('[data-af-body]')!;
+    const neu = box.querySelector<HTMLButtonElement>('[data-af-neu]')!;
+
+    function aufgabeZeigen() {
+      const el = box.querySelector('[data-af-aufgabe]')!;
+      el.textContent = nr < aufgaben.length ? `Aufgabe ${nr + 1} von ${aufgaben.length}: ${aufgaben[nr].text}` : 'Alle Aufgaben gelöst. Probier ruhig weiter herum.';
+    }
+
+    // Vereinfachter Nachbau eines Discord-Webhooks
+    function server(methode: string, url: string, typ: string, inhalt: string): Antwort {
+      if (url.startsWith('http://')) return { code: 301, text: '', kopf: ['Location: ' + url.replace('http://', 'https://')], fehler: 'Unverschlüsselt: Der Server leitet auf HTTPS um. Wer im selben Netz mithört, hätte deinen Token gerade lesen können.' };
+      const m = url.match(/webhooks\/(\d+)\/(\w+)$/)!;
+      if (m[1] !== '1234' || geloescht) return { code: 404, text: '', body: '{"message": "Unknown Webhook", "code": 10015}' };
+      if (m[2] !== 'geheim') return { code: 401, text: '', body: '{"message": "Invalid Webhook Token", "code": 50027}' };
+      if (methode === 'GET') return { code: 200, text: '', kopf: ['Content-Type: application/json'], body: '{"name": "Klingel", "channel_id": "5678", "token": "geheim"}' };
+      if (methode === 'DELETE') { geloescht = true; neu.hidden = false; return { code: 204, text: '', fehler: 'Der Webhook ist gelöscht. Jeder, der die URL kennt, hätte das tun können. Darum geht es in Mission 3.4.' }; }
+      // POST
+      if (typ !== 'application/json') return { code: 400, text: '', body: '{"message": "Cannot send an empty message", "code": 50006}', fehler: 'Ohne Content-Type application/json versteht der Server deinen Inhalt nicht als JSON.' };
+      let daten: any;
+      try { daten = JSON.parse(inhalt); } catch { return { code: 400, text: '', body: '{"message": "The request body contains invalid JSON.", "code": 50109}' }; }
+      const c = typeof daten?.content === 'string' ? daten.content.trim() : '';
+      if (!c) return { code: 400, text: '', body: '{"message": "Cannot send an empty message", "code": 50006}' };
+      if (c.length > 2000) return { code: 400, text: '', body: '{"content": ["Must be 2000 or fewer in length."]}' };
+      return { code: 204, text: '', fehler: `Im Kanal erscheint jetzt: „${c}“` };
+    }
+
+    box.querySelector('[data-af-senden]')!.addEventListener('click', () => {
+      const methode = wert('methode'), url = wert('url'), typ = wert('typ');
+      const u = new URL(url);
+      const zeilen = [`${methode} ${u.pathname} HTTP/1.1`, `Host: ${u.host}`];
+      if (typ !== 'keiner') zeilen.push(`Content-Type: ${typ}`);
+      const mitBody = methode === 'POST';
+      box.querySelector('[data-af-anfrage]')!.textContent = zeilen.join('\n') + (mitBody ? '\n\n' + body.value : '');
+
+      const a = server(methode, url, typ, mitBody ? body.value : '');
+      const antwort = [`HTTP/1.1 ${a.code} ${STATUS[a.code] ?? ''}`, ...(a.kopf ?? [])].join('\n') + (a.body ? '\n\n' + a.body : '');
+      box.querySelector('[data-af-antwort]')!.textContent = antwort;
+
+      const zusatz = a.fehler ? ' ' + a.fehler : '';
+      if (nr >= aufgaben.length) { s.melden(`Statuscode ${a.code}.${zusatz}`, a.code < 300 ? 'gut' : 'warnung'); return; }
+      if (s.gesperrt()) return;
+      const auf = aufgaben[nr];
+      if (a.code === auf.ziel) {
+        nr++;
+        aufgabeZeigen();
+        if (nr >= aufgaben.length) s.bestehen(`Statuscode ${a.code}, genau richtig.${zusatz} Alle Aufgaben gelöst.`);
+        else s.melden(`Statuscode ${a.code}, genau richtig.${zusatz} Weiter mit der nächsten Aufgabe.`, 'gut');
+      } else {
+        s.melden(`Statuscode ${a.code}, gesucht ist ${auf.ziel}.${zusatz} Tipp: ${auf.tipp}`, 'warnung');
+      }
+    });
+    neu.addEventListener('click', () => { geloescht = false; neu.hidden = true; s.melden('Neuer Webhook angelegt, gleiche Adresse.', ''); });
+    aufgabeZeigen();
+  });
+</script>
+
+<style>
+  .af-aufgabe { font-weight: 700; }
+  .af fieldset { border: 1px solid var(--flaeche); border-radius: var(--radius-klein); margin: 0 0 0.8rem; padding: 0.5rem 0.8rem; }
+  .af legend { font-weight: 700; padding: 0 0.3rem; }
+  .af label { display: block; padding: 0.2rem 0; cursor: pointer; }
+  .af input[type='radio'] { accent-color: var(--akzent); }
+  .af-raster { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+  .af-raster fieldset { margin: 0 0 0.8rem; }
+  .af-url code { word-break: break-all; }
+  .af-body-label { display: block; margin-bottom: 0.3rem; }
+  .af textarea { width: 100%; font-family: var(--mono); font-size: 0.9rem; }
+  .af-knoepfe { display: flex; gap: 0.8rem; flex-wrap: wrap; margin: 0.8rem 0; }
+  .af-paar { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+  .af-kopf { font-size: 0.85rem; color: var(--leise); margin: 0 0 0.3rem; }
+  .af pre { margin: 0; white-space: pre-wrap; word-break: break-all; min-height: 5rem; font-size: 0.82rem; }
+  @media (max-width: 640px) { .af-raster, .af-paar { grid-template-columns: 1fr; } }
+</style>

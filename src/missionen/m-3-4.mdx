@@ -1,0 +1,152 @@
+---
+id: m-3-4
+abzeichen: Verschwiegen
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: k4
+  - id: review
+  - id: geraet
+    hardware: true
+spick:
+  - t: "Geheim sind"
+    v: "WLAN-Passwort, Webhook-URL, Bot-Token"
+  - t: "Wohin damit"
+    v: "In die Datei secrets.h im Sketch-Ordner"
+  - t: "Einbinden"
+    v: "#include \"secrets.h\""
+  - t: "Schutz vor GitHub"
+    v: "secrets.h steht in der .gitignore"
+  - t: "Ausgeplaudert?"
+    v: "Sofort ungültig machen, nicht nur löschen"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Seriell from '../components/Seriell.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+
+Bald steht in deinem Programm ein Schlüssel zu deinem Chat. Und vielleicht willst du deinen Code später zeigen: in einem Forum, wenn etwas nicht klappt, oder auf GitHub. Dann darf der Schlüssel nicht mitreisen. **Deine Mission: Zieh die Zugangsdaten aus dem Programm in eine eigene Datei.**
+
+## Theorie
+
+<Karte nr={1} titel="Was alles ein Schlüssel ist">
+Drei Dinge in deiner Klingel sind geheim: das **WLAN-Passwort**, die **Webhook-URL** von Discord und der **Bot-Token** von Telegram. URL und Token sehen harmlos aus, sind aber vollwertige Schlüssel. Wer sie hat, kann in deinem Namen schreiben, ohne sich anzumelden. In Mission 3.2 hast du gesehen, dass man mit der URL einen Webhook sogar löschen kann.
+</Karte>
+
+<Merke>Webhook-URL und Bot-Token sind Passwörter, auch wenn sie nicht so aussehen.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Was ist geheim?" fragen={[
+  { frage: 'Welche dieser Angaben darfst du bedenkenlos zeigen?', richtig: 'Die Pin-Nummer des Tasters (GPIO 4)', falsch: ['Die Webhook-URL', 'Den Telegram-Bot-Token'], erklaerung: 'Pin-Nummern verraten nichts. URL und Token sind Schlüssel zu deinem Chat.' },
+]} />
+
+<Karte nr={2} titel="Eine eigene Datei">
+Die Lösung: Alle Geheimnisse kommen in eine Datei namens **secrets.h**. Das Programm holt sie mit `#include "secrets.h"` herein. Teilst du dein Programm, lässt du diese eine Datei weg. Die Arduino IDE zeigt jede `.h`-Datei im Sketch-Ordner als eigenen Tab an, du siehst also immer, dass sie da ist.
+</Karte>
+
+<Merke>Geheimnisse wohnen in secrets.h. Das Programm selbst enthält keine.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: secrets.h" fragen={[
+  { frage: 'Du willst dein Klingel-Programm in einem Forum zeigen. Was teilst du?', richtig: 'Die .ino-Datei, ohne secrets.h', falsch: ['Den ganzen Ordner mit secrets.h', 'Einen Screenshot von secrets.h'], erklaerung: 'secrets.h bleibt bei dir. Alles andere kannst du zeigen.' },
+]} />
+
+<Karte nr={3} titel="Die .gitignore">
+Auf GitHub lädt man meist ganze Ordner hoch, da rutscht eine Datei schnell mit. Die Datei **.gitignore** listet auf, was Git nie hochladen soll. In diesem Projekt steht dort schon `firmware/**/secrets.h`. Mit einer Vorlage namens `secrets.example.h` zeigst du anderen trotzdem, welche Angaben nötig sind, nur eben mit Platzhaltern.
+</Karte>
+
+<Merke>Die .gitignore hält secrets.h von GitHub fern. Teilen kannst du nur die Vorlage mit Platzhaltern.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: .gitignore" fragen={[
+  { frage: 'Wozu dient secrets.example.h?', richtig: 'Sie zeigt mit Platzhaltern, welche Angaben nötig sind, und darf geteilt werden.', falsch: ['Sie enthält die echten Passwörter als Sicherung.', 'Die Arduino IDE braucht sie zum Übersetzen.'], erklaerung: 'Die Vorlage ist für andere. Deine echten Daten stehen nur in secrets.h.' },
+]} />
+
+<Karte nr={4} titel="Wenn es doch passiert ist">
+Ein Schlüssel ist ausgeplaudert, zum Beispiel weil secrets.h doch auf GitHub gelandet ist? Dann reicht Löschen nicht, denn Git merkt sich alte Versionen, und Bots durchsuchen GitHub gezielt nach Schlüsseln. Mach den Schlüssel **ungültig**: Bei Discord löschst du den Webhook und legst einen neuen an. Bei Telegram schickst du `/revoke` an @BotFather und bekommst einen neuen Token. Das WLAN-Passwort änderst du im Router.
+</Karte>
+
+<Merke>Ausgeplaudert? Schlüssel ungültig machen und neu erzeugen. Löschen allein reicht nicht.</Merke>
+
+<Quiz id="k4" titel="Kurzcheck: Notfall" fragen={[
+  { frage: 'Dein Telegram-Token stand eine Stunde lang öffentlich auf GitHub. Was tust du?', richtig: 'Bei @BotFather einen neuen Token erzeugen (/revoke) und den alten damit ungültig machen', falsch: ['Die Datei auf GitHub löschen, das reicht', 'Nichts, in einer Stunde findet das niemand'], erklaerung: 'Bots durchsuchen GitHub laufend nach Schlüsseln. Nur ein neuer Token schließt die Lücke sicher.' },
+]} />
+
+## Code-Review
+
+<Quiz id="review" titel="Code-Review: Wo steckt das Geheimnis?" fragen={[
+  { frage: 'Welche Zeile darf so nicht in einer .ino-Datei stehen, die du teilen willst?', richtig: '#define DISCORD_WEBHOOK "https://discord.com/api/webhooks/1199/xY7…"', falsch: ['#include "secrets.h"', 'const int TASTER_PIN = 4;'], erklaerung: 'Eine echte Webhook-URL gehört nach secrets.h.' },
+  { frage: 'Du bittest im Forum um Hilfe und kopierst die Ausgabe des seriellen Monitors. Was machst du vorher?', richtig: 'Token und URLs in der Ausgabe unkenntlich machen', falsch: ['Nichts, Logs sind harmlos', 'Die Baudrate dazuschreiben, mehr nicht'], erklaerung: 'Manche Fehlermeldungen geben die komplette Adresse mit Token aus.' },
+]} />
+
+## Umziehen
+
+<Checkliste id="umziehen" punkte={[
+  'Neuen Sketch anlegen und speichern, zum Beispiel als <code>geheimnisse</code>.',
+  'Rechts neben den Tabs auf die drei Punkte (<strong>…</strong>) klicken, dann <strong>Neuer Tab</strong>, und ihn <code>secrets.h</code> nennen.',
+  'Die Vorlage unten in den Tab <code>secrets.h</code> kopieren und deine WLAN-Daten eintragen.',
+  'Den Code unten in den Haupt-Tab kopieren und hochladen.',
+  'Im seriellen Monitor prüfen: „Verbunden, und kein Passwort steht im Programm.“',
+]} />
+
+**secrets.h** (deine echten Daten, nie teilen):
+
+```cpp
+#pragma once
+
+#define WLAN_NAME      "DEIN_WLAN"
+#define WLAN_PASSWORT  "DEIN_PASSWORT"
+```
+
+**Das Programm** (kann man zeigen):
+
+```cpp
+// 0 to Hero – Mission 3.4: Geheimnisse
+// WLAN-Name und Passwort stehen jetzt in secrets.h, nicht mehr im Programm.
+// Fehlt secrets.h, bricht das Übersetzen mit einer Meldung ab. Das ist Absicht.
+#include <WiFi.h>
+#include <string.h>
+
+#if __has_include("secrets.h")
+#include "secrets.h"
+#else
+#error "secrets.h fehlt: Kopiere secrets.example.h, nenne die Kopie secrets.h und trag deine Daten ein."
+#endif
+
+void setup() {
+  Serial.begin(115200);
+  delay(500);
+
+  if (strcmp(WLAN_NAME, "DEIN_WLAN") == 0) {
+    Serial.println("In secrets.h steht noch der Platzhalter. Trag deinen WLAN-Namen ein.");
+    return;
+  }
+
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WLAN_NAME, WLAN_PASSWORT);
+  Serial.print("Verbinde");
+  unsigned long start = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - start < 20000) { Serial.print("."); delay(250); }
+  Serial.println();
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("Verbunden, und kein Passwort steht im Programm.");
+  } else {
+    Serial.println("Keine Verbindung. Stimmen die Daten in secrets.h?");
+  }
+}
+
+void loop() {
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.printf("KW-CHECK:m-3-4:%012llX:secrets-ok\n", (unsigned long long)ESP.getEfuseMac());
+  }
+  delay(5000);
+}
+```
+
+<Hinweis titel="Fehlermeldung „secrets.h fehlt“?">
+Dann liegt die Datei nicht im selben Ordner wie das Programm, oder sie heißt anders, zum Beispiel `secrets.h.txt`. Der Tab muss genau `secrets.h` heißen.
+</Hinweis>
+
+## Gerätenachweis
+
+<Seriell id="geraet" titel="Gerätenachweis: Zugangsdaten ausgelagert" muster="^KW-CHECK:m-3-4:[0-9A-F]{12}:secrets-ok$" />

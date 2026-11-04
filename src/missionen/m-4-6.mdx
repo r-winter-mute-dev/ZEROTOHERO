@@ -1,0 +1,310 @@
+---
+id: m-4-6
+abzeichen: Klingel v1
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: dauer
+    hardware: true
+  - id: geraet
+    hardware: true
+  - id: angekommen
+    hardware: true
+spick:
+  - t: "Ablauf"
+    v: "START → KAMERA → WLAN → UHRZEIT → FOTO → SENDEN → FERTIG"
+  - t: "Bei Fehler"
+    v: "Jeder Zustand kann zu FEHLER wechseln"
+  - t: "Klingelknopf (vorerst)"
+    v: "RST-Taste auf der ESP32-CAM"
+  - t: "Blitz einschalten"
+    v: "MIT_BLITZ = true"
+  - t: "Dauer merken"
+    v: "Brauchst du in Akt 5 für die Akkurechnung"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Zahl from '../components/Zahl.astro';
+import Seriell from '../components/Seriell.astro';
+import Bestaetigung from '../components/Bestaetigung.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+import { url as seitenUrl } from '../config';
+
+Kamera, Blitz, WLAN, Verschlüsselung, Versand: Alles funktioniert einzeln. Jetzt baust du daraus die erste Klingel, die ein Foto schickt. Noch hängt sie am USB-Kabel, und als Klingelknopf dient vorerst die Reset-Taste. **Deine Mission: Bau Klingel v1. Ein Druck, ein Foto im Chat.**
+
+## Theorie
+
+<Karte nr={1} titel="Ablauf als Zustände">
+Die Klingel macht bei jedem Klingeln dieselben Schritte: Kamera starten, WLAN, Uhrzeit, Foto, senden. Jeden Schritt nennt man einen **Zustand**. Das Programm merkt sich, in welchem Zustand es ist, und wechselt erst weiter, wenn der Schritt geklappt hat. So eine Abfolge heißt **Zustandsautomat**. Der Vorteil: Im seriellen Monitor siehst du genau, an welchem Schritt es hängt.
+</Karte>
+
+<Merke>Ein Zustandsautomat geht Schritt für Schritt. Du siehst immer, wo er gerade steht.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Zustände" fragen={[
+  { frage: 'Im seriellen Monitor steht als Letztes „WLAN -> FEHLER“. Wo suchst du?', richtig: 'Beim WLAN: Name, Passwort, 2,4 GHz', falsch: ['Bei der Kamera', 'Beim Discord-Webhook'], erklaerung: 'Der Automat zeigt genau, welcher Schritt gescheitert ist.' },
+]} />
+
+<Karte nr={2} titel="Jeder Schritt kann scheitern">
+Was, wenn das WLAN nicht kommt? Ein Programm, das einfach wartet, hängt für immer, und der Akku ist irgendwann leer. Deshalb hat jeder Schritt eine **Zeitgrenze**, zum Beispiel 15 Sekunden für das WLAN. Klappt es nicht, wechselt der Automat in den Zustand **FEHLER** und sagt, warum. Das ist bei einem Gerät an der Haustür wichtiger als bei einem Versuch auf dem Schreibtisch.
+</Karte>
+
+<Merke>Jeder Schritt hat eine Zeitgrenze. Danach geht es zu FEHLER statt ewig zu warten.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Zeitgrenze" fragen={[
+  { frage: 'Warum wartet die Klingel nicht einfach, bis das WLAN irgendwann kommt?', richtig: 'Sonst hängt sie womöglich für immer und leert den Akku.', falsch: ['Weil das WLAN nach 15 Sekunden abschaltet', 'Weil Discord nur 15 Sekunden wartet'], erklaerung: 'Ein Akkugerät muss auch aufgeben können.' },
+]} />
+
+<Karte nr={3} titel="Klingeln heißt neu starten">
+Die Reset-Taste startet den ESP32 neu, und das Programm läuft einmal von vorne durch. Genau so funktioniert später der Tiefschlaf in Akt 6: Der Chip schläft fast stromlos, ein Druck auf den Klingelknopf weckt ihn, und er beginnt bei `setup()`. Dein Programm ist darauf schon vorbereitet. In Akt 6 tauschst du nur noch die Reset-Taste gegen den echten Knopf.
+</Karte>
+
+<Merke>Jedes Klingeln ist ein Neustart: einmal von vorne durch, dann fertig.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Neustart" fragen={[
+  { frage: 'Was passiert, wenn du in Klingel v1 die Reset-Taste drückst?', richtig: 'Das Programm startet neu und läuft einmal komplett durch, bis zum Foto im Chat.', falsch: ['Das Programm wird gelöscht.', 'Nur das Foto wird neu gemacht, WLAN bleibt verbunden.'], erklaerung: 'Ein Reset beginnt immer bei setup(), mit allem, was dazugehört.' },
+]} />
+
+## Das Programm
+
+<Checkliste id="aufbau" punkte={[
+  'Neuen Sketch anlegen, zum Beispiel <code>klingel-v1</code>. Board: <strong>AI Thinker ESP32-CAM</strong>.',
+  '<code>wurzeln.h</code> über <strong>Sketch → Datei hinzufügen …</strong> hinzufügen, <code>secrets.h</code> als neuen Tab anlegen (wie in Mission 4.4).',
+  'Den Code unten in den Haupt-Tab kopieren und hochladen.',
+  'Den seriellen Monitor öffnen und die <strong>RST</strong>-Taste auf der ESP32-CAM drücken.',
+  'Zusehen, wie die Zustände nacheinander durchlaufen. Am Ende steht die Dauer in Millisekunden.',
+  'Ein paarmal klingeln und die Dauer notieren.',
+]} />
+
+<p><a class="knopf zweit" href={seitenUrl('firmware/wurzeln.h')} download="wurzeln.h">wurzeln.h herunterladen</a></p>
+
+```cpp
+// 0 to Hero – Mission 4.6: Klingel v1
+// Jeder Druck auf den Reset-Taster der ESP32-CAM startet das Programm neu,
+// und das Programm läuft einmal durch: WLAN, Uhrzeit, Foto, senden.
+// So arbeitet später auch der Tiefschlaf (Akt 6): Aufwachen heißt neu starten.
+// In diesem Ordner brauchst du: secrets.h (aus secrets.example.h) und wurzeln.h.
+// Board: "AI Thinker ESP32-CAM".
+
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <HTTPClient.h>
+#include <time.h>
+#include "wurzeln.h"
+#if __has_include("secrets.h")
+#include "secrets.h"
+#else
+#error "secrets.h fehlt: Kopiere secrets.example.h, nenne die Kopie secrets.h und trag deine Daten ein."
+#endif
+
+// ---------- Kamera (AI-Thinker ESP32-CAM) ----------
+// Pinbelegung laut AI-Thinker-Schaltplan. Für andere Kameraboards sind die Pins anders.
+#include "esp_camera.h"
+
+bool kameraStarten(framesize_t groesse, int qualitaet) {
+  camera_config_t c = {};
+  c.pin_pwdn = 32;  c.pin_reset = -1;  c.pin_xclk = 0;
+  c.pin_sccb_sda = 26;  c.pin_sccb_scl = 27;
+  c.pin_d7 = 35;  c.pin_d6 = 34;  c.pin_d5 = 39;  c.pin_d4 = 36;
+  c.pin_d3 = 21;  c.pin_d2 = 19;  c.pin_d1 = 18;  c.pin_d0 = 5;
+  c.pin_vsync = 25;  c.pin_href = 23;  c.pin_pclk = 22;
+  c.xclk_freq_hz = 20000000;            // Takt für den Bildsensor: 20 MHz
+  c.ledc_timer = LEDC_TIMER_0;
+  c.ledc_channel = LEDC_CHANNEL_0;
+  c.pixel_format = PIXFORMAT_JPEG;      // der Sensor liefert gleich ein fertiges JPEG
+  c.frame_size = groesse;
+  c.jpeg_quality = qualitaet;           // 10 = sehr gut, 63 = sehr schlecht
+  c.fb_count = 2;                       // zwei Bildpuffer ...
+  c.fb_location = CAMERA_FB_IN_PSRAM;   // ... im großen PSRAM
+  c.grab_mode = CAMERA_GRAB_LATEST;     // immer das neueste Bild nehmen
+
+  esp_err_t fehler = esp_camera_init(&c);
+  if (fehler != ESP_OK) {
+    Serial.printf("Kamera startet nicht: Fehler 0x%x (%s)\n", (unsigned)fehler, esp_err_to_name(fehler));
+    return false;
+  }
+  return true;
+}
+
+// Die ersten Bilder nach dem Start sind oft zu dunkel oder grünstichig,
+// weil die automatische Belichtung erst ein paar Bilder braucht. Die werfen wir weg.
+camera_fb_t* fotoMachen() {
+  for (int i = 0; i < 3; i++) {
+    camera_fb_t* alt = esp_camera_fb_get();
+    if (alt) esp_camera_fb_return(alt);
+    delay(100);
+  }
+  return esp_camera_fb_get();
+}
+
+// ---------- WLAN und Uhrzeit (wie in Akt 3) ----------
+bool wlanVerbinden(unsigned long maxMs) {
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WLAN_NAME, WLAN_PASSWORT);
+  unsigned long start = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - start < maxMs) delay(100);
+  return WiFi.status() == WL_CONNECTED;
+}
+
+bool uhrzeitHolen(unsigned long maxMs) {
+  configTime(0, 0, "pool.ntp.org", "time.google.com");
+  unsigned long start = millis();
+  while (time(nullptr) < 1700000000 && millis() - start < maxMs) delay(100);
+  return time(nullptr) >= 1700000000;
+}
+
+// ---------- Foto verschicken (multipart/form-data) ----------
+// Der Inhalt besteht aus mehreren Teilen, getrennt durch eine Grenzlinie.
+// Ein Teil ist Text (die Nachricht), ein Teil ist die JPEG-Datei.
+const char* GRENZE = "0toHeroKlingelGrenze";
+
+String teilText(const char* name, const String& wert) {
+  return String("--") + GRENZE + "\r\n"
+       + "Content-Disposition: form-data; name=\"" + name + "\"\r\n\r\n"
+       + wert + "\r\n";
+}
+
+String teilDateiKopf(const char* name) {
+  return String("--") + GRENZE + "\r\n"
+       + "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"klingel.jpg\"\r\n"
+       + "Content-Type: image/jpeg\r\n\r\n";
+}
+
+int fotoSenden(camera_fb_t* fb, const String& text) {
+  String url, kopf;
+#if DIENST == 1
+  url = DISCORD_WEBHOOK;
+  kopf = teilText("payload_json", String("{\"content\":\"") + text + "\"}") + teilDateiKopf("files[0]");
+#elif DIENST == 2
+  url = String("https://api.telegram.org/bot") + TELEGRAM_TOKEN + "/sendPhoto";
+  kopf = teilText("chat_id", String(TELEGRAM_CHAT_ID)) + teilText("caption", text) + teilDateiKopf("photo");
+#else
+#error "DIENST in secrets.h muss 1 (Discord) oder 2 (Telegram) sein."
+#endif
+  String fuss = String("\r\n--") + GRENZE + "--\r\n";
+
+  // Alles in einem Stück im PSRAM zusammensetzen: Kopf + Bild + Fuß
+  size_t laenge = kopf.length() + fb->len + fuss.length();
+  uint8_t* inhalt = (uint8_t*)ps_malloc(laenge);
+  if (!inhalt) { Serial.println("Kein Speicher für den Versand."); return -200; }
+  memcpy(inhalt, kopf.c_str(), kopf.length());
+  memcpy(inhalt + kopf.length(), fb->buf, fb->len);
+  memcpy(inhalt + kopf.length() + fb->len, fuss.c_str(), fuss.length());
+
+  WiFiClientSecure client;
+  client.setCACert(WURZELN);
+  HTTPClient https;
+  https.setTimeout(20000);                 // große Dateien brauchen etwas länger
+  int code = -100;
+  if (https.begin(client, url)) {
+    https.addHeader("Content-Type", String("multipart/form-data; boundary=") + GRENZE);
+    code = https.POST(inhalt, laenge);
+    if (code < 0) { Serial.print("Verbindungsfehler: "); Serial.println(https.errorToString(code)); }
+    else if (code >= 400) { Serial.print("Antwort vom Server: "); Serial.println(https.getString()); }
+    https.end();
+  }
+  free(inhalt);
+  return code;
+}
+
+bool angekommen(int code) {
+#if DIENST == 1
+  return code == 200 || code == 204;
+#else
+  return code == 200;
+#endif
+}
+
+const int BLITZ = 4;
+const bool MIT_BLITZ = false;   // auf true setzen, wenn es an der Tür dunkel ist
+
+// Die Zustände der Klingel. Jeder Zustand weiß, welcher als nächster kommt.
+enum Zustand { START, KAMERA, WLAN, UHRZEIT, FOTO, SENDEN, FERTIG, FEHLER };
+const char* NAMEN[] = {"START", "KAMERA", "WLAN", "UHRZEIT", "FOTO", "SENDEN", "FERTIG", "FEHLER"};
+
+Zustand zustand = START;
+camera_fb_t* bild = nullptr;
+int statuscode = 0;
+unsigned long startzeit = 0;
+String grund = "";
+
+void wechsel(Zustand neu, const String& warum = "") {
+  Serial.printf("[%6lu ms] %s -> %s\n", millis() - startzeit, NAMEN[zustand], NAMEN[neu]);
+  zustand = neu;
+  grund = warum;
+}
+
+void setup() {
+  startzeit = millis();
+  Serial.begin(115200);
+  delay(300);
+  Serial.println();
+  Serial.println("Es klingelt!");
+  pinMode(BLITZ, OUTPUT);
+  digitalWrite(BLITZ, LOW);
+}
+
+void loop() {
+  switch (zustand) {
+    case START:
+      wechsel(KAMERA);
+      break;
+    case KAMERA:
+      if (kameraStarten(FRAMESIZE_VGA, 12)) wechsel(WLAN);
+      else wechsel(FEHLER, "Kamera startet nicht");
+      break;
+    case WLAN:
+      if (wlanVerbinden(15000)) wechsel(UHRZEIT);
+      else wechsel(FEHLER, "kein WLAN");
+      break;
+    case UHRZEIT:
+      if (uhrzeitHolen(10000)) wechsel(FOTO);
+      else wechsel(FEHLER, "keine Uhrzeit");
+      break;
+    case FOTO:
+      if (MIT_BLITZ) digitalWrite(BLITZ, HIGH);
+      bild = fotoMachen();
+      digitalWrite(BLITZ, LOW);
+      if (bild) wechsel(SENDEN);
+      else wechsel(FEHLER, "kein Bild");
+      break;
+    case SENDEN:
+      statuscode = fotoSenden(bild, "Es klingelt!");
+      esp_camera_fb_return(bild);
+      bild = nullptr;
+      if (angekommen(statuscode)) wechsel(FERTIG);
+      else wechsel(FEHLER, String("Statuscode ") + String(statuscode));
+      break;
+    case FERTIG: {
+      unsigned long dauer = millis() - startzeit;
+      Serial.printf("Geschafft in %lu ms. Zum nächsten Klingeln: Reset-Taster drücken.\n", dauer);
+      Serial.printf("KW-CHECK:m-4-6:%012llX:%d:%lu\n", (unsigned long long)ESP.getEfuseMac(), statuscode, dauer);
+      while (true) delay(1000);    // nichts mehr zu tun, bis zum nächsten Reset
+    }
+    case FEHLER:
+      Serial.print("Fehler: ");
+      Serial.println(grund);
+      Serial.println("Zum neuen Versuch: Reset-Taster drücken.");
+      while (true) delay(1000);
+  }
+}
+```
+
+<Merke>Ist es an der Tür dunkel, setz MIT_BLITZ auf true. Der Blitz leuchtet dann nur für die Aufnahme.</Merke>
+
+## Messen und nachweisen
+
+<Zahl id="dauer" titel="Messwert: Wie lange dauert ein Klingeln?" frage="Welche Dauer zeigt der serielle Monitor bei „Geschafft in … ms“?" einheit="ms" min={1000} max={30000} vorlaeufig hilfe={[
+  { unter: 1000, text: 'Weniger als eine Sekunde ist für WLAN, Uhrzeit und HTTPS kaum möglich. Hast du Sekunden statt Millisekunden eingetragen?' },
+  { ueber: 30000, text: 'Mehr als 30 Sekunden ist sehr lang. Ist das WLAN-Signal schwach (Mission 3.1)? Trag zur Not trotzdem den Wert vom zweiten Versuch ein.' },
+]} />
+
+<Hinweis titel="Merk dir die Zahl">
+Die Dauer ist die Zeit, in der die Klingel bei jedem Klingeln voll Strom zieht. In Akt 5 rechnest du damit aus, wie viele Klingeln ein Akku schafft.
+</Hinweis>
+
+<Seriell id="geraet" titel="Gerätenachweis: Klingel v1" muster="^KW-CHECK:m-4-6:[0-9A-F]{12}:(200|204):\d{3,}$" />
+
+<Bestaetigung id="angekommen" titel="Foto beim Klingeln" text="Ein Druck auf die Reset-Taste schickt ein Foto in meinen Chat." />

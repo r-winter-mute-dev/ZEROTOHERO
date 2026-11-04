@@ -1,0 +1,91 @@
+---
+id: m-4-boss
+abzeichen: Stromdetektiv
+checks:
+  - id: boss
+spick:
+  - t: "Brownout"
+    v: "Spannung bricht ein, der Chip startet zur Sicherheit neu"
+  - t: "Stromspitzen"
+    v: "WLAN-Start, Senden, Blitz"
+  - t: "0x105"
+    v: "ESP_ERR_NOT_FOUND"
+  - t: "0x101"
+    v: "ESP_ERR_NO_MEM"
+---
+import Logdiagnose from '../components/Logdiagnose.astro';
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Kamera, WLAN und Blitz sind die stromhungrigsten Teile der Klingel. Wenn sie gleichzeitig loslegen, wird es eng. Laut AI-Thinker zieht das Board rund 180 mA, mit voll leuchtendem Blitz rund 310 mA [Fachquelle: AI-Thinker, Datenblatt ESP32-CAM]. Kurze Spitzen beim Funken liegen noch darüber. **Dein Bosskampf: Fünf Kameras machen Ärger. Finde heraus, ob es am Strom, an der Kamera, am Speicher oder am Programm liegt.**
+
+<Karte titel="Brownout: Wenn die Spannung einknickt">
+Zieht das Board plötzlich viel Strom, sinkt die Spannung kurz ab, vor allem bei dünnen oder langen USB-Kabeln. Fällt sie zu weit, schlägt der **Brownout-Detektor** an und startet den Chip neu. Das ist ein Schutz: Mit zu wenig Spannung würde der Chip unberechenbar arbeiten. In manchen Anleitungen wird der Detektor einfach abgeschaltet. Das versteckt das Problem nur.
+</Karte>
+
+<Merke>Brownout heißt: Die Versorgung ist zu schwach. Besseres Kabel oder Netzteil, nicht den Detektor abschalten.</Merke>
+
+<Hinweis titel="Lesetipp">
+Die Logs sind gekürzte Beispiele. Zeilen mit `E (…)` oder `[E]` kommen vom ESP32 selbst, Zeilen mit Uhrzeit in eckigen Klammern von Klingel v1.
+</Hinweis>
+
+<Logdiagnose id="boss" titel="Bosskampf: Reset beim Einschalten der Kamera" anzahl={5} faelle={[
+  {
+    symptom: 'Klingel v1 startet immer wieder von vorne, sobald das WLAN loslegt.',
+    log: 'Es klingelt!\n[     2 ms] START -> KAMERA\n[   412 ms] KAMERA -> WLAN\nBrownout detector was triggered\n\nets Jun  8 2016 00:22:57\nrst:0xc (SW_CPU_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)\nEs klingelt!',
+    richtig: 'Die Versorgung ist zu schwach. Kamera und WLAN zusammen ziehen mehr, als Kabel oder USB-Anschluss liefern.',
+    falsch: ['Das WLAN-Passwort ist falsch.', 'Das Flachbandkabel der Kamera ist locker.', 'Das PSRAM ist ausgeschaltet.'],
+    erklaerung: 'Der Neustart kommt genau beim Wechsel zu WLAN, also bei der ersten großen Stromspitze. Kürzeres, dickeres Kabel oder ein USB-Anschluss direkt am Computer helfen.',
+  },
+  {
+    symptom: 'Ohne Blitz klappt alles. Mit MIT_BLITZ = true startet das Board beim Foto neu.',
+    log: '[  2981 ms] UHRZEIT -> FOTO\nBrownout detector was triggered\n\nets Jun  8 2016 00:22:57\nrst:0xc (SW_CPU_RESET)\nEs klingelt!',
+    richtig: 'Der Blitz kommt als zusätzliche Last dazu. Gemeinsam mit Kamera und WLAN bricht die Spannung ein.',
+    falsch: ['Der Transistor für den Blitz ist kaputt.', 'Die Uhrzeit ist falsch.', 'Die JPEG-Qualität ist zu hoch.'],
+    erklaerung: 'Der Blitz zieht über 100 mA zusätzlich. Eine bessere Versorgung löst das. Genau darum kümmert sich Akt 5.',
+  },
+  {
+    symptom: 'Die Kamera startet überhaupt nicht.',
+    log: 'E (512) camera: Camera probe failed with error 0x105(ESP_ERR_NOT_FOUND)\nKamera startet nicht: Fehler 0x105 (ESP_ERR_NOT_FOUND)',
+    richtig: 'Der Chip findet die Kamera nicht. Fast immer sitzt das Flachbandkabel nicht richtig im Stecker.',
+    falsch: ['Das Board hat kein PSRAM.', 'Die Versorgung ist zu schwach.', 'Die Baudrate stimmt nicht.'],
+    erklaerung: '„probe failed“ und NOT_FOUND: Beim Abfragen hat sich keine Kamera gemeldet. Strom trennen, Lasche öffnen, Kabel gerade einschieben, Lasche schließen.',
+  },
+  {
+    symptom: 'Gleiches Programm, neuer Computer: Plötzlich startet die Kamera nicht mehr.',
+    log: 'Kein PSRAM gefunden.\nE (532) cam_hal: cam_dma_config(301): frame buffer malloc failed\nKamera startet nicht: Fehler 0x101 (ESP_ERR_NO_MEM)',
+    richtig: 'In der Arduino IDE ist das falsche Board gewählt. Ohne „AI Thinker ESP32-CAM“ bleibt das PSRAM aus.',
+    falsch: ['Das Flachbandkabel ist locker.', 'Die Kamera ist kaputt.', 'Das WLAN ist zu schwach.'],
+    erklaerung: 'NO_MEM und „malloc failed“ heißen: kein Speicher für den Bildpuffer. Auf dem neuen Computer steht das Board noch auf „ESP32 Dev Module“ (Mission 4.1).',
+  },
+  {
+    symptom: 'Das Hochladen bricht jedes Mal ab.',
+    log: 'Connecting......_____......_____......_____\nA fatal error occurred: Failed to connect to ESP32: No serial data received.',
+    richtig: 'Der Chip ist nicht in den Upload-Modus gekommen. Bei „Connecting…“ die RST-Taste auf der ESP32-CAM kurz drücken.',
+    falsch: ['Die Kamera blockiert den Upload.', 'Das Programm ist zu groß.', 'Die Wurzelzertifikate fehlen.'],
+    erklaerung: 'Das ist derselbe Fehler wie in Boss 2, nur mit der MB-Platine. Hilft der Reset nicht, prüfe, ob die ESP32-CAM ganz in den Buchsen steckt.',
+  },
+  {
+    symptom: 'Jemand hat das Wegwerfen der ersten Bilder aus dem Programm gelöscht. Seitdem sind die Fotos fast schwarz und grünstichig.',
+    log: 'Kamera läuft.\nFoto: 640 × 480 Pixel\nJPEG-Größe: 3104 Byte (3.0 KB)',
+    richtig: 'Das erste Bild nach dem Start ist unterbelichtet, weil die automatische Belichtung noch nicht eingestellt ist.',
+    falsch: ['Die Kamera ist kaputt.', 'Die Versorgung ist zu schwach.', 'Das PSRAM ist voll.'],
+    erklaerung: 'Auffällig klein für VGA: Fast schwarze Bilder lassen sich stark komprimieren. Ein paar Bilder vorher wegwerfen löst es (Mission 4.3).',
+  },
+  {
+    symptom: 'Das erste Foto klappt. Jedes weitere schlägt fehl, bis zum Neustart.',
+    log: 'Foto 1: 24518 Byte\nE (8213) cam_hal: Failed to get the frame on time!\nFoto 2: Kein Bild bekommen.\nE (12215) cam_hal: Failed to get the frame on time!\nFoto 3: Kein Bild bekommen.',
+    richtig: 'Der Bildpuffer wird nach dem ersten Foto nicht mit esp_camera_fb_return() zurückgegeben.',
+    falsch: ['Die Kamera überhitzt.', 'Das WLAN ist abgebrochen.', 'Die Uhrzeit fehlt.'],
+    erklaerung: 'Alle Puffer sind belegt, die Kamera hat keinen Platz für ein neues Bild. Nach jedem Foto gehört der Puffer zurück.',
+  },
+]} />
+
+## Die Faustregeln aus diesem Bosskampf
+
+1. **Neustart genau bei WLAN, Senden oder Blitz?** Dann ist es fast immer die Versorgung.
+2. **Fehlercodes nachschlagen.** 0x105 heißt „nicht gefunden“, 0x101 heißt „kein Speicher“.
+3. **Was du holst, gibst du zurück.** Bildpuffer und Speicher aus ps_malloc.
+
+<Merke>Strom, Kamera, Speicher, Programm: Der Zeitpunkt des Fehlers verrät meist, welches davon es ist.</Merke>
