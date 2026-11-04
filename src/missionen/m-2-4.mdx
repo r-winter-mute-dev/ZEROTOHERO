@@ -1,0 +1,82 @@
+---
+id: m-2-4
+abzeichen: Code-Schmied
+checks:
+  - id: puzzle
+  - id: quiz
+  - id: geraet
+    hardware: true
+---
+import Karte from '../components/Karte.astro';
+import Lueckentext from '../components/Lueckentext.astro';
+import { PUZZLE_M24 } from '../data/puzzles';
+import Quiz from '../components/Quiz.astro';
+import Seriell from '../components/Seriell.astro';
+
+Später macht deine Klingel bei jedem Druck dasselbe: aufwachen, Foto, senden, schlafen. Damit du das nicht jedes Mal neu hinschreiben musst, fasst du es in einer **Funktion** zusammen. **Deine Mission: Programmiere ein Klingelmuster mit einer eigenen Funktion und einer Schleife.**
+
+## Theorie
+
+<Karte nr={1} titel="setup() und loop()">
+Jedes Arduino-Programm hat zwei feste Teile: `setup()` läuft **einmal** nach dem Einschalten. Dort stellst du Pins ein und startest die serielle Ausgabe. `loop()` läuft danach **immer wieder**, ohne Ende. Darin steht, was dein Gerät dauerhaft tut.
+</Karte>
+
+<Karte nr={2} titel="Schleifen">
+`for (int i = 0; i < 3; i++) { … }` wiederholt den Code in den Klammern: Starte bei `i = 0`, wiederhole, solange `i < 3` gilt, und erhöhe `i` nach jedem Durchlauf um eins. Das ergibt genau drei Durchläufe (0, 1, 2).
+</Karte>
+
+<Karte nr={3} titel="Eigene Funktionen">
+`void blinke(int anzahl, int dauer) { … }` erschafft eine neue Funktion namens `blinke`. In den runden Klammern stehen die **Parameter**: Werte, die du beim Aufruf mitgibst. `blinke(3, 150);` lässt die LED dreimal je 150 ms blinken. `void` heißt: Die Funktion gibt kein Ergebnis zurück.
+</Karte>
+
+<Lueckentext id="puzzle" titel="Code-Puzzle: Das Klingelmuster" aufgabe="Ergänze die Funktion so, dass sie die LED „anzahl“-mal blinken lässt. Im Hauptprogramm soll sie dreimal kurz (150 ms) und einmal lang (600 ms) blinken." code={PUZZLE_M24} luecken={[
+  { loesungen: ['blinke'], tipp: 'So heißt die Funktion weiter unten im Aufruf.' },
+  { loesungen: ['<'], tipp: 'Bei i = 0 starten und genau „anzahl“ Durchläufe: Welcher Vergleich?' },
+  { loesungen: ['3'], tipp: 'Wie oft kurz?' },
+  { loesungen: ['600'], tipp: 'Wie lang ist das lange Blinken?' },
+]} />
+
+## Auf das Board laden
+
+```cpp
+const int LED_PIN = 2;
+int runde = 0;
+
+void blinke(int anzahl, int dauer) {
+  for (int i = 0; i < anzahl; i++) {
+    digitalWrite(LED_PIN, HIGH);
+    delay(dauer);
+    digitalWrite(LED_PIN, LOW);
+    delay(dauer);
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_PIN, OUTPUT);
+}
+
+void loop() {
+  blinke(3, 150);
+  delay(400);
+  blinke(1, 600);
+  delay(1500);
+
+  runde++;
+  Serial.print("Klingelmuster Runde ");
+  Serial.println(runde);
+  if (runde == 3) {
+    Serial.printf("KW-CHECK:m-2-4:%012llX\n", (unsigned long long)ESP.getEfuseMac());
+  }
+}
+```
+
+**Probier selbst:** Schreib eine zweite Funktion `sos()`, die mit `blinke` das Morsezeichen SOS sendet: dreimal kurz, dreimal lang, dreimal kurz.
+
+<Quiz id="quiz" titel="Quiz: Schleifen und Funktionen" fragen={[
+  { frage: 'Wie oft läuft for (int i = 0; i < 4; i++) durch?', richtig: '4-mal', falsch: ['3-mal', '5-mal'], erklaerung: 'i nimmt 0, 1, 2 und 3 an (Karte 2).' },
+  { frage: 'Wo stellst du ein, dass ein Pin ein Ausgang ist?', richtig: 'In setup(), weil es nur einmal nötig ist', falsch: ['In loop(), damit es sicher klappt', 'Gar nicht, das passiert automatisch'], erklaerung: 'Karte 1.' },
+  { frage: 'Was ist der Vorteil einer eigenen Funktion wie blinke()?', richtig: 'Du schreibst den Ablauf einmal und rufst ihn mit verschiedenen Werten auf.', falsch: ['Das Programm wird dadurch schneller.', 'Ohne Funktionen gibt es keine Schleifen.'], erklaerung: 'Karte 3.' },
+]} />
+
+<Seriell id="geraet" titel="Gerätenachweis: Drei Runden Klingelmuster" muster="^KW-CHECK:m-2-4:[0-9A-F]{12}$" />

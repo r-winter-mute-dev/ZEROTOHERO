@@ -30,7 +30,7 @@ import { url } from '../config';
       <h2>Die Kampagne</h2>
       <p class="leise">
         Neun Akte, jeder baut ein Teil der Klingel. Jede Mission endet mit einer Prüfung: einem Quiz, einer Rechnung
-        oder einem echten Messwert. Ohne Hardware kommst du im Simulator weiter, das Teil leuchtet dann grau statt kupfern.
+        oder einem echten Messwert. Ohne Hardware kommst du im Simulator weiter, das Teil leuchtet dann grau statt farbig.
       </p>
     </div>
     <KampagnenKarte />
@@ -69,7 +69,7 @@ import { url } from '../config';
   .weiter { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1.6rem 0 2rem; }
   .rangleiste { max-width: 24rem; }
   .rang-zeile { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 0.4rem; font-size: 0.95rem; }
-  .balken { height: 8px; background: var(--maske-tief); border-radius: 4px; overflow: hidden; border: 1px solid var(--platine); }
-  .balken span { display: block; height: 100%; width: 0; background: var(--kupfer); transition: width 0.6s; }
+  .balken { height: 8px; background: var(--tief); border-radius: 4px; overflow: hidden; border: 1px solid var(--flaeche); }
+  .balken span { display: block; height: 100%; width: 0; background: var(--akzent); transition: width 0.6s; }
   .karte-bereich > :global(*) { max-width: 52rem; }
 </style>

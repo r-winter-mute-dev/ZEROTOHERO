@@ -1,0 +1,85 @@
+---
+id: m-2-7
+checks:
+  - id: puzzle
+  - id: geraet
+    hardware: true
+  - id: gezaehlt
+    hardware: true
+---
+import Karte from '../components/Karte.astro';
+import Lueckentext from '../components/Lueckentext.astro';
+import { PUZZLE_M27 } from '../data/puzzles';
+import Prellen from '../components/Prellen.astro';
+import Seriell from '../components/Seriell.astro';
+import Bestaetigung from '../components/Bestaetigung.astro';
+
+Stell dir vor, jemand klingelt einmal, und du bekommst drei Fotos aufs Handy. Genau das würde passieren, wenn die Klingel das Prellen des Knopfs nicht herausfiltert. **Deine Mission: Programmiere eine Entprellung, die jeden Druck genau einmal zählt.**
+
+## Theorie
+
+<Karte nr={1} titel="Warten, bis Ruhe ist">
+Prellen dauert nur ein paar Millisekunden. Die Idee: Ändert sich der Pegel, merkt sich das Programm den Zeitpunkt. Erst wenn der Pegel danach eine Weile **stabil** bleibt, zum Beispiel 30 ms, gilt die Änderung als echt.
+</Karte>
+
+<Karte nr={2} titel="millis() statt delay()">
+`millis()` liefert, wie viele Millisekunden seit dem Start vergangen sind. Mit `millis() - letzteAenderung` rechnest du aus, wie lange etwas her ist. Anders als `delay()` hält das das Programm nicht an. Es kann währenddessen weiterarbeiten.
+</Karte>
+
+<Karte nr={3} titel="Zwei Zustände">
+Das Programm merkt sich zwei Dinge: den **zuletzt gelesenen Pegel** (der zuckt beim Prellen) und den **stabilen Zustand** (der ändert sich erst, wenn Ruhe ist). Gezählt wird nur, wenn der stabile Zustand auf LOW wechselt.
+</Karte>
+
+<Prellen />
+
+<Lueckentext id="puzzle" titel="Code-Puzzle: Die Entprellung" aufgabe="Ergänze die zwei Stellen: Eine Änderung gilt erst, wenn seit der letzten Änderung mehr als ENTPRELLZEIT vergangen ist. Gezählt wird, wenn der stabile Zustand gedrückt bedeutet (Pull-up!)." code={PUZZLE_M27} luecken={[
+  { loesungen: ['>', '>='], tipp: 'Es muss MEHR Zeit vergangen sein als die Entprellzeit.' },
+  { loesungen: ['LOW'], tipp: 'Mit INPUT_PULLUP heißt gedrückt …' },
+]} />
+
+## Auf das Board laden
+
+Aufbau wie in Mission 2.6.
+
+```cpp
+const int TASTER_PIN = 4;
+const unsigned long ENTPRELLZEIT = 30;  // Millisekunden
+
+int letzterPegel = HIGH;
+int stabilerZustand = HIGH;
+unsigned long letzteAenderung = 0;
+int zaehler = 0;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(TASTER_PIN, INPUT_PULLUP);
+  Serial.println("Drücke den Taster genau 10-mal.");
+}
+
+void loop() {
+  int jetzt = digitalRead(TASTER_PIN);
+
+  if (jetzt != letzterPegel) {
+    letzteAenderung = millis();
+    letzterPegel = jetzt;
+  }
+
+  if (millis() - letzteAenderung > ENTPRELLZEIT && jetzt != stabilerZustand) {
+    stabilerZustand = jetzt;
+    if (stabilerZustand == LOW) {
+      zaehler++;
+      Serial.print("Druck ");
+      Serial.println(zaehler);
+      if (zaehler == 10) {
+        Serial.printf("KW-CHECK:m-2-7:%012llX\n", (unsigned long long)ESP.getEfuseMac());
+      }
+    }
+  }
+}
+```
+
+Drück genau zehnmal und vergleiche mit dem seriellen Monitor. Mit der Entprellung sollten beide Zahlen jetzt übereinstimmen.
+
+<Seriell id="geraet" titel="Gerätenachweis: Zehn Drücke" muster="^KW-CHECK:m-2-7:[0-9A-F]{12}$" />
+
+<Bestaetigung id="gezaehlt" titel="Jeder Druck zählt einmal" text="Ich habe genau zehnmal gedrückt, und der serielle Monitor hat genau zehn Drücke gezählt." />

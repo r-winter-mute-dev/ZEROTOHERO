@@ -13,7 +13,7 @@ const voll = titel ? `${titel} – ${SEITE.name}` : `${SEITE.name} – ${SEITE.u
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{voll}</title>
     <meta name="description" content={beschreibung} />
-    <meta name="theme-color" content="#143a2c" />
+    <meta name="theme-color" content="#121212" />
     <link rel="icon" href={url('favicon.svg')} type="image/svg+xml" />
   </head>
   <body>
@@ -62,17 +62,17 @@ const voll = titel ? `${titel} – ${SEITE.name}` : `${SEITE.name} – ${SEITE.u
 
 <style>
   .sprung { position: absolute; left: -999px; }
-  .sprung:focus { left: 1rem; top: 1rem; background: var(--druck); color: var(--maske); padding: 0.5rem 1rem; z-index: 10; }
-  .kopf { border-bottom: 1px solid var(--platine); background: rgba(15, 46, 35, 0.85); }
+  .sprung:focus { left: 1rem; top: 1rem; background: var(--text); color: var(--grund); padding: 0.5rem 1rem; z-index: 10; }
+  .kopf { border-bottom: 1px solid var(--flaeche); background: rgba(13, 13, 13, 0.9); }
   .kopf-innen { display: flex; align-items: center; gap: 1.5rem; min-height: 4rem; flex-wrap: wrap; }
-  .marke { display: inline-flex; align-items: center; gap: 0.55rem; font-weight: 700; font-size: 1.2rem; color: var(--druck); text-decoration: none; }
-  .marke svg { color: var(--kupfer); }
+  .marke { display: inline-flex; align-items: center; gap: 0.55rem; font-weight: 700; font-size: 1.2rem; color: var(--text); text-decoration: none; }
+  .marke svg { color: var(--akzent); }
   nav { display: flex; gap: 1.2rem; margin-right: auto; }
-  nav a { color: var(--zinn); text-decoration: none; }
-  nav a:hover { color: var(--druck); }
-  .rang { display: inline-flex; gap: 0.6rem; align-items: baseline; text-decoration: none; color: var(--druck); border: 1px solid var(--platine); border-radius: 999px; padding: 0.25rem 0.85rem; font-size: 0.95rem; }
-  .rang-xp { color: var(--kupfer-hell); font-weight: 700; }
+  nav a { color: var(--leise); text-decoration: none; }
+  nav a:hover { color: var(--text); }
+  .rang { display: inline-flex; gap: 0.6rem; align-items: baseline; text-decoration: none; color: var(--text); border: 1px solid var(--flaeche); border-radius: 999px; padding: 0.25rem 0.85rem; font-size: 0.95rem; }
+  .rang-xp { color: var(--akzent-hell); font-weight: 700; }
   main { padding-bottom: 4rem; }
-  .fuss { border-top: 1px solid var(--platine); padding: 1.5rem 0; }
+  .fuss { border-top: 1px solid var(--flaeche); padding: 1.5rem 0; }
   @media (max-width: 640px) { nav { order: 3; width: 100%; padding-bottom: 0.6rem; } .rang { margin-left: auto; } }
 </style>

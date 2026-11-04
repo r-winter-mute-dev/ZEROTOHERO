@@ -1,0 +1,74 @@
+---
+id: m-2-5
+checks:
+  - id: rechnen
+  - id: spannung
+    hardware: true
+  - id: geraet
+    hardware: true
+---
+import Karte from '../components/Karte.astro';
+import Rechnen from '../components/Rechnen.astro';
+import Zahl from '../components/Zahl.astro';
+import Seriell from '../components/Seriell.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Bisher hat das ESP32 nur seine eigene kleine LED geschaltet. Deine Klingel soll später einen Blitz für das Foto einschalten, also ein Bauteil außerhalb des Boards. **Deine Mission: Schalte eine externe LED über einen GPIO und miss, welche Spannung der Pin liefert.**
+
+## Theorie
+
+<Karte nr={1} titel="HIGH und LOW">
+`digitalWrite(23, HIGH)` legt an GPIO 23 die Betriebsspannung des ESP32 an: **3,3 V**. `LOW` heißt 0 V, also Masse. Der Pin ist damit eine kleine Batterie, die du per Programm ein- und ausschalten kannst. Wie in Mission 1.1 braucht die LED einen Vorwiderstand.
+</Karte>
+
+<Karte nr={2} titel="Ein GPIO ist keine Steckdose">
+Ein GPIO kann nur wenig Strom liefern. Für eine LED reichen ein paar Milliampere, das ist sicher. Motoren, Lautsprecher oder viele LEDs schaltest du dagegen nie direkt, sondern über einen Transistor (Akt 4). Bleib pro Pin bei höchstens etwa 20 mA [Richtwert, die Grenzwerte stehen im Espressif-Datenblatt].
+</Karte>
+
+<Karte nr={3} titel="Nie 5 V an einen GPIO">
+Die Pins des ESP32 vertragen höchstens 3,3 V. Auf dem Board gibt es auch einen Pin mit 5 V (oft `5V` oder `VIN` beschriftet). Den verbindest du **nie** mit einem GPIO. Das kann den Chip zerstören.
+</Karte>
+
+<Rechnen id="rechnen" typ="gpio" anzahl={3} />
+
+## Aufbau
+
+<Hinweis titel="Das ESP32 auf dem Steckbrett">
+Ein ESP32-DevKit ist breit. Auf einem normalen Steckbrett bleibt neben ihm oft nur eine Reihe Löcher frei. Steck es so, dass es die Mittelrinne überbrückt. Reicht der Platz nicht, nimm zwei Steckbretter nebeneinander.
+</Hinweis>
+
+1. USB-Kabel abziehen.
+2. Von **GPIO 23** (auf dem Board meist mit `D23` oder `23` beschriftet) eine Steckbrücke zu einem 220-Ω-Widerstand.
+3. Widerstand an das lange Bein einer LED, das kurze Bein mit einem **GND**-Pin des Boards verbinden.
+4. USB-Kabel anstecken und dieses Programm hochladen:
+
+```cpp
+const int LED_PIN = 23;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_PIN, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(LED_PIN, HIGH);
+  Serial.println("LED an (GPIO 23 = HIGH, jetzt messen)");
+  delay(2000);
+
+  digitalWrite(LED_PIN, LOW);
+  Serial.println("LED aus (GPIO 23 = LOW)");
+  delay(2000);
+
+  Serial.printf("KW-CHECK:m-2-5:%012llX\n", (unsigned long long)ESP.getEfuseMac());
+}
+```
+
+5. Multimeter auf V⎓: Schwarz an GND, Rot an GPIO 23. Lies den Wert ab, während die LED leuchtet.
+
+<Zahl id="spannung" titel="Messwert: Spannung an GPIO 23 (HIGH)" frage="Welche Spannung misst du zwischen GPIO 23 und GND, während die LED leuchtet?" einheit="V" min={2.9} max={3.45} vorlaeufig hilfe={[
+  { unter: 0.5, text: 'Fast 0 V: Miss in der Phase, in der die LED leuchtet, und prüfe, ob du wirklich an GPIO 23 bist.' },
+  { unter: 2.9, text: 'Etwas zu wenig. Zieht die LED zu viel Strom? Prüfe den Widerstand (220 Ω = Rot-Rot-Braun).' },
+  { ueber: 4, text: 'Um die 5 V? Dann misst du am 5-V-Pin statt an GPIO 23.' },
+]} />
+
+<Seriell id="geraet" titel="Gerätenachweis: Die externe LED blinkt" muster="^KW-CHECK:m-2-5:[0-9A-F]{12}$" />

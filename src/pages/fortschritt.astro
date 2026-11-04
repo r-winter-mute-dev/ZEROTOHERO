@@ -80,6 +80,6 @@ const abzeichen = Object.values(dateien).map((d) => d.frontmatter?.abzeichen).fi
   .gross { font-size: 1.2rem; }
   textarea { width: 100%; font-size: 0.85rem; word-break: break-all; margin: 0.4rem 0; }
   .abzeichen { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.6rem; }
-  .abzeichen :global(li) { padding: 0.4rem 0.9rem; border-radius: 999px; border: 2px dashed var(--zinn-dunkel); color: var(--zinn); margin: 0; }
-  .abzeichen :global(li.hat) { border: 2px solid var(--kupfer); color: var(--druck); background: rgba(201, 139, 79, 0.2); }
+  .abzeichen :global(li) { padding: 0.4rem 0.9rem; border-radius: 999px; border: 2px dashed var(--leise-dunkel); color: var(--leise); margin: 0; }
+  .abzeichen :global(li.hat) { border: 2px solid var(--akzent); color: var(--text); background: color-mix(in srgb, var(--akzent) 20%, transparent); }
 </style>

@@ -99,26 +99,26 @@ const { id, titel = 'Simulator: Dein erster Stromkreis' } = Astro.props;
 </script>
 
 <style>
-  svg { width: 100%; height: auto; background: var(--maske); border-radius: var(--radius-klein); }
-  svg text { fill: var(--zinn); font-size: 15px; }
-  .leitung { fill: none; stroke: var(--druck); stroke-width: 3; }
-  .fluss { fill: none; stroke: var(--kupfer-hell); stroke-width: 5; stroke-dasharray: 2 18; stroke-linecap: round; opacity: 0; }
+  svg { width: 100%; height: auto; background: var(--grund); border-radius: var(--radius-klein); }
+  svg text { fill: var(--leise); font-size: 15px; }
+  .leitung { fill: none; stroke: var(--text); stroke-width: 3; }
+  .fluss { fill: none; stroke: var(--akzent-hell); stroke-width: 5; stroke-dasharray: 2 18; stroke-linecap: round; opacity: 0; }
   .kreissim.strom .fluss, .kreissim.ueberlast .fluss { opacity: 1; animation: fliessen linear infinite; }
   .kreissim.ueberlast .fluss { animation-duration: 0.3s !important; stroke: var(--fehler); }
   @keyframes fliessen { to { stroke-dashoffset: -200; } }
-  .bat line, [data-ks-widerstand] rect, .led path, .led line, .bruecke { stroke: var(--druck); stroke-width: 3; fill: none; }
+  .bat line, [data-ks-widerstand] rect, .led path, .led line, .bruecke { stroke: var(--text); stroke-width: 3; fill: none; }
   .bat line { stroke-width: 4; }
-  .kabel path { stroke: #d24b3f; stroke-width: 5; fill: none; stroke-linecap: round; }
-  .kabel circle { fill: var(--druck); }
+  .kabel path { stroke: #f38ba8; stroke-width: 5; fill: none; stroke-linecap: round; }
+  .kabel circle { fill: var(--text); }
   .kabel.offen path { stroke-dasharray: 6 6; }
-  .glimmen { fill: #ff4f3a; opacity: 0; transition: opacity 0.25s; }
+  .glimmen { fill: #f38ba8; opacity: 0; transition: opacity 0.25s; }
   .kreissim.strom .glimmen { opacity: 0.45; }
-  .kreissim.strom .led path { fill: #ff6b55; }
-  .kreissim.ueberlast .led path { fill: #555; }
+  .kreissim.strom .led path { fill: #f38ba8; }
+  .kreissim.ueberlast .led path { fill: #4a4a4a; }
   .warn { fill: var(--warnung) !important; font-weight: 700; }
   .steuer { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin: 1rem 0; }
   .regler { display: inline-flex; gap: 0.5rem; align-items: center; }
-  .regler input { accent-color: var(--kupfer); }
+  .regler input { accent-color: var(--akzent); }
   .ziele li.erledigt { color: var(--gut); }
   .ziele li.erledigt::after { content: ' – erledigt'; }
 </style>

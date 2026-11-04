@@ -22,13 +22,13 @@
 
     function zeichne(signal: number[]) {
       const w = c.width, h = c.height;
-      ctx.fillStyle = '#0f2e23'; ctx.fillRect(0, 0, w, h);
-      ctx.strokeStyle = 'rgba(242,239,228,0.08)'; ctx.lineWidth = 1;
+      ctx.fillStyle = '#0d0d0d'; ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = 'rgba(232,232,232,0.07)'; ctx.lineWidth = 1;
       for (let x = 0; x < w; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
       for (let y = 0; y < h; y += 44) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
-      ctx.fillStyle = '#b9c0bd'; ctx.font = '14px sans-serif';
+      ctx.fillStyle = '#a3a3a3'; ctx.font = '14px sans-serif';
       ctx.fillText('3 V', 8, 40); ctx.fillText('0 V', 8, 190); ctx.fillText('Zeit →', w - 60, h - 8);
-      ctx.strokeStyle = '#e3a96f'; ctx.lineWidth = 3; ctx.beginPath();
+      ctx.strokeStyle = '#cba6f7'; ctx.lineWidth = 3; ctx.beginPath();
       signal.forEach((v, i) => {
         const x = (i / (signal.length - 1)) * w, y = v ? 44 : 176;
         if (i === 0) ctx.moveTo(x, y);
@@ -63,5 +63,5 @@
   .prellen { margin: 1.5rem 0; }
   canvas { width: 100%; height: auto; border-radius: var(--radius-klein); display: block; }
   .steuer { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 0.8rem 0; }
-  .steuer input { accent-color: var(--kupfer); }
+  .steuer input { accent-color: var(--akzent); }
 </style>

@@ -1,0 +1,80 @@
+---
+id: m-2-6
+checks:
+  - id: quiz
+  - id: ruhe
+    hardware: true
+  - id: geraet
+    hardware: true
+---
+import Karte from '../components/Karte.astro';
+import Quiz from '../components/Quiz.astro';
+import Zahl from '../components/Zahl.astro';
+import Seriell from '../components/Seriell.astro';
+
+Jetzt verbindest du die zwei Hälften deiner Klingel: den Knopf aus Akt 1 und das Gehirn aus Akt 2. Statt einen Summer direkt einzuschalten, meldet der Knopf dem ESP32: „Es hat geklingelt.“ **Deine Mission: Lies den Klingelknopf über einen GPIO aus.**
+
+## Theorie
+
+<Karte nr={1} titel="Ein Eingang misst die Spannung">
+`digitalRead(4)` schaut nach, welche Spannung an GPIO 4 liegt: nahe 3,3 V ergibt `HIGH`, nahe 0 V ergibt `LOW`. Der Eingang selbst zieht dabei fast keinen Strom.
+</Karte>
+
+<Karte nr={2} titel="Der schwebende Eingang">
+Hängt an einem Eingang nur ein offener Taster, ist der Pin mit nichts verbunden. Er „schwebt“ und fängt Störungen ein, etwa von deiner Hand in der Nähe. `digitalRead` liefert dann zufällig mal HIGH, mal LOW. Ein Eingang braucht deshalb immer einen festen Ruhezustand.
+</Karte>
+
+<Karte nr={3} titel="Der Pull-up-Widerstand">
+Ein **Pull-up** ist ein Widerstand vom Eingang nach 3,3 V. Er „zieht“ den Pin im Ruhezustand sanft auf HIGH. Drückst du den Taster, verbindet er den Pin direkt mit GND, und der Pin liest LOW. Das ESP32 hat solche Widerstände eingebaut: `pinMode(4, INPUT_PULLUP)` schaltet ihn ein. **Merke: gedrückt = LOW.**
+</Karte>
+
+## Aufbau
+
+1. USB-Kabel abziehen. Die LED aus Mission 2.5 darf stecken bleiben.
+2. Den Taster über die Mittelrinne stecken. Mit dem Durchgangsprüfer zwei Beine finden, die nur beim Drücken verbunden sind (Mission 1.7).
+3. Eins dieser Beine mit **GPIO 4** verbinden, das andere mit **GND**. Mehr nicht: Den Pull-up liefert das ESP32.
+4. Programm hochladen und den seriellen Monitor öffnen.
+
+```cpp
+const int TASTER_PIN = 4;
+int vorher = HIGH;
+int zaehler = 0;
+bool gemeldet = false;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(TASTER_PIN, INPUT_PULLUP);  // ohne Druck: HIGH, gedrückt: LOW
+  Serial.println("Drücke den Taster einige Male.");
+}
+
+void loop() {
+  int jetzt = digitalRead(TASTER_PIN);
+  if (vorher == HIGH && jetzt == LOW) {   // Übergang von HIGH nach LOW = Druck beginnt
+    zaehler++;
+    Serial.print("Gedrückt! Zähler: ");
+    Serial.println(zaehler);
+  }
+  vorher = jetzt;
+
+  if (zaehler >= 10 && !gemeldet) {
+    Serial.printf("KW-CHECK:m-2-6:%012llX\n", (unsigned long long)ESP.getEfuseMac());
+    gemeldet = true;
+  }
+}
+```
+
+Drück zehnmal langsam und zähl mit. Zeigt der Monitor manchmal mehr Drücke, als du gemacht hast? Dann hast du das Prellen aus Mission 1.7 gerade live gesehen. Darum kümmerst du dich in der nächsten Mission.
+
+**Probier selbst:** Ändere `INPUT_PULLUP` in `INPUT` und lade neu hoch. Was passiert, wenn du den Finger in die Nähe des Drahts hältst, ohne zu drücken?
+
+<Quiz id="quiz" titel="Quiz: Eingänge" fragen={[
+  { frage: 'Mit INPUT_PULLUP ist der Taster zwischen GPIO 4 und GND. Was liest digitalRead, während du drückst?', richtig: 'LOW', falsch: ['HIGH', 'Mal HIGH, mal LOW'], erklaerung: 'Der Taster verbindet den Pin mit Masse (Karte 3).' },
+  { frage: 'Warum liefert ein Eingang ohne Pull-up zufällige Werte?', richtig: 'Er ist mit nichts verbunden und fängt Störungen ein.', falsch: ['Der ESP32 ist defekt.', 'Die Baudrate stimmt nicht.'], erklaerung: 'Karte 2.' },
+  { frage: 'Der Zähler springt bei einem Druck um 3 hoch. Was ist die Ursache?', richtig: 'Der Taster prellt.', falsch: ['Der Pull-up ist zu stark.', 'Die LED an GPIO 23 stört.'], erklaerung: 'Das ESP32 ist schnell genug, jedes Zucken des Kontakts zu sehen (Mission 1.7).' },
+]} />
+
+<Zahl id="ruhe" titel="Messwert: GPIO 4 in Ruhe" frage="Welche Spannung misst du zwischen GPIO 4 und GND, ohne zu drücken?" einheit="V" min={2.9} max={3.45} vorlaeufig hilfe={[
+  { unter: 0.5, text: 'Fast 0 V: Steckt der Taster so, dass er dauerhaft verbunden ist? Dreh ihn um 90 Grad. Oder das Programm mit INPUT_PULLUP ist nicht hochgeladen.' },
+]} />
+
+<Seriell id="geraet" titel="Gerätenachweis: Zehn Drücke gezählt" muster="^KW-CHECK:m-2-6:[0-9A-F]{12}$" />

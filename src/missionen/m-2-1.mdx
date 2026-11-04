@@ -1,0 +1,76 @@
+---
+id: m-2-1
+abzeichen: Erstes Leben
+checks:
+  - id: quiz
+  - id: geraet
+    hardware: true
+---
+import Karte from '../components/Karte.astro';
+import Quiz from '../components/Quiz.astro';
+import Seriell from '../components/Seriell.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Klingel v0 summt, aber sie ist dumm: Sie kann nur summen, solange jemand drückt. Damit die Klingel später ein Foto macht und eine Nachricht schickt, braucht sie ein Gehirn. **Deine Mission: Richte deine Werkstatt ein und erwecke das ESP32 zum Leben.**
+
+**Du brauchst:** ein ESP32-DevKit (oft als „ESP32 DevKit V1“ oder „ESP32-DevKitC“ verkauft, mit 30 oder 38 Pins) und ein **USB-Datenkabel**. Achtung: Viele Kabel aus Handy-Ladegeräten können nur laden, keine Daten übertragen. Damit findet der Computer dein Board nicht.
+
+## Theorie
+
+<Karte nr={1} titel="Ein Computer auf einem Chip">
+Ein **Mikrocontroller** ist ein kleiner Computer: Prozessor, Speicher und Anschlüsse auf einem Chip. Er führt immer nur ein Programm aus, das sofort nach dem Einschalten startet. Der ESP32 hat zusätzlich WLAN und Bluetooth eingebaut. Genau deshalb steckt er später in deiner Klingel.
+</Karte>
+
+<Karte nr={2} titel="Firmware">
+Das Programm auf einem Mikrocontroller heißt **Firmware**. Du schreibst es am Computer, ein **Compiler** übersetzt es in Maschinencode, und beim **Upload** wird es über das USB-Kabel in den Speicher des ESP32 geschrieben. Dort bleibt es, auch ohne Strom, bis du etwas Neues hochlädst.
+</Karte>
+
+<Karte nr={3} titel="Pins und GPIO">
+An den Seiten des Boards sitzen die **Pins**. Die meisten heißen **GPIO** (General Purpose Input/Output) mit einer Nummer, zum Beispiel GPIO 2. Ein GPIO kann etwas einschalten (Ausgang) oder etwas abfragen (Eingang). Viele DevKits haben an GPIO 2 eine kleine blaue LED, die du heute blinken lässt.
+</Karte>
+
+## Werkstatt einrichten
+
+1. **Arduino IDE installieren:** von [arduino.cc/en/software](https://www.arduino.cc/en/software) die Version 2 für dein Betriebssystem laden und installieren.
+2. **ESP32-Unterstützung hinzufügen:** In der Arduino IDE links auf das Symbol **Boardverwalter** klicken, nach „esp32“ suchen und **esp32 by Espressif Systems** installieren. Taucht der Eintrag nicht auf: unter **Datei → Einstellungen** bei „Zusätzliche Boardverwalter-URLs“ `https://espressif.github.io/arduino-esp32/package_esp32_index.json` eintragen und die Suche wiederholen [Fachquelle: Espressif-Dokumentation zu arduino-esp32].
+3. **Board anschließen** und unter **Werkzeuge → Board → esp32** den Eintrag **ESP32 Dev Module** wählen.
+4. Unter **Werkzeuge → Port** den neuen Anschluss wählen (Windows: `COM3` oder ähnlich, Mac: `/dev/cu.usbserial…`, Linux: `/dev/ttyUSB0`). Erscheint kein neuer Port, fehlt meist ein Treiber für den USB-Chip deines Boards. Auf ihm steht `CP2102` oder `CH340`. Den passenden Treiber findest du beim Hersteller des Chips.
+
+## Das erste Programm
+
+Lege eine neue Datei an (**Datei → Neu**), ersetze alles durch diesen Code und klicke auf den Pfeil **Hochladen**.
+
+```cpp
+const int LED_PIN = 2;  // eingebaute LED vieler ESP32-DevKits
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_PIN, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(LED_PIN, HIGH);
+  delay(500);
+  digitalWrite(LED_PIN, LOW);
+  delay(500);
+  Serial.printf("KW-CHECK:m-2-1:%012llX\n", (unsigned long long)ESP.getEfuseMac());
+}
+```
+
+Unten erscheint nach einer Weile „Hard resetting via RTS pin…“. Dann ist das Programm drauf. Hat dein Board eine LED an GPIO 2, blinkt sie jetzt. Hat es keine, ist das kein Problem: Der Nachweis unten zeigt trotzdem, dass dein Programm läuft. Was jede Zeile tut, lernst du in den nächsten Missionen.
+
+<Hinweis titel="Upload bricht ab?">
+Bei manchen Boards musst du die Taste **BOOT** gedrückt halten, bis „Connecting…“ erscheint. Mehr typische Fehler kommen im Bosskampf am Ende dieses Akts.
+</Hinweis>
+
+<Quiz id="quiz" titel="Quiz: Mikrocontroller" fragen={[
+  { frage: 'Was passiert mit der Firmware, wenn du das ESP32 vom Strom trennst?', richtig: 'Sie bleibt gespeichert und startet beim nächsten Einschalten wieder.', falsch: ['Sie wird gelöscht.', 'Sie muss jedes Mal neu hochgeladen werden.'], erklaerung: 'Die Firmware liegt im Flash-Speicher, der ohne Strom erhalten bleibt (Karte 2).' },
+  { frage: 'Der Computer findet dein Board nicht. Was prüfst du zuerst?', richtig: 'Ob das USB-Kabel Daten überträgt oder nur lädt', falsch: ['Ob die LED an GPIO 2 kaputt ist', 'Ob das WLAN eingeschaltet ist'], erklaerung: 'Reine Ladekabel sind die häufigste Ursache.' },
+  { frage: 'Warum steckt in der Klingel ausgerechnet ein ESP32?', richtig: 'Er hat WLAN eingebaut und kann so Nachrichten verschicken.', falsch: ['Er ist der einzige Mikrocontroller, der LEDs schalten kann.', 'Er braucht keinen Strom.'], erklaerung: 'Karte 1.' },
+]} />
+
+## Gerätenachweis
+
+Schließe den **seriellen Monitor** der Arduino IDE, falls er offen ist, sonst blockiert er den Anschluss. Klicke dann unten auf „Mit dem ESP32 verbinden“ und wähle den Port deines Boards. Das funktioniert in Chrome und Edge. In anderen Browsern öffnest du den seriellen Monitor der Arduino IDE (115200 Baud) und kopierst die Zeile, die mit `KW-CHECK` beginnt.
+
+<Seriell id="geraet" titel="Gerätenachweis: Dein ESP32 lebt" muster="^KW-CHECK:m-2-1:[0-9A-F]{12}$" />

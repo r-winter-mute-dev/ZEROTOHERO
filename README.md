@@ -38,12 +38,12 @@ Der Weg dorthin beginnt mit einer einzelnen LED.
 
 | Bereich | Stand |
 | --- | --- |
-| Akt 0 und Akt 1 | spielbar |
-| Akt 2 bis 8 | in Arbeit, die geplanten Missionen sind auf der Karte sichtbar |
+| Akt 0 bis Akt 2 | spielbar |
+| Akt 3 bis 8 | in Arbeit, die geplanten Missionen sind auf der Karte sichtbar |
 
 ## Was du brauchst
 
-Für Akt 0 und 1 reicht ein kleines Einsteigerset: Steckbrett, Multimeter, Batteriehalter für 2 × AA, Widerstände, LEDs, ein Taster und ein aktiver Summer. Mikrocontroller, Kamera und Akku kommen erst ab Akt 2 dazu. Die genaue Liste steht in Mission 0.1.
+Für Akt 0 und 1 reicht ein kleines Einsteigerset: Steckbrett, Multimeter, Batteriehalter für 2 × AA, Widerstände, LEDs, ein Taster und ein aktiver Summer. Für Akt 2 kommen ein ESP32-DevKit und ein USB-Datenkabel dazu, Kamera und Akku erst später. Die genaue Liste steht in Mission 0.1 und am Anfang jedes Akts.
 
 ## Mitmachen
 
@@ -53,11 +53,12 @@ Am meisten hilft gerade:
 
 - **Testen mit echter Hardware.** Einige erwartete Messbereiche sind vorläufig und brauchen Messwerte von echten Aufbauten.
 - **Feedback von Einsteigern.** Wo bist du hängen geblieben?
-- **Missionen für Akt 2 und folgende.**
+- **Feedback zu Akt 2 auf echter Hardware.** Die Sketches sind geprüft, aber noch nicht auf jedem Board getestet.
+- **Missionen für Akt 3 und folgende.**
 
 ## Lokal starten
 
-Voraussetzung: Node.js 22 oder neuer.
+Voraussetzung: Node.js 22.23.4 oder neuer (empfohlen: Node 24).
 
 ```bash
 npm install
