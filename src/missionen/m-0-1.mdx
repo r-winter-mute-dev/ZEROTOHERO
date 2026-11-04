@@ -1,0 +1,51 @@
+---
+id: m-0-1
+checks:
+  - id: verstanden
+---
+import Bestaetigung from '../components/Bestaetigung.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Am Ende dieses Kurses hängt an deiner Tür eine Klingel, die du selbst gebaut hast. Jemand drückt den Knopf, die Klingel wacht aus dem Tiefschlaf auf, macht ein Foto und schickt es dir auf dein Handy, über Telegram oder Discord. Sie läuft mit einem Akku und braucht kein Kabel.
+
+## Woraus die Klingel besteht
+
+Die Zeichnung auf der Startseite zeigt die neun Teile. Jeder Akt baut eines davon.
+
+| Akt | Teil | Was es tut |
+| --- | --- | --- |
+| 0 | Grundplatte | Werkzeug und Sicherheit, die Basis für alles |
+| 1 | Knopf | Schließt den Stromkreis, wenn jemand klingelt |
+| 2 | Gehirn | Ein Mikrocontroller (ESP32), der die Klingel steuert |
+| 3 | Stimme | WLAN: Die Klingel meldet sich im Chat |
+| 4 | Auge | Eine Kamera macht das Foto |
+| 5 | Herz | Ein Akku liefert die Energie |
+| 6 | Schlaf | Tiefschlaf, damit der Akku lange hält |
+| 7 | Schalter | Ein Transistor schaltet im Ruhezustand fast alles ab |
+| 8 | Gehäuse | Schützt die Klingel draußen an der Tür |
+
+## So funktioniert der Kurs
+
+1. **Missionen sind kurz.** Jede hat eine Idee, ein paar Theorie-Karten und eine Bauanleitung.
+2. **Jede Mission endet mit einer Prüfung.** Das kann ein Quiz sein, eine Rechnung, eine Übung im Simulator oder ein echter Messwert von deinem Aufbau.
+3. **Bosskämpfe** am Ende eines Akts sind Fehlersuchen. Dort lernst du, systematisch zu messen statt zu raten.
+4. **Missionen bauen aufeinander auf.** Die Prüfungen einer Mission zählen erst, wenn die vorherige geschafft ist. Lesen kannst du alles.
+5. **Ohne Hardware geht es trotzdem weiter.** Setze auf einer Mission den Haken „Ich habe die Hardware (noch) nicht“. Dann zählen nur die Prüfungen ohne Hardware, und dein Teil der Klingel wird grau statt kupfern. Die echten Prüfungen kannst du später nachholen.
+
+## Was du für Akt 0 und 1 brauchst
+
+| Teil | Hinweis |
+| --- | --- |
+| Steckbrett (830 oder 400 Kontakte) und ein Satz Steckbrücken | Damit baust du alles ohne Löten |
+| Digitales Multimeter | Mit Gleichspannung, Widerstand, Durchgang und einem mA- oder besser µA-Bereich (den brauchst du in Akt 6) |
+| Batteriehalter für 2 × AA mit Kabeln, dazu 2 AA-Batterien | Ungefährliche Stromquelle zum Einstieg |
+| Widerstandssortiment | Darin sind 220 Ω, 1 kΩ und 2,2 kΩ, die du brauchst |
+| Ein paar rote 5-mm-LEDs | Sie gehen beim Lernen auch mal kaputt |
+| Taster (6 × 6 mm, vier Beine) | Der spätere Klingelknopf |
+| Aktiver Piezo-Summer (3–5 V) | Für Klingel v0 in Mission 1.8 |
+
+<Hinweis titel="Was es noch nicht braucht">
+Mikrocontroller, Kamera und Akku kaufst du erst ab Akt 2. So musst du am Anfang wenig ausgeben und kannst erst ausprobieren, ob dir Elektronik Spaß macht.
+</Hinweis>
+
+<Bestaetigung id="verstanden" titel="Bereit?" art="Start" hardware={false} text="Ich habe verstanden, wie der Kurs funktioniert." knopf="Los geht’s" />

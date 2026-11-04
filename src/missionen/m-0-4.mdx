@@ -1,0 +1,49 @@
+---
+id: m-0-4
+abzeichen: Messprofi
+checks:
+  - id: trainer
+  - id: batterie
+    hardware: true
+---
+import Karte from '../components/Karte.astro';
+import Multimeter from '../components/Multimeter.astro';
+import Zahl from '../components/Zahl.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Strom kannst du nicht sehen. Das Multimeter ist deshalb dein wichtigstes Werkzeug: Fast jede Prüfung in diesem Kurs beruht auf einem Messwert, und jede Fehlersuche beginnt mit einer Messung.
+
+## Theorie
+
+<Karte nr={1} titel="Der Drehschalter">
+Mit dem Drehschalter wählst du, **was** du misst: **V⎓** für Gleichspannung (Batterien, USB, Akku), **V~** für Wechselspannung (brauchst du in diesem Kurs nie), **A⎓ / mA** für Strom, **Ω** für Widerstand und das Lautsprecher-Symbol für den **Durchgangsprüfer**, der piept, wenn zwei Punkte verbunden sind. Viele Geräte wählen den Messbereich automatisch. Bei anderen stellst du den nächstgrößeren Bereich ein, also 20 V für eine 3-V-Batterie.
+</Karte>
+
+<Karte nr={2} titel="Die Buchsen">
+Die **schwarze** Leitung steckt immer in **COM**. Die **rote** steckt für Spannung, Widerstand und kleine Ströme in **VΩmA**. Die Buchse **10A** ist nur für große Ströme über einige hundert Milliampere. Die brauchst du in diesem Kurs praktisch nie.
+</Karte>
+
+<Karte nr={3} titel="Spannung parallel, Strom in Reihe">
+**Spannung** misst du, indem du die Spitzen an zwei Punkte hältst, zum Beispiel an Plus und Minus der Batterie. **Strom** misst du, indem du den Kreis auftrennst und das Multimeter in die Lücke setzt, sodass der Strom durch das Gerät fließen muss. **Widerstand** misst du nur ohne Spannung, also mit ausgebautem Bauteil.
+</Karte>
+
+<Multimeter id="trainer" />
+
+## Deine erste echte Messung
+
+1. Rote Leitung in **VΩmA**, schwarze in **COM**.
+2. Drehschalter auf **V⎓** (bei manuellem Bereich: 20 V oder 2 V).
+3. Rote Spitze an den Pluspol (die Seite mit dem Knubbel) einer AA-Batterie, schwarze Spitze an den flachen Minuspol.
+4. Wert ablesen. Steht ein Minus davor, hast du die Spitzen vertauscht. Das schadet nicht.
+
+<Zahl id="batterie" titel="Messwert: Eine AA-Batterie" frage="Welche Spannung zeigt dein Multimeter?" einheit="V" min={1.0} max={1.75} hilfe={[
+  { unter: 0, text: 'Ein Minuszeichen heißt: Die Spitzen sind vertauscht. Trag den Wert ohne Minus ein.' },
+  { unter: 1.0, text: 'Unter 1 V ist die Batterie praktisch leer, oder der Drehschalter steht nicht auf V⎓.' },
+  { ueber: 1.75, text: 'Mehr als 1,75 V ist für eine AA-Zelle ungewöhnlich. Misst du vielleicht beide Zellen im Halter zusammen? Dann teile durch zwei, oder miss eine einzelne Zelle.' },
+]} />
+
+<Hinweis titel="Was die Zahl verrät">
+Eine neue Alkali-Batterie hat meist etwas über 1,5 V, ein aufgeladener NiMH-Akku etwas unter 1,4 V [Werte aus Herstellerangaben, vorläufig]. Liegt deine Batterie deutlich unter 1,2 V, ist sie schon ziemlich leer und für die nächsten Missionen schlecht geeignet.
+</Hinweis>
+
+**Bonus:** Stell den Drehschalter auf Durchgang und prüfe, ob die Versorgungsschienen deines Steckbretts in der Mitte unterbrochen sind. Steck dazu zwei Drahtstücke an beide Enden einer Schiene und halte die Spitzen daran. Piept es, ist die Schiene durchgehend.

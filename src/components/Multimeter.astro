@@ -1,0 +1,124 @@
+---
+// Multimeter-Trainer: richtige Messart und Buchse für eine Situation wählen.
+import Station from './Station.astro';
+interface Props { id: string; titel?: string; }
+const { id, titel = 'Multimeter-Trainer' } = Astro.props;
+const MODI = [
+  ['V⎓', 'Gleichspannung'], ['V~', 'Wechselspannung'], ['A⎓', 'Gleichstrom (mA)'], ['Ω', 'Widerstand'], ['Durchgang', 'Durchgang (Piepser)'],
+];
+---
+<Station id={id} titel={titel} art="Trainer">
+  <div class="mm" data-kw-multimeter>
+    <p class="situation" data-mm-situation></p>
+    <div class="mm-aufbau">
+      <svg viewBox="0 0 220 300" role="img" aria-label="Multimeter mit Drehschalter">
+        <rect x="10" y="10" width="200" height="280" rx="22" class="gehaeuse" />
+        <rect x="30" y="28" width="160" height="56" rx="6" class="display" />
+        <text x="178" y="66" text-anchor="end" class="ziffern" data-mm-display>OFF</text>
+        <circle cx="110" cy="160" r="46" class="dreh" />
+        <line x1="110" y1="160" x2="110" y2="122" class="zeiger" data-mm-zeiger />
+        <circle cx="60" cy="256" r="11" class="buchse" data-mm-buchse="10A" />
+        <circle cx="110" cy="256" r="11" class="buchse com" />
+        <circle cx="160" cy="256" r="11" class="buchse" data-mm-buchse="VΩmA" />
+        <text x="60" y="282" text-anchor="middle" class="lbl">10A</text>
+        <text x="110" y="282" text-anchor="middle" class="lbl">COM</text>
+        <text x="160" y="282" text-anchor="middle" class="lbl">VΩmA</text>
+      </svg>
+      <div>
+        <fieldset>
+          <legend>Drehschalter</legend>
+          {MODI.map(([k, t], i) => <label><input type="radio" name={`modus-${id}`} value={k} data-winkel={-80 + i * 40} /> {k} <span class="leise">({t})</span></label>)}
+          <label><input type="radio" name={`modus-${id}`} value="nicht" data-winkel="180" /> <b>Gar nicht messen</b></label>
+        </fieldset>
+        <fieldset>
+          <legend>Rote Messleitung in Buchse</legend>
+          <label><input type="radio" name={`buchse-${id}`} value="VΩmA" /> VΩmA</label>
+          <label><input type="radio" name={`buchse-${id}`} value="10A" /> 10A</label>
+        </fieldset>
+        <p class="leise klein">Die schwarze Leitung steckt immer in COM.</p>
+        <button type="button" class="knopf" data-mm-pruefen>Einstellung prüfen</button>
+      </div>
+    </div>
+  </div>
+</Station>
+
+<script>
+  import { mischen, station } from '../scripts/station';
+  const SITUATIONEN = [
+    { text: 'Du willst die Spannung einer AA-Batterie messen.', modus: 'V⎓', buchse: 'VΩmA', anzeige: '1.58' },
+    { text: 'Du willst den Wert eines einzelnen Widerstands messen, der nicht eingebaut ist.', modus: 'Ω', buchse: 'VΩmA', anzeige: '219' },
+    { text: 'Du willst prüfen, ob ein Kabel innen gebrochen ist.', modus: 'Durchgang', buchse: 'VΩmA', anzeige: '0.3' },
+    { text: 'Du willst den Strom durch eine LED messen (ein paar Milliampere).', modus: 'A⎓', buchse: 'VΩmA', anzeige: '5.02' },
+    { text: 'Du willst wissen, wie viel Volt aus der Steckdose kommen.', modus: 'nicht', buchse: '', anzeige: 'OFF' },
+  ];
+  const WARUM: Record<string, string> = {
+    'V~': 'V~ ist für Wechselspannung. Batterien und alles in diesem Kurs liefern Gleichspannung (⎓).',
+    'A⎓': 'Im Strommodus ist das Multimeter innen fast ein Kurzschluss. Parallel an eine Spannung gelegt, brennt die Sicherung durch.',
+    'Ω': 'Widerstand misst man nur ohne Spannung. Das Gerät schickt dafür selbst einen kleinen Strom durch das Bauteil.',
+    'Durchgang': 'Der Durchgangsprüfer sagt nur „verbunden oder nicht“, er misst keine Spannung und keinen Strom.',
+    'V⎓': 'Gleichspannung passt hier nicht zur Aufgabe.',
+    'nicht': 'Das kannst du sicher messen. Nur Netzspannung ist in diesem Kurs tabu.',
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-kw-multimeter]').forEach((box) => {
+    const s = station(box.closest('[data-kw-check]') as HTMLElement);
+    const fall = mischen(SITUATIONEN);
+    let i = 0;
+    const zeiger = box.querySelector<SVGLineElement>('[data-mm-zeiger]')!;
+    const disp = box.querySelector<SVGTextElement>('[data-mm-display]')!;
+
+    function zeigen() {
+      box.querySelector('[data-mm-situation]')!.textContent = `Situation ${i + 1} von ${fall.length}: ${fall[i].text}`;
+      box.querySelectorAll<HTMLInputElement>('input[type=radio]').forEach((x) => (x.checked = false));
+      zeiger.setAttribute('transform', 'rotate(0 110 160)');
+      disp.textContent = 'OFF';
+      box.querySelectorAll('.buchse').forEach((b) => b.classList.remove('belegt'));
+    }
+    zeigen();
+
+    box.querySelectorAll<HTMLInputElement>(`input[name^=modus]`).forEach((x) => x.addEventListener('change', () => {
+      zeiger.setAttribute('transform', `rotate(${x.dataset.winkel} 110 160)`);
+      disp.textContent = x.value === 'nicht' ? 'OFF' : x.value.replace('Durchgang', '•)))');
+    }));
+    box.querySelectorAll<HTMLInputElement>(`input[name^=buchse]`).forEach((x) => x.addEventListener('change', () => {
+      box.querySelectorAll<SVGCircleElement>('[data-mm-buchse]').forEach((b) => b.classList.toggle('belegt', b.dataset.mmBuchse === x.value));
+    }));
+
+    box.querySelector('[data-mm-pruefen]')!.addEventListener('click', () => {
+      const f = fall[i];
+      const modus = box.querySelector<HTMLInputElement>('input[name^=modus]:checked')?.value;
+      const buchse = box.querySelector<HTMLInputElement>('input[name^=buchse]:checked')?.value;
+      if (!modus) return s.melden('Stell zuerst den Drehschalter ein.', 'warnung');
+      if (modus !== f.modus) return s.fehl(`Nicht passend. ${WARUM[modus]}`);
+      if (f.modus === 'nicht') {
+        disp.textContent = 'OFF';
+      } else {
+        if (!buchse) return s.melden('Wähle noch die Buchse für die rote Leitung.', 'warnung');
+        if (buchse !== f.buchse) return s.fehl('Die 10A-Buchse ist nur für große Ströme über einige hundert Milliampere. Für alles andere gehört Rot in VΩmA.');
+        disp.textContent = f.anzeige;
+      }
+      i++;
+      if (i >= fall.length) { s.bestehen('Alle Situationen richtig eingestellt.'); i = 0; return; }
+      s.melden(f.modus === 'nicht' ? 'Richtig. Netzspannung (230 V) ist lebensgefährlich und in diesem Kurs tabu.' : 'Richtig eingestellt. Nächste Situation.', 'gut');
+      setTimeout(zeigen, 900);
+    });
+  });
+</script>
+
+<style>
+  .situation { font-weight: 700; }
+  .mm-aufbau { display: grid; grid-template-columns: 12rem 1fr; gap: 1.5rem; align-items: start; }
+  @media (max-width: 600px) { .mm-aufbau { grid-template-columns: 1fr; } svg { max-width: 12rem; } }
+  svg { width: 100%; height: auto; }
+  .gehaeuse { fill: #e2b532; stroke: #8a6a12; stroke-width: 3; }
+  .display { fill: #c9d3b4; }
+  .ziffern { font-size: 30px; font-weight: 700; fill: #1d231c; }
+  .dreh { fill: #2b2f2d; }
+  .zeiger { stroke: #f2efe4; stroke-width: 6; stroke-linecap: round; transition: transform 0.3s; }
+  .buchse { fill: #2b2f2d; stroke: #111; stroke-width: 2; }
+  .buchse.com { fill: #111; }
+  :global(.mm .buchse.belegt) { fill: #c0392b; }
+  .lbl { font-size: 12px; fill: #3a2f0c; font-weight: 700; }
+  fieldset { border: 1px solid var(--platine); border-radius: var(--radius-klein); margin: 0 0 0.8rem; }
+  fieldset label { display: block; padding: 0.15rem 0; }
+</style>

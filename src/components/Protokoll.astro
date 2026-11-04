@@ -1,0 +1,77 @@
+---
+// Messprotokoll: mehrere echte Messwerte werden gegeneinander geprüft.
+import Station from './Station.astro';
+interface Props { id: string; titel: string; typ: 'led-strom' | 'summe' | 'teiler'; }
+const { id, titel, typ } = Astro.props;
+
+const FELDER = {
+  'led-strom': [
+    ['ubat', 'Spannung der Batterie', 'V'],
+    ['uled', 'Spannung an der LED', 'V'],
+    ['r', 'Wert deines Widerstands', 'Ω'],
+    ['i', 'Gemessener Strom', 'mA'],
+  ],
+  summe: [
+    ['ubat', 'Spannung der Batterie (Plus gegen Minus)', 'V'],
+    ['ur', 'Spannung am Widerstand', 'V'],
+    ['uled', 'Spannung an der LED', 'V'],
+  ],
+  teiler: [
+    ['u', 'Spannung der Batterie', 'V'],
+    ['r1', 'R1 (oberer Widerstand)', 'Ω'],
+    ['r2', 'R2 (unterer Widerstand)', 'Ω'],
+    ['u2', 'Gemessene Spannung an R2', 'V'],
+  ],
+}[typ];
+---
+<Station id={id} titel={titel} art="Messprotokoll" hardware>
+  <form class="protokoll" data-kw-protokoll data-typ={typ}>
+    <div class="felder">
+      {FELDER.map(([k, label, einheit]) => (
+        <label><span>{label}</span><span><input type="text" inputmode="decimal" name={k} required autocomplete="off" /> {einheit}</span></label>
+      ))}
+    </div>
+    <button class="knopf" type="submit">Protokoll prüfen</button>
+  </form>
+</Station>
+
+<script>
+  import { fmt, station, zahl } from '../scripts/station';
+  document.querySelectorAll<HTMLFormElement>('[data-kw-protokoll]').forEach((form) => {
+    const s = station(form.closest('[data-kw-check]') as HTMLElement);
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const v: Record<string, number> = {};
+      for (const inp of form.querySelectorAll('input')) {
+        v[inp.name] = zahl(inp.value);
+        if (Number.isNaN(v[inp.name])) return s.melden('Bitte in jedes Feld eine Zahl eintragen.', 'warnung');
+      }
+      const typ = form.dataset.typ;
+      if (typ === 'led-strom') {
+        if (v.uled >= v.ubat) return s.fehl('Die LED-Spannung muss kleiner sein als die Batteriespannung. Prüfe, ob du an den richtigen Punkten gemessen hast.');
+        const erwartet = ((v.ubat - v.uled) / v.r) * 1000;
+        const abw = Math.abs(v.i - erwartet) / erwartet;
+        if (abw <= 0.1) return s.bestehen(`Rechnung: (${fmt(v.ubat)} V − ${fmt(v.uled)} V) / ${fmt(v.r)} Ω = ${fmt(erwartet)} mA. Gemessen: ${fmt(v.i)} mA. Abweichung ${fmt(abw * 100, 1)} %. Das Ohmsche Gesetz stimmt.`);
+        return s.fehl(`Rechnung ergibt ${fmt(erwartet)} mA, gemessen hast du ${fmt(v.i)} mA (${fmt(abw * 100, 0)} % Abweichung, erlaubt sind 10 %). Häufige Ursachen: Multimeter nicht in Reihe, falscher Messbereich, Strom in A statt mA eingetragen.`);
+      }
+      if (typ === 'summe') {
+        const summe = v.ur + v.uled;
+        const abw = Math.abs(summe - v.ubat) / v.ubat;
+        if (abw <= 0.05) return s.bestehen(`${fmt(v.ur)} V + ${fmt(v.uled)} V = ${fmt(summe)} V, fast genau die Batteriespannung von ${fmt(v.ubat)} V. Die Spannungen im Kreis teilen sich auf.`);
+        return s.fehl(`${fmt(v.ur)} V + ${fmt(v.uled)} V = ${fmt(summe)} V, die Batterie hat aber ${fmt(v.ubat)} V (${fmt(abw * 100, 0)} % Abweichung, erlaubt sind 5 %). Miss jede Spannung direkt an den Beinen des Bauteils.`);
+      }
+      if (typ === 'teiler') {
+        const erwartet = (v.u * v.r2) / (v.r1 + v.r2);
+        const abw = Math.abs(v.u2 - erwartet) / erwartet;
+        if (abw <= 0.05) return s.bestehen(`Rechnung: ${fmt(erwartet, 3)} V, gemessen: ${fmt(v.u2, 3)} V. Abweichung ${fmt(abw * 100, 1)} %.`);
+        return s.fehl(`Rechnung ergibt ${fmt(erwartet, 3)} V, gemessen hast du ${fmt(v.u2, 3)} V (${fmt(abw * 100, 0)} % Abweichung, erlaubt sind 5 %). Sind R1 und R2 vertauscht? R2 ist der Widerstand, an dem du misst.`);
+      }
+    });
+  });
+</script>
+
+<style>
+  .felder { display: grid; gap: 0.7rem; margin-bottom: 1rem; }
+  .felder label { display: flex; justify-content: space-between; gap: 1rem; align-items: center; flex-wrap: wrap; }
+  .felder input { width: 7rem; }
+</style>

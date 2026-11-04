@@ -1,0 +1,78 @@
+---
+import '../styles/global.css';
+import { SEITE, url } from '../config';
+
+interface Props { titel?: string; beschreibung?: string; }
+const { titel, beschreibung = SEITE.untertitel } = Astro.props;
+const voll = titel ? `${titel} – ${SEITE.name}` : `${SEITE.name} – ${SEITE.untertitel}`;
+---
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{voll}</title>
+    <meta name="description" content={beschreibung} />
+    <meta name="theme-color" content="#143a2c" />
+    <link rel="icon" href={url('favicon.svg')} type="image/svg+xml" />
+  </head>
+  <body>
+    <a class="sprung" href="#inhalt">Zum Inhalt springen</a>
+    <header class="kopf">
+      <div class="huelle kopf-innen">
+        <a class="marke" href={url('')}>
+          <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="16" cy="16" r="5.5" fill="currentColor"/></svg>
+          {SEITE.name}
+        </a>
+        <nav aria-label="Hauptnavigation">
+          <a href={url('')}>Kampagne</a>
+          <a href={url('fortschritt')}>Fortschritt</a>
+          <a href={url('ueber')}>Über</a>
+        </nav>
+        <a class="rang" href={url('fortschritt')} data-kw-rang>
+          <span data-kw-level>Lehrling</span>
+          <span class="rang-xp"><span data-kw-xp>0</span> XP</span>
+        </a>
+      </div>
+    </header>
+    <main id="inhalt">
+      <slot />
+    </main>
+    <footer class="fuss">
+      <div class="huelle">
+        <p class="leise klein">
+          {SEITE.name} ist kostenlos und ohne Anmeldung. Dein Fortschritt bleibt in deinem Browser.
+          Inhalte unter CC BY-SA 4.0, Code unter MIT. <a href={url('ueber')}>Über das Projekt</a>
+          {SEITE.repo && <> · <a href={SEITE.repo}>Quellcode</a></>}
+        </p>
+      </div>
+    </footer>
+    <script>
+      import { beiAenderung, laden, level, xpGesamt } from '../scripts/engine';
+      function zeigen() {
+        const xp = xpGesamt(laden());
+        document.querySelectorAll('[data-kw-xp]').forEach((e) => (e.textContent = String(xp)));
+        document.querySelectorAll('[data-kw-level]').forEach((e) => (e.textContent = level(xp).name));
+      }
+      zeigen();
+      beiAenderung(zeigen);
+    </script>
+  </body>
+</html>
+
+<style>
+  .sprung { position: absolute; left: -999px; }
+  .sprung:focus { left: 1rem; top: 1rem; background: var(--druck); color: var(--maske); padding: 0.5rem 1rem; z-index: 10; }
+  .kopf { border-bottom: 1px solid var(--platine); background: rgba(15, 46, 35, 0.85); }
+  .kopf-innen { display: flex; align-items: center; gap: 1.5rem; min-height: 4rem; flex-wrap: wrap; }
+  .marke { display: inline-flex; align-items: center; gap: 0.55rem; font-weight: 700; font-size: 1.2rem; color: var(--druck); text-decoration: none; }
+  .marke svg { color: var(--kupfer); }
+  nav { display: flex; gap: 1.2rem; margin-right: auto; }
+  nav a { color: var(--zinn); text-decoration: none; }
+  nav a:hover { color: var(--druck); }
+  .rang { display: inline-flex; gap: 0.6rem; align-items: baseline; text-decoration: none; color: var(--druck); border: 1px solid var(--platine); border-radius: 999px; padding: 0.25rem 0.85rem; font-size: 0.95rem; }
+  .rang-xp { color: var(--kupfer-hell); font-weight: 700; }
+  main { padding-bottom: 4rem; }
+  .fuss { border-top: 1px solid var(--platine); padding: 1.5rem 0; }
+  @media (max-width: 640px) { nav { order: 3; width: 100%; padding-bottom: 0.6rem; } .rang { margin-left: auto; } }
+</style>

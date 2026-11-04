@@ -1,0 +1,18 @@
+---
+interface Props { art?: 'sicherheit' | 'info' | 'vorlaeufig'; titel?: string; }
+const { art = 'info', titel } = Astro.props;
+const standard = { sicherheit: 'Sicherheit', info: 'Gut zu wissen', vorlaeufig: 'Vorläufiger Wert' }[art];
+---
+<aside class={`hinweis ${art}`}>
+  <p class="titel">{titel ?? standard}</p>
+  <slot />
+</aside>
+
+<style>
+  .hinweis { border-radius: var(--radius); padding: 0.9rem 1.1rem 0.2rem; margin: 1.2rem 0; border: 1px solid var(--platine); }
+  .titel { font-weight: 700; margin-bottom: 0.4rem; }
+  .sicherheit { border-color: var(--warnung); background: rgba(240, 194, 100, 0.08); }
+  .sicherheit .titel { color: var(--warnung); }
+  .vorlaeufig .titel { color: var(--zinn); }
+  .info .titel { color: var(--kupfer-hell); }
+</style>

@@ -1,0 +1,128 @@
+---
+// Die Türklingel als Bestückungsplan. Jedes Teil gehört zu einem Akt und hat vier Zustände:
+// gesperrt (gestrichelt), aktiv (Kupferumriss), simuliert (grau gefüllt), real (kupfern gefüllt).
+import { KAMPAGNE } from '../data/kampagne';
+const akt = (teil: string) => KAMPAGNE.find((a) => a.teil === teil)!;
+const L = (teil: string, x: number, y: number, anchor = 'start') => ({ teil, x, y, anchor, a: akt(teil) });
+const LABELS = [
+  L('gehaeuse', 46, 16), L('grundplatte', 84, 520), L('schlaf', 118, 182, 'middle'), L('auge', 210, 196, 'middle'),
+  L('stimme', 312, 196, 'middle'), L('gehirn', 210, 300, 'middle'), L('herz', 186, 386, 'middle'),
+  L('schalter', 330, 386, 'middle'), L('knopf', 210, 488, 'middle'),
+];
+---
+<figure class="klingel" data-kw-klingel>
+  <svg viewBox="0 0 420 560" role="img" aria-labelledby="klingel-titel">
+    <title id="klingel-titel">Deine Türklingel. Jedes Teil füllt sich, wenn du den passenden Akt abschließt.</title>
+    <g class="spuren" aria-hidden="true">
+      <path d="M210 176V206M210 280V330M260 243H296V318M317 362V378H210V386M210 280L150 330" />
+    </g>
+
+    <g class="teil" data-teil="gehaeuse"><rect class="form" x="30" y="24" width="360" height="512" rx="58" /></g>
+
+    <g class="teil" data-teil="grundplatte">
+      <rect class="form" x="70" y="64" width="280" height="436" rx="18" />
+      <circle class="form" cx="92" cy="86" r="7" /><circle class="form" cx="328" cy="86" r="7" />
+      <circle class="form" cx="92" cy="478" r="7" /><circle class="form" cx="328" cy="478" r="7" />
+    </g>
+
+    <g class="teil" data-teil="schlaf">
+      <path class="form" d="M128 112a26 26 0 1 0 22 40a20 20 0 1 1 -22 -40z" />
+    </g>
+
+    <g class="teil" data-teil="auge">
+      <rect class="form" x="170" y="96" width="80" height="80" rx="10" />
+      <circle class="form" cx="210" cy="136" r="26" />
+      <circle class="form" cx="210" cy="136" r="11" />
+    </g>
+
+    <g class="teil" data-teil="stimme">
+      <path class="form" d="M300 170a10 10 0 0 1 24 0M290 170a22 22 0 0 1 44 0M280 170a34 34 0 0 1 64 0" />
+      <circle class="form" cx="312" cy="170" r="4" />
+    </g>
+
+    <g class="teil" data-teil="gehirn">
+      <rect class="form" x="160" y="206" width="100" height="74" rx="5" />
+      <path class="form" d="M160 220h-12M160 234h-12M160 248h-12M160 262h-12M260 220h12M260 234h12M260 248h12M260 262h12" />
+      <text x="210" y="249" text-anchor="middle" class="aufdruck">ESP32</text>
+    </g>
+
+    <g class="teil" data-teil="herz">
+      <rect class="form" x="100" y="320" width="172" height="48" rx="12" />
+      <rect class="form" x="272" y="333" width="12" height="22" rx="3" />
+      <text x="186" y="351" text-anchor="middle" class="aufdruck">18650</text>
+    </g>
+
+    <g class="teil" data-teil="schalter">
+      <rect class="form" x="304" y="318" width="34" height="30" rx="4" />
+      <path class="form" d="M311 348v14M321 348v14M331 348v14" />
+    </g>
+
+    <g class="teil" data-teil="knopf">
+      <circle class="form" cx="210" cy="428" r="42" />
+      <circle class="form" cx="210" cy="428" r="27" />
+    </g>
+
+    {LABELS.map((l) => (
+      <text class="druck" x={l.x} y={l.y} text-anchor={l.anchor} data-label={l.teil}>
+        Akt {l.a.nr}<tspan class="druck-stand" data-stand={l.teil}></tspan>
+      </text>
+    ))}
+  </svg>
+  <figcaption class="legende">
+    <span><i class="l gesperrt"></i>gesperrt</span>
+    <span><i class="l aktiv"></i>in Arbeit</span>
+    <span><i class="l simuliert"></i>im Simulator</span>
+    <span><i class="l real"></i>echt gebaut</span>
+  </figcaption>
+</figure>
+
+<script>
+  import { KAMPAGNE } from '../data/kampagne';
+  import { beiAenderung, laden, teilZustand } from '../scripts/engine';
+  function zeigen(erstes = false) {
+    const z = laden();
+    let reihe = 0;
+    KAMPAGNE.forEach((a) => {
+      const t = teilZustand(a.teil, z);
+      const g = document.querySelector<SVGGElement>(`[data-teil="${a.teil}"]`);
+      if (!g) return;
+      g.classList.remove('gesperrt', 'aktiv', 'simuliert', 'real');
+      g.classList.add(t.zustand);
+      if (erstes && (t.zustand === 'real' || t.zustand === 'simuliert')) {
+        g.style.setProperty('--verz', `${reihe++ * 140}ms`);
+        g.classList.add('auftritt');
+      }
+      const stand = document.querySelector(`[data-stand="${a.teil}"]`);
+      if (stand) stand.textContent = t.zustand === 'real' ? ' fertig' : t.zustand === 'simuliert' ? ' simuliert' : t.fertig > 0 ? ` ${t.fertig}/${t.gesamt}` : '';
+      const label = document.querySelector(`[data-label="${a.teil}"]`);
+      label?.classList.toggle('an', t.zustand !== 'gesperrt');
+    });
+  }
+  zeigen(true);
+  beiAenderung(() => zeigen());
+</script>
+
+<style>
+  .klingel { margin: 0; }
+  svg { width: 100%; max-width: 26rem; height: auto; display: block; margin: 0 auto; overflow: visible; }
+  .spuren path { fill: none; stroke: rgba(201, 139, 79, 0.28); stroke-width: 3; }
+  .teil .form { fill: none; stroke: var(--zinn-dunkel); stroke-width: 2; stroke-dasharray: 5 6; transition: fill 0.4s, stroke 0.4s; }
+  .teil .aufdruck { fill: var(--zinn-dunkel); font-size: 14px; font-weight: 700; }
+  .teil.aktiv .form { stroke: var(--kupfer); stroke-width: 2.5; }
+  .teil.simuliert .form { stroke: var(--zinn); stroke-dasharray: none; fill: rgba(185, 192, 189, 0.22); }
+  .teil.real .form { stroke: var(--kupfer-hell); stroke-dasharray: none; stroke-width: 2.5; fill: rgba(201, 139, 79, 0.38); }
+  .teil.real .aufdruck, .teil.simuliert .aufdruck { fill: var(--druck); }
+  .teil[data-teil='gehaeuse'] .form, .teil[data-teil='grundplatte'] .form { fill-opacity: 0.35; }
+  .teil.real { filter: drop-shadow(0 0 6px rgba(227, 169, 111, 0.45)); }
+  .teil.auftritt { animation: einloeten 0.7s ease-out both; animation-delay: var(--verz); }
+  @keyframes einloeten { from { opacity: 0.15; } 60% { opacity: 1; filter: drop-shadow(0 0 14px rgba(255, 200, 140, 0.9)); } }
+  .druck { fill: var(--zinn-dunkel); font-size: 12.5px; }
+  .druck.an { fill: var(--druck); }
+  .druck-stand { fill: var(--kupfer-hell); }
+  .legende { display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; justify-content: center; font-size: 0.9rem; color: var(--zinn); margin-top: 0.8rem; }
+  .l { display: inline-block; width: 0.9rem; height: 0.9rem; border-radius: 3px; margin-right: 0.35rem; vertical-align: -0.1rem; border: 2px solid; }
+  .l.gesperrt { border-color: var(--zinn-dunkel); border-style: dashed; }
+  .l.aktiv { border-color: var(--kupfer); border-style: dashed; }
+  .l.simuliert { border-color: var(--zinn); background: rgba(185, 192, 189, 0.3); }
+  .l.real { border-color: var(--kupfer-hell); background: rgba(201, 139, 79, 0.5); }
+</style>

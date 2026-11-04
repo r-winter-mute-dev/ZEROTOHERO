@@ -1,0 +1,133 @@
+---
+import Basis from '../../layouts/Basis.astro';
+import { ALLE_MISSIONEN, aktVon, naechste, vorherige } from '../../data/kampagne';
+import { url } from '../../config';
+
+export function getStaticPaths() {
+  return ALLE_MISSIONEN.map((m) => ({ params: { id: m.id } }));
+}
+
+const { id } = Astro.params as { id: string };
+const mission = ALLE_MISSIONEN.find((x) => x.id === id)!;
+const akt = aktVon(id)!;
+const vor = vorherige(id);
+const nach = naechste(id);
+
+const dateien = import.meta.glob('../../missionen/*.mdx', { eager: true }) as Record<string, { default: any; frontmatter: any }>;
+const datei = dateien[`../../missionen/${id}.mdx`];
+const Inhalt = datei?.default;
+const fm = datei?.frontmatter ?? {};
+const checks: { id: string; hardware?: boolean }[] = fm.checks ?? [];
+const hatHardware = checks.some((c) => c.hardware);
+const meta = { id, xp: mission.xp, checks, abzeichen: fm.abzeichen };
+---
+<Basis titel={`${mission.nr} ${mission.titel}`} beschreibung={mission.kurz}>
+  <article class="huelle mission" data-mission={id} data-meta={JSON.stringify(meta)}>
+    <nav class="pfad leise klein" aria-label="Brotkrumen">
+      <a href={url('')}>Kampagne</a> / Akt {akt.nr}: {akt.titel}
+    </nav>
+    <header class="mkopf">
+      <p class="mnr">{mission.boss ? `Bosskampf ${akt.nr}` : `Mission ${mission.nr}`}</p>
+      <h1>{mission.titel}</h1>
+      <p class="mkurz">{mission.kurz}</p>
+      <p class="leise klein">{mission.xp} XP{checks.length ? `, +10 XP wenn alles im ersten Versuch klappt` : ''}{fm.abzeichen ? `. Abzeichen: ${fm.abzeichen}` : ''}</p>
+    </header>
+
+    <div class="sperre" data-kw-sperre hidden>
+      <p>Diese Mission ist noch gesperrt. Du kannst alles lesen, aber die Prüfungen zählen erst, wenn du
+        {vor && <a href={url(`mission/${vor.id}`)}>{vor.nr} {vor.titel}</a>} abgeschlossen hast.</p>
+    </div>
+
+    {hatHardware && (
+      <label class="hw-schalter">
+        <input type="checkbox" data-kw-ohne-hardware />
+        <span>Ich habe die Hardware (noch) nicht. Prüfungen mit Hardware überspringen und im Simulator weitermachen.</span>
+      </label>
+    )}
+
+    <div class="inhalt text">
+      {Inhalt ? <Inhalt /> : (
+        <section class="entwurf">
+          <p><strong>Diese Mission wird gerade geschrieben.</strong> So ist sie geplant:</p>
+          <table>
+            <tbody>
+              <tr><th scope="row">Du tust</th><td>{mission.kurz}</td></tr>
+              <tr><th scope="row">Theorie</th><td>{mission.theorie}</td></tr>
+              <tr><th scope="row">Prüfung</th><td>{mission.pruefung}</td></tr>
+            </tbody>
+          </table>
+          <p class="leise">Bis dahin kannst du die bisherigen Missionen wiederholen oder deinen Fortschritt sichern.</p>
+        </section>
+      )}
+    </div>
+
+    <section class="belohnung" data-kw-belohnung hidden aria-live="polite">
+      <h2 data-bel-titel>Mission geschafft</h2>
+      <p data-bel-text></p>
+      {nach && <a class="knopf" href={url(`mission/${nach.id}`)}>Weiter mit {nach.nr}: {nach.titel}</a>}
+    </section>
+
+    <nav class="blaettern" aria-label="Missionen">
+      {vor ? <a href={url(`mission/${vor.id}`)}>Zurück: {vor.nr} {vor.titel}</a> : <span></span>}
+      {nach && <a href={url(`mission/${nach.id}`)}>Nächste: {nach.nr} {nach.titel}</a>}
+    </nav>
+  </article>
+</Basis>
+
+<script>
+  import { istFertig, istFreigeschaltet, laden, missionRegistrieren, setOhneHardware, beiAenderung } from '../../scripts/engine';
+  const art = document.querySelector<HTMLElement>('[data-mission]')!;
+  const meta = JSON.parse(art.dataset.meta!);
+  missionRegistrieren(meta);
+
+  const sperre = document.querySelector<HTMLElement>('[data-kw-sperre]')!;
+  sperre.hidden = istFreigeschaltet(meta.id);
+
+  const hw = document.querySelector<HTMLInputElement>('[data-kw-ohne-hardware]');
+  if (hw) {
+    hw.checked = laden().ohneHardware;
+    hw.addEventListener('change', () => setOhneHardware(hw.checked));
+  }
+
+  const bel = document.querySelector<HTMLElement>('[data-kw-belohnung]')!;
+  function belohnungZeigen(frisch: boolean, info?: { status: string; xp: number; ersterVersuch: boolean; upgrade: boolean }) {
+    const eintrag = laden().missionen[meta.id];
+    if (!eintrag) return;
+    bel.hidden = false;
+    bel.classList.toggle('frisch', frisch);
+    bel.querySelector('[data-bel-titel]')!.textContent = eintrag.status === 'real' ? 'Mission geschafft' : 'Im Simulator geschafft';
+    const teile = [];
+    if (frisch && info) {
+      teile.push(info.upgrade ? 'Jetzt auch mit echter Hardware bestanden.' : `+${info.xp} XP${info.ersterVersuch ? ' (inklusive Bonus für den ersten Versuch)' : ''}.`);
+      if (meta.abzeichen && !info.upgrade) teile.push(`Neues Abzeichen: ${meta.abzeichen}.`);
+    } else teile.push(`Du hast diese Mission bereits abgeschlossen (${eintrag.xp} XP).`);
+    if (eintrag.status === 'simuliert') teile.push('Sobald du die Hardware hast, kannst du die übersprungenen Prüfungen nachholen. Dann wird dein Teil kupfern.');
+    bel.querySelector('[data-bel-text]')!.textContent = teile.join(' ');
+    if (frisch) bel.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+  }
+  if (istFertig(meta.id)) belohnungZeigen(false);
+  window.addEventListener('kw:mission-fertig', (e) => {
+    const d = (e as CustomEvent).detail;
+    if (d.id === meta.id) belohnungZeigen(true, d);
+  });
+  beiAenderung(() => { sperre.hidden = istFreigeschaltet(meta.id); });
+</script>
+
+<style>
+  .mission { padding-top: 1.5rem; }
+  .pfad { margin-bottom: 1.5rem; }
+  .pfad a { color: var(--zinn); }
+  .mkopf { max-width: var(--breite); margin-bottom: 1.5rem; }
+  .mnr { color: var(--kupfer-hell); font-weight: 700; margin-bottom: 0.3rem; }
+  .mkurz { font-size: 1.2rem; }
+  .sperre { max-width: var(--breite); border: 1px solid var(--warnung); border-radius: var(--radius); padding: 0.8rem 1rem 0; margin-bottom: 1.5rem; color: var(--warnung); }
+  .hw-schalter { max-width: var(--breite); display: flex; gap: 0.7rem; align-items: flex-start; padding: 0.8rem 1rem; border: 1px dashed var(--zinn-dunkel); border-radius: var(--radius); margin-bottom: 1.5rem; cursor: pointer; }
+  .hw-schalter input { margin-top: 0.3rem; width: 1.1rem; height: 1.1rem; accent-color: var(--kupfer); flex: none; }
+  .inhalt :global(h2:first-child) { margin-top: 0.5rem; }
+  .entwurf { border: 1px dashed var(--zinn-dunkel); border-radius: var(--radius); padding: 1rem 1.2rem; }
+  .belohnung { max-width: var(--breite); margin: 2.5rem 0 1rem; padding: 1.4rem 1.5rem; border-radius: var(--radius); background: var(--platine); border: 2px solid var(--kupfer); }
+  .belohnung h2 { margin-top: 0; }
+  .belohnung.frisch { animation: aufleuchten 1.2s ease-out; }
+  @keyframes aufleuchten { 0% { box-shadow: 0 0 0 0 rgba(227, 169, 111, 0.9); } 100% { box-shadow: 0 0 0 18px rgba(227, 169, 111, 0); } }
+  .blaettern { max-width: var(--breite); display: flex; justify-content: space-between; gap: 1rem; margin-top: 2.5rem; padding-top: 1.2rem; border-top: 1px solid var(--platine); flex-wrap: wrap; }
+</style>

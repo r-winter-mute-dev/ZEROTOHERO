@@ -1,0 +1,198 @@
+---
+// Virtueller Messplatz an einem LED-Stromkreis.
+// modus="aufgaben": bestimmte Spannungen messen. modus="fehler": Fehler finden (Bosskampf).
+import Station from './Station.astro';
+interface Aufgabe { text: string; punkte: [string, string]; }
+interface Props { id: string; titel: string; modus: 'aufgaben' | 'fehler'; aufgaben?: Aufgabe[]; anzahl?: number; }
+const { id, titel, modus, aufgaben = [], anzahl = 3 } = Astro.props;
+
+const P = { A: [70, 60], B: [150, 60], C: [430, 60], D: [430, 240], E: [70, 240] } as const;
+---
+<Station id={id} titel={titel} art={modus === 'fehler' ? 'Bosskampf' : 'Messplatz'}>
+  <div class="messplatz" data-kw-messplatz data-modus={modus} data-aufgaben={JSON.stringify(aufgaben)} data-anzahl={anzahl}>
+    <p class="szenario" data-mp-szenario></p>
+    <div class="aufbau">
+      <svg viewBox="0 0 520 300" role="img" aria-label="Schaltplan: Batterie, Widerstand und LED in Reihe, Messpunkte A bis E">
+        <g class="draht" fill="none" stroke-width="3">
+          <path d="M70 120V60H200M300 60H430V120M430 180V240H70V180" />
+        </g>
+        <g class="bauteil">
+          <line x1="40" y1="120" x2="100" y2="120" stroke-width="4" />
+          <line x1="55" y1="134" x2="85" y2="134" stroke-width="4" />
+          <line x1="40" y1="166" x2="100" y2="166" stroke-width="4" />
+          <line x1="55" y1="180" x2="85" y2="180" stroke-width="4" />
+          <line x1="70" y1="134" x2="70" y2="166" stroke-width="3" stroke-dasharray="3 5" />
+          <text x="22" y="118" class="beschr">+</text>
+          <text x="22" y="190" class="beschr">−</text>
+          <text x="112" y="156" class="beschr">Batterie 3 V</text>
+          <rect x="200" y="46" width="100" height="28" rx="3" fill="none" stroke-width="3" />
+          <text x="250" y="100" class="beschr" text-anchor="middle">Widerstand 220 Ω</text>
+          <path d="M405 120H455L430 165Z" fill="none" stroke-width="3" />
+          <line x1="405" y1="168" x2="455" y2="168" stroke-width="3" />
+          <line x1="430" y1="165" x2="430" y2="180" stroke-width="3" />
+          <path d="M462 132l18-10M470 146l18-10" stroke-width="2" />
+          <text x="388" y="152" class="beschr" text-anchor="end">LED</text>
+        </g>
+        {Object.entries(P).map(([k, [x, y]]) => (
+          <g class="punkt" data-punkt={k} tabindex="0" role="button" aria-label={`Messpunkt ${k}`}>
+            <circle cx={x} cy={y} r="13" />
+            <text x={x} y={y + 5} text-anchor="middle">{k}</text>
+          </g>
+        ))}
+      </svg>
+      <div class="geraet" aria-live="polite">
+        <div class="anzeige"><span data-mp-anzeige>– – –</span><span class="einheit">V</span></div>
+        <fieldset class="spitzen">
+          <legend>Welche Messspitze setzt du?</legend>
+          <label><input type="radio" name={`spitze-${id}`} value="rot" checked /> <span class="rot">Rot (+)</span>: <b data-mp-rot>–</b></label>
+          <label><input type="radio" name={`spitze-${id}`} value="schwarz" /> <span class="schwarz">Schwarz (COM)</span>: <b data-mp-schwarz>–</b></label>
+        </fieldset>
+        <p class="leise klein">Tippe auf einen Messpunkt im Schaltplan.</p>
+        <p class="leise klein" data-mp-zaehler></p>
+      </div>
+    </div>
+    <div data-mp-aufgabe></div>
+    <div class="diagnose" data-mp-diagnose hidden>
+      <label for={`diag-${id}`}>Deine Diagnose:</label>
+      <select id={`diag-${id}`} data-mp-wahl></select>
+      <button class="knopf" type="button" data-mp-abgeben>Diagnose abgeben</button>
+    </div>
+  </div>
+</Station>
+
+<script>
+  import { fmt, mischen, station } from '../scripts/station';
+
+  type Pkt = 'A' | 'B' | 'C' | 'D' | 'E';
+  type Pot = Record<Pkt, number>;
+  const NORMAL: Pot = { A: 3.0, B: 3.0, C: 1.9, D: 0, E: 0 };
+  const URSACHEN: Record<string, string> = {
+    verpolt: 'LED falsch herum eingebaut (verpolt)',
+    offen: 'Unterbrechung zwischen Batterie-Plus und Widerstand',
+    leer: 'Batterie fast leer',
+    widerstand: 'Falscher Widerstand (viel zu groß)',
+    kurz: 'LED kurzgeschlossen (beide Beine in derselben Reihe)',
+  };
+  const SZENARIEN: { ursache: string; symptom: string; pot: Pot }[] = [
+    { ursache: 'verpolt', symptom: 'Die LED bleibt dunkel.', pot: { A: 3.0, B: 3.0, C: 3.0, D: 0, E: 0 } },
+    { ursache: 'offen', symptom: 'Die LED bleibt dunkel.', pot: { A: 3.0, B: 0, C: 0, D: 0, E: 0 } },
+    { ursache: 'leer', symptom: 'Die LED bleibt dunkel.', pot: { A: 1.5, B: 1.5, C: 1.5, D: 0, E: 0 } },
+    { ursache: 'widerstand', symptom: 'Die LED leuchtet nur ganz schwach.', pot: { A: 3.0, B: 3.0, C: 1.6, D: 0, E: 0 } },
+    { ursache: 'kurz', symptom: 'Die LED bleibt dunkel.', pot: { A: 3.0, B: 3.0, C: 0, D: 0, E: 0 } },
+  ];
+
+  document.querySelectorAll<HTMLElement>('[data-kw-messplatz]').forEach((box) => {
+    const s = station(box.closest('[data-kw-check]') as HTMLElement);
+    const $ = (sel: string) => box.querySelector<HTMLElement>(sel)!;
+    const modus = box.dataset.modus;
+    const aufgaben = JSON.parse(box.dataset.aufgaben!) as { text: string; punkte: [Pkt, Pkt] }[];
+    const anzahl = Number(box.dataset.anzahl);
+    let pot: Pot = NORMAL;
+    let rot: Pkt | null = null, schwarz: Pkt | null = null;
+    let messungen = 0, schritt = 0;
+    let faelle: typeof SZENARIEN = [];
+
+    function anzeigen() {
+      $('[data-mp-rot]').textContent = rot ?? '–';
+      $('[data-mp-schwarz]').textContent = schwarz ?? '–';
+      box.querySelectorAll<SVGGElement>('[data-punkt]').forEach((g) => {
+        g.classList.toggle('ist-rot', g.dataset.punkt === rot);
+        g.classList.toggle('ist-schwarz', g.dataset.punkt === schwarz);
+      });
+      $('[data-mp-anzeige]').textContent = rot && schwarz ? (pot[rot] - pot[schwarz] + 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '– – –';
+      $('[data-mp-zaehler]').textContent = modus === 'fehler' ? `Messungen in diesem Fall: ${messungen}` : '';
+    }
+
+    function setzen(p: Pkt) {
+      const wahl = box.querySelector<HTMLInputElement>('input[type=radio]:checked')!;
+      if (wahl.value === 'rot') { rot = p; (box.querySelector('input[value=schwarz]') as HTMLInputElement).checked = true; }
+      else schwarz = p;
+      if (rot && schwarz) { messungen++; pruefeAufgabe(); }
+      anzeigen();
+    }
+
+    box.querySelectorAll<SVGGElement>('[data-punkt]').forEach((g) => {
+      const los = () => setzen(g.dataset.punkt as Pkt);
+      g.addEventListener('click', los);
+      g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); los(); } });
+    });
+
+    // --- Modus Aufgaben ---
+    function aufgabeZeigen() {
+      const a = aufgaben[schritt];
+      $('[data-mp-aufgabe]').innerHTML = '';
+      const p = document.createElement('p');
+      p.className = 'aufgabe-text';
+      p.textContent = a ? `Aufgabe ${schritt + 1} von ${aufgaben.length}: ${a.text}` : 'Alle Messaufgaben erledigt.';
+      $('[data-mp-aufgabe]').append(p);
+    }
+    function pruefeAufgabe() {
+      if (modus !== 'aufgaben' || !rot || !schwarz) return;
+      const a = aufgaben[schritt];
+      if (!a) return;
+      const [x, y] = a.punkte;
+      const passt = (rot === x && schwarz === y) || (rot === y && schwarz === x);
+      if (!passt) return;
+      const umgekehrt = rot === y && schwarz === x && pot[x] !== pot[y];
+      schritt++;
+      if (schritt >= aufgaben.length) { s.bestehen('Alle Messaufgaben richtig gemessen.'); }
+      else s.melden(umgekehrt ? 'Richtig gemessen. Das Minus zeigt: Rot und Schwarz sind vertauscht. Der Betrag stimmt trotzdem.' : 'Richtig gemessen. Nächste Aufgabe.', 'gut');
+      aufgabeZeigen();
+    }
+
+    // --- Modus Fehler ---
+    function fallZeigen() {
+      const f = faelle[schritt];
+      pot = f.pot; rot = null; schwarz = null; messungen = 0;
+      (box.querySelector('input[value=rot]') as HTMLInputElement).checked = true;
+      $('[data-mp-szenario]').textContent = `Fall ${schritt + 1} von ${faelle.length}: ${f.symptom} Miss nach und stelle eine Diagnose.`;
+      const sel = box.querySelector<HTMLSelectElement>('[data-mp-wahl]')!;
+      sel.innerHTML = '<option value="">Ursache wählen …</option>' + Object.entries(URSACHEN).map(([k, t]) => `<option value="${k}">${t}</option>`).join('');
+      anzeigen();
+    }
+
+    if (modus === 'aufgaben') aufgabeZeigen();
+    else {
+      faelle = mischen(SZENARIEN).slice(0, anzahl);
+      $('[data-mp-diagnose]').hidden = false;
+      fallZeigen();
+      $('[data-mp-abgeben]').addEventListener('click', () => {
+        const wahl = box.querySelector<HTMLSelectElement>('[data-mp-wahl]')!.value;
+        if (!wahl) return s.melden('Wähle zuerst eine Ursache aus.', 'warnung');
+        if (messungen === 0) return s.melden('Miss zuerst. Eine Diagnose ohne Messung ist geraten.', 'warnung');
+        if (wahl !== faelle[schritt].ursache) return s.fehl('Diese Ursache passt nicht zu deinen Messwerten. Vergleiche mit den Sollwerten der intakten Schaltung.');
+        schritt++;
+        if (schritt >= faelle.length) { s.bestehen('Alle Fehler gefunden. Bosskampf gewonnen.'); $('[data-mp-szenario]').textContent = 'Alle Fälle gelöst.'; return; }
+        s.melden('Richtig diagnostiziert. Nächster Fall.', 'gut');
+        fallZeigen();
+      });
+    }
+    anzeigen();
+  });
+</script>
+
+<style>
+  .aufbau { display: grid; grid-template-columns: minmax(0, 3fr) minmax(12rem, 2fr); gap: 1.2rem; align-items: start; }
+  @media (max-width: 720px) { .aufbau { grid-template-columns: 1fr; } }
+  svg { width: 100%; height: auto; background: var(--maske); border-radius: var(--radius-klein); }
+  .draht path, .bauteil line, .bauteil rect, .bauteil path { stroke: var(--druck); }
+  .beschr { fill: var(--zinn); font-size: 15px; }
+  .punkt { cursor: pointer; }
+  .punkt circle { fill: var(--maske-tief); stroke: var(--kupfer); stroke-width: 2.5; }
+  .punkt text { fill: var(--druck); font-size: 14px; font-weight: 700; pointer-events: none; }
+  .punkt:hover circle, .punkt:focus-visible circle { stroke-width: 4; }
+  .punkt.ist-rot circle { fill: #b8473b; stroke: #ff8a7a; }
+  .punkt.ist-schwarz circle { fill: #222; stroke: var(--druck); }
+  .geraet { background: #2b2f2d; border-radius: 14px; padding: 1rem; border: 2px solid #444a47; }
+  .anzeige { background: #c9d3b4; color: #1d231c; font-size: 2.2rem; font-weight: 700; text-align: right; padding: 0.3rem 0.8rem; border-radius: 6px; font-variant-numeric: tabular-nums; margin-bottom: 0.8rem; }
+  .einheit { font-size: 1.2rem; margin-left: 0.4rem; }
+  .spitzen { border: 0; padding: 0; margin: 0 0 0.5rem; }
+  .spitzen legend { font-size: 0.95rem; margin-bottom: 0.3rem; }
+  .spitzen label { display: block; padding: 0.15rem 0; }
+  .rot { color: #ff8a7a; font-weight: 700; }
+  .schwarz { color: var(--druck); font-weight: 700; }
+  .szenario { font-weight: 700; }
+  .szenario:empty { display: none; }
+  .diagnose { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin-top: 1rem; }
+  :global(.aufgabe-text) { margin-top: 1rem; font-weight: 700; }
+</style>

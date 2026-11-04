@@ -1,0 +1,35 @@
+---
+id: m-1-boss
+abzeichen: Fehlerjäger
+checks:
+  - id: boss
+---
+import Messplatz from '../components/Messplatz.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Irgendwann funktioniert jede Schaltung einmal nicht. Anfänger stecken dann wahllos um und hoffen. Profis messen. **Dein Bosskampf: Drei defekte LED-Kreise. Finde in jedem den Fehler, nur mit dem Multimeter.**
+
+## Die Methode
+
+1. **Symptom beschreiben:** Was genau passiert? Dunkel, schwach, flackert?
+2. **Versorgung prüfen:** Liefert die Batterie ihre Spannung? Ohne Strom von der Quelle bringt alles andere nichts.
+3. **Spannung an jedem Bauteil messen**, eins nach dem anderen.
+4. **Mit den Sollwerten vergleichen.** Wo weicht etwas ab?
+5. **Erst dann eine Ursache benennen.** Eine Diagnose ohne Messung ist geraten.
+
+## Sollwerte der intakten Schaltung
+
+So sieht der Kreis aus Mission 1.1 aus, wenn alles stimmt. Die Punkte heißen wie im Messplatz.
+
+| Messung | Zwischen | Sollwert |
+| --- | --- | --- |
+| Batterie | A und E | 3,00 V |
+| Draht | A und B | 0,00 V |
+| Widerstand | B und C | 1,10 V |
+| LED | C und D | 1,90 V |
+
+<Hinweis titel="Zwei Faustregeln">
+Fließt **kein Strom**, fällt an einem Widerstand **keine Spannung** ab. Und an einer **offenen Stelle** im Kreis liegt die **volle Spannung** an, weil dort der ganze „Druck“ ansteht, ohne dass etwas fließt.
+</Hinweis>
+
+<Messplatz id="boss" titel="Bosskampf: Die LED bleibt dunkel" modus="fehler" anzahl={3} />

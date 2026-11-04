@@ -1,0 +1,53 @@
+---
+id: m-1-4
+checks:
+  - id: rechnen
+  - id: reihe
+    hardware: true
+  - id: parallel
+    hardware: true
+---
+import Karte from '../components/Karte.astro';
+import Rechnen from '../components/Rechnen.astro';
+import Zahl from '../components/Zahl.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Manchmal hast du den passenden Widerstand nicht im Sortiment. Dann kombinierst du zwei. Außerdem steckt die Idee „in Reihe oder parallel“ in fast jeder Schaltung der Klingel. **Deine Mission: Kombiniere zwei Widerstände auf zwei Arten und miss das Ergebnis nach.**
+
+## Theorie
+
+<Karte nr={1} titel="In Reihe: hintereinander">
+Bauteile **in Reihe** liegen hintereinander auf einem Weg. Durch alle fließt **derselbe Strom**. Die Widerstände **addieren sich**: R = R1 + R2. Zwei 220-Ω-Widerstände in Reihe ergeben 440 Ω.
+</Karte>
+
+<Karte nr={2} titel="Parallel: nebeneinander">
+Bauteile **parallel** liegen nebeneinander zwischen denselben zwei Punkten. An allen liegt **dieselbe Spannung**. Der Strom hat mehrere Wege, deshalb wird der Gesamtwiderstand **kleiner**: R = (R1 × R2) / (R1 + R2). Zwei 220-Ω-Widerstände parallel ergeben 110 Ω.
+</Karte>
+
+<Karte nr={3} titel="Wo das in der Klingel vorkommt">
+Dein Messgerät misst Spannung **parallel** (es liegt neben dem Bauteil) und Strom **in Reihe** (es liegt im Weg). Der Klingelknopf liegt in Reihe zum Summer. Und mehrere Bauteile an einem Akku hängen parallel an derselben Spannung.
+</Karte>
+
+<Rechnen id="rechnen" typ="reihe,parallel" anzahl={4} />
+
+## Nachmessen
+
+Widerstand misst du **ohne Spannung**: Die Widerstände stecken allein auf dem Steckbrett, ohne Batterie.
+
+1. Multimeter auf **Ω** stellen.
+2. **In Reihe:** Zwei 220-Ω-Widerstände so stecken, dass sie sich eine Spalte teilen (zum Beispiel a10–a14 und b14–b18). Miss von Spalte 10 bis Spalte 18.
+3. **Parallel:** Beide Widerstände zwischen dieselben zwei Spalten stecken (zum Beispiel a20–a24 und b20–b24). Miss von Spalte 20 bis Spalte 24.
+4. Fass die Metallspitzen beim Messen nicht mit beiden Händen an. Dein Körper ist sonst ein dritter, paralleler Widerstand.
+
+<Zahl id="reihe" titel="Messwert: 2 × 220 Ω in Reihe" frage="Welchen Widerstand misst du?" einheit="Ω" min={418} max={462} hilfe={[
+  { unter: 300, text: 'Deutlich zu wenig. Stecken die Widerstände wirklich hintereinander und nicht nebeneinander?' },
+  { ueber: 1000, text: 'Zeigt das Gerät „kΩ“? Dann rechne in Ω um (0,44 kΩ = 440 Ω). Oder ein Kontakt ist offen.' },
+]} />
+
+<Zahl id="parallel" titel="Messwert: 2 × 220 Ω parallel" frage="Welchen Widerstand misst du?" einheit="Ω" min={104.5} max={115.5} hilfe={[
+  { ueber: 200, text: 'Etwa 220 Ω? Dann ist nur ein Widerstand im Kreis. Prüfe, ob beide zwischen denselben zwei Spalten stecken.' },
+]} />
+
+<Hinweis titel="Warum das Band ±5 % breit ist">
+Der goldene Ring heißt: Der echte Wert darf um bis zu 5 % vom aufgedruckten abweichen. Präzisere Widerstände mit ±1 % haben meist einen blauen Körper und fünf Ringe.
+</Hinweis>

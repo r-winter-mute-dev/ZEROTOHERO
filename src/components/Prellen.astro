@@ -1,0 +1,67 @@
+---
+// Oszilloskop-Animation: So sieht ein Tastendruck elektrisch aus.
+---
+<figure class="prellen" data-kw-prellen>
+  <canvas width="720" height="220" aria-label="Spannungsverlauf eines Tasters über die Zeit"></canvas>
+  <div class="steuer">
+    <button type="button" class="knopf" data-pr-druck>Taster drücken</button>
+    <label><input type="checkbox" data-pr-filter /> Entprellen (20 ms warten)</label>
+  </div>
+  <figcaption class="leise klein">
+    Gezählte Tastendrücke: <b data-pr-zaehler>0</b>. Ein Mikrocontroller sieht jedes Hochspringen als neuen Druck,
+    wenn man ihn nicht entprellt. Die Zacken sind eine Simulation; echte Taster prellen typischerweise einige Millisekunden lang.
+  </figcaption>
+</figure>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-kw-prellen]').forEach((fig) => {
+    const c = fig.querySelector('canvas')!;
+    const ctx = c.getContext('2d')!;
+    const zaehler = fig.querySelector('[data-pr-zaehler]')!;
+    let summe = 0;
+
+    function zeichne(signal: number[]) {
+      const w = c.width, h = c.height;
+      ctx.fillStyle = '#0f2e23'; ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = 'rgba(242,239,228,0.08)'; ctx.lineWidth = 1;
+      for (let x = 0; x < w; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+      for (let y = 0; y < h; y += 44) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+      ctx.fillStyle = '#b9c0bd'; ctx.font = '14px sans-serif';
+      ctx.fillText('3 V', 8, 40); ctx.fillText('0 V', 8, 190); ctx.fillText('Zeit →', w - 60, h - 8);
+      ctx.strokeStyle = '#e3a96f'; ctx.lineWidth = 3; ctx.beginPath();
+      signal.forEach((v, i) => {
+        const x = (i / (signal.length - 1)) * w, y = v ? 44 : 176;
+        if (i === 0) ctx.moveTo(x, y);
+        else { const vy = signal[i - 1] ? 44 : 176; ctx.lineTo(x, vy); ctx.lineTo(x, y); }
+      });
+      ctx.stroke();
+    }
+
+    function signal(): number[] {
+      const s: number[] = new Array(40).fill(0);
+      let i = 6;
+      const preller = 3 + Math.floor(Math.random() * 4);
+      for (let k = 0; k < preller; k++) { s[i] = 1; i += 1; s[i] = 0; i += 1 + Math.floor(Math.random() * 2); }
+      for (; i < 34; i++) s[i] = 1;
+      return s;
+    }
+
+    fig.querySelector('[data-pr-druck]')!.addEventListener('click', () => {
+      const s = signal();
+      zeichne(s);
+      const filter = fig.querySelector<HTMLInputElement>('[data-pr-filter]')!.checked;
+      let flanken = 0;
+      for (let i = 1; i < s.length; i++) if (s[i] && !s[i - 1]) flanken++;
+      summe += filter ? 1 : flanken;
+      zaehler.textContent = String(summe);
+    });
+    zeichne(new Array(40).fill(0));
+  });
+</script>
+
+<style>
+  .prellen { margin: 1.5rem 0; }
+  canvas { width: 100%; height: auto; border-radius: var(--radius-klein); display: block; }
+  .steuer { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 0.8rem 0; }
+  .steuer input { accent-color: var(--kupfer); }
+</style>

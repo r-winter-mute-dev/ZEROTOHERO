@@ -1,0 +1,69 @@
+---
+// Gerätenachweis über Web Serial (ab Akt 2). Liest Zeilen vom ESP32 und sucht nach einem Muster.
+// Die Firmware gibt z. B. "KW-CHECK:m-2-1:blink-ok" aus.
+// Nur Chrome und Edge unterstützen Web Serial; sonst kann der Code manuell eingetragen werden.
+import Station from './Station.astro';
+interface Props { id: string; titel: string; muster: string; baud?: number; hinweis?: string; }
+const { id, titel, muster, baud = 115200, hinweis } = Astro.props;
+---
+<Station id={id} titel={titel} art="Gerätenachweis" hardware>
+  <div data-kw-seriell data-muster={muster} data-baud={baud}>
+    {hinweis && <p>{hinweis}</p>}
+    <div class="knoepfe">
+      <button type="button" class="knopf" data-se-verbinden>Mit dem ESP32 verbinden</button>
+    </div>
+    <pre class="log" data-se-log aria-live="polite"></pre>
+    <details>
+      <summary>Kein Chrome oder Edge? Code von Hand eintragen</summary>
+      <p class="leise klein">Öffne den seriellen Monitor deiner Arduino IDE (115200 Baud) und kopiere die Zeile, die mit KW-CHECK beginnt.</p>
+      <form data-se-manuell><input type="text" size="40" /> <button class="knopf zweit" type="submit">Prüfen</button></form>
+    </details>
+  </div>
+</Station>
+
+<script>
+  import { station } from '../scripts/station';
+  document.querySelectorAll<HTMLElement>('[data-kw-seriell]').forEach((box) => {
+    const s = station(box.closest('[data-kw-check]') as HTMLElement);
+    const re = new RegExp(box.dataset.muster!);
+    const log = box.querySelector<HTMLElement>('[data-se-log]')!;
+    const pruefe = (zeile: string) => { if (re.test(zeile)) { s.bestehen('Dein Gerät hat sich gemeldet.'); return true; } return false; };
+
+    box.querySelector('[data-se-verbinden]')!.addEventListener('click', async () => {
+      const serial = (navigator as any).serial;
+      if (!serial) return s.melden('Dein Browser unterstützt Web Serial nicht. Nutze Chrome oder Edge oder trage den Code von Hand ein.', 'warnung');
+      try {
+        const port = await serial.requestPort();
+        await port.open({ baudRate: Number(box.dataset.baud) });
+        s.melden('Verbunden. Warte auf Ausgabe … Drücke notfalls die Reset-Taste am Board.', '');
+        const reader = port.readable.pipeThrough(new TextDecoderStream()).getReader();
+        let puffer = '';
+        for (;;) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          puffer += value;
+          const zeilen = puffer.split(/\r?\n/);
+          puffer = zeilen.pop() ?? '';
+          for (const z of zeilen) {
+            log.textContent = (log.textContent + z + '\n').split('\n').slice(-8).join('\n');
+            if (pruefe(z)) { reader.cancel(); await port.close().catch(() => {}); return; }
+          }
+        }
+      } catch (e) {
+        s.melden(`Verbindung fehlgeschlagen: ${(e as Error).message}. Ist der serielle Monitor einer anderen Software noch offen? Er blockiert den Anschluss.`, 'fehler');
+      }
+    });
+
+    box.querySelector<HTMLFormElement>('[data-se-manuell]')!.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const v = (e.target as HTMLFormElement).querySelector('input')!.value;
+      if (!pruefe(v)) s.fehl('Diese Zeile passt nicht. Kopiere die komplette Zeile, die mit KW-CHECK beginnt.');
+    });
+  });
+</script>
+
+<style>
+  .log { background: #0a1f17; min-height: 3rem; padding: 0.6rem; border-radius: var(--radius-klein); font-size: 0.85rem; white-space: pre-wrap; }
+  .log:empty { display: none; }
+  details { margin-top: 0.8rem; }
+</style>

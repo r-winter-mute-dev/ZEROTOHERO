@@ -1,0 +1,45 @@
+---
+import Basis from '../layouts/Basis.astro';
+import { SEITE, url } from '../config';
+---
+<Basis titel="Über das Projekt">
+  <section class="huelle text seite">
+    <h1>Über {SEITE.name}</h1>
+    <p>
+      {SEITE.name} ist ein kostenloser Kurs für alle, die Elektronik von Grund auf lernen wollen. Statt Kapitel für Kapitel
+      Theorie zu pauken, baust du eine smarte Türklingel. Jedes Thema kommt genau dann, wenn die Klingel es braucht.
+    </p>
+
+    <h2>So funktioniert der Kurs</h2>
+    <ul>
+      <li><strong>Missionen</strong> sind kurz und enden mit einer Prüfung: Quiz, Rechenaufgabe, Simulator oder ein echter Messwert.</li>
+      <li><strong>Bosskämpfe</strong> am Ende eines Akts sind Fehlersuchen. Systematisch messen statt raten ist die wichtigste Fähigkeit in der Elektronik.</li>
+      <li><strong>Ohne Hardware</strong> kommst du im Simulator weiter. Das Teil der Klingel wird dann grau statt kupfern.</li>
+      <li><strong>Prüfungen laufen im Browser.</strong> Sie helfen dir, Fehler zu erkennen, und sind kein amtliches Zertifikat.</li>
+    </ul>
+
+    <h2>Datenschutz</h2>
+    <p>
+      Die Seite setzt keine Cookies, nutzt kein Tracking und lädt keine Inhalte von fremden Servern. Dein Fortschritt
+      wird nur im Speicher deines Browsers (localStorage) abgelegt. Du kannst ihn auf der Seite
+      <a href={url('fortschritt')}>Fortschritt</a> exportieren oder löschen.
+    </p>
+
+    <h2>Sicherheit</h2>
+    <p>
+      Der Kurs arbeitet ausschließlich mit Kleinspannung aus Batterien, USB und Akkus. Netzspannung (230 V) ist tabu.
+      Die Sicherheitsregeln stehen in <a href={url('mission/m-0-2')}>Mission 0.2</a>.
+    </p>
+
+    <h2>Lizenz und Mitmachen</h2>
+    <p>
+      Die Inhalte stehen unter <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.de">CC BY-SA 4.0</a>,
+      der Code unter der MIT-Lizenz. Fehler gefunden oder eine Idee für eine Mission? Beiträge sind willkommen.
+      {SEITE.repo && <> Der Quellcode liegt auf <a href={SEITE.repo}>GitHub</a>.</>}
+    </p>
+  </section>
+</Basis>
+
+<style>
+  .seite { padding-top: 2rem; }
+</style>

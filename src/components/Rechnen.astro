@@ -1,0 +1,134 @@
+---
+// Rechenaufgaben mit zufälligen Werten. typ: kommagetrennte Liste von Aufgabenarten.
+import Station from './Station.astro';
+interface Props { id: string; titel?: string; typ: string; anzahl?: number; }
+const { id, titel = 'Rechenaufgaben', typ, anzahl = 3 } = Astro.props;
+---
+<Station id={id} titel={titel} art="Rechnen">
+  <form class="rechnen" data-kw-rechnen data-typ={typ} data-anzahl={anzahl}>
+    <p class="fortschritt leise klein" data-r-fortschritt></p>
+    <p class="aufgabe" data-r-aufgabe></p>
+    <label class="antwort"><span data-r-frage></span> <input type="text" inputmode="decimal" autocomplete="off" required /> <span data-r-einheit></span></label>
+    <div class="knoepfe">
+      <button class="knopf" type="submit">Ergebnis prüfen</button>
+      <button class="knopf zweit" type="button" data-r-loesung>Lösungsweg zeigen</button>
+    </div>
+    <p class="loesung leise" data-r-weg hidden></p>
+  </form>
+</Station>
+
+<script>
+  import { fmt, station, zahl } from '../scripts/station';
+
+  const E12 = [10, 12, 15, 18, 22, 27, 33, 39, 47, 56, 68, 82];
+  const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)];
+  const widerstand = (min = 100, max = 10000) => {
+    const werte = [1, 10, 100, 1000].flatMap((d) => E12.map((e) => e * d)).filter((r) => r >= min && r <= max);
+    return pick(werte);
+  };
+  const ohm = (r: number) => (r >= 1000 ? `${fmt(r / 1000, 2)} kΩ` : `${fmt(r, 1)} Ω`);
+
+  interface Aufgabe { text: string; frage: string; einheit: string; loesung: number; weg: string; }
+
+  const ARTEN: Record<string, () => Aufgabe> = {
+    vorwiderstand() {
+      const led = pick([{ farbe: 'rote', uf: 1.8 }, { farbe: 'gelbe', uf: 2.0 }, { farbe: 'blaue', uf: 3.0 }]);
+      const u = pick([3.3, 5, 9, 12].filter((x) => x - led.uf >= 1));
+      const i = pick([5, 10, 15, 20]);
+      const r = (u - led.uf) / (i / 1000);
+      return {
+        text: `Eine ${led.farbe} LED (Durchlassspannung ${fmt(led.uf)} V) soll an ${fmt(u)} V mit ${i} mA leuchten.`,
+        frage: 'Vorwiderstand R =', einheit: 'Ω', loesung: r,
+        weg: `Am Widerstand liegt der Rest der Spannung: ${fmt(u)} V − ${fmt(led.uf)} V = ${fmt(u - led.uf)} V. R = U / I = ${fmt(u - led.uf)} V / ${fmt(i / 1000, 3)} A = ${fmt(r, 1)} Ω. In der Praxis nimmst du den nächstgrößeren Normwert.`,
+      };
+    },
+    strom() {
+      const u = pick([3, 5, 9, 12]), r = widerstand(100, 4700);
+      const i = (u / r) * 1000;
+      return { text: `An einem Widerstand von ${ohm(r)} liegen ${fmt(u)} V.`, frage: 'Strom I =', einheit: 'mA', loesung: i,
+        weg: `I = U / R = ${fmt(u)} V / ${fmt(r)} Ω = ${fmt(i / 1000, 5)} A = ${fmt(i)} mA.` };
+    },
+    reihe() {
+      const a = widerstand(), b = widerstand();
+      return { text: `${ohm(a)} und ${ohm(b)} sind in Reihe geschaltet.`, frage: 'Gesamtwiderstand R =', einheit: 'Ω', loesung: a + b,
+        weg: `In Reihe addieren sich die Widerstände: ${fmt(a)} Ω + ${fmt(b)} Ω = ${fmt(a + b)} Ω.` };
+    },
+    parallel() {
+      const a = widerstand(), b = widerstand();
+      const r = (a * b) / (a + b);
+      return { text: `${ohm(a)} und ${ohm(b)} sind parallel geschaltet.`, frage: 'Gesamtwiderstand R =', einheit: 'Ω', loesung: r,
+        weg: `Für zwei parallele Widerstände gilt R = (R1 × R2) / (R1 + R2) = (${fmt(a)} × ${fmt(b)}) / (${fmt(a)} + ${fmt(b)}) = ${fmt(r, 1)} Ω. Das Ergebnis ist immer kleiner als der kleinere Widerstand.` };
+    },
+    teiler() {
+      const u = pick([3.3, 5, 9, 12]), r1 = widerstand(1000, 47000), r2 = widerstand(1000, 47000);
+      const u2 = (u * r2) / (r1 + r2);
+      return { text: `Ein Spannungsteiler aus R1 = ${ohm(r1)} (oben) und R2 = ${ohm(r2)} (unten) hängt an ${fmt(u)} V.`, frage: 'Spannung an R2 =', einheit: 'V', loesung: u2,
+        weg: `U2 = U × R2 / (R1 + R2) = ${fmt(u)} V × ${fmt(r2)} / ${fmt(r1 + r2)} = ${fmt(u2, 3)} V.` };
+    },
+    leistung() {
+      if (Math.random() < 0.5) {
+        const u = pick([3, 5, 9, 12]), i = pick([10, 20, 50, 100, 200]);
+        return { text: `Durch ein Bauteil fließen ${i} mA bei ${fmt(u)} V.`, frage: 'Leistung P =', einheit: 'mW', loesung: u * i,
+          weg: `P = U × I = ${fmt(u)} V × ${fmt(i / 1000, 3)} A = ${fmt((u * i) / 1000, 3)} W = ${fmt(u * i)} mW.` };
+      }
+      const r = widerstand(10, 1000), i = pick([10, 20, 30, 50]);
+      const p = (i / 1000) ** 2 * r * 1000;
+      return { text: `Durch einen Widerstand von ${ohm(r)} fließen ${i} mA.`, frage: 'Leistung P =', einheit: 'mW', loesung: p,
+        weg: `P = I² × R = (${fmt(i / 1000, 3)} A)² × ${fmt(r)} Ω = ${fmt(p / 1000, 4)} W = ${fmt(p, 1)} mW.` };
+    },
+  };
+
+  document.querySelectorAll<HTMLFormElement>('[data-kw-rechnen]').forEach((form) => {
+    const s = station(form.closest('[data-kw-check]') as HTMLElement);
+    const arten = form.dataset.typ!.split(',').map((x) => x.trim());
+    const anzahl = Number(form.dataset.anzahl);
+    const $ = (sel: string) => form.querySelector<HTMLElement>(sel)!;
+    const input = form.querySelector('input')!;
+    let n = 0, a: Aufgabe, gezeigt = false;
+
+    function neu() {
+      a = ARTEN[arten[n % arten.length]]();
+      gezeigt = false;
+      $('[data-r-fortschritt]').textContent = `Aufgabe ${n + 1} von ${anzahl}`;
+      $('[data-r-aufgabe]').textContent = a.text;
+      $('[data-r-frage]').textContent = a.frage;
+      $('[data-r-einheit]').textContent = a.einheit;
+      $('[data-r-weg]').hidden = true;
+      input.value = '';
+    }
+    neu();
+
+    $('[data-r-loesung]').addEventListener('click', () => {
+      gezeigt = true;
+      $('[data-r-weg]').textContent = a.weg;
+      $('[data-r-weg]').hidden = false;
+      s.melden('Lösungsweg angezeigt. Diese Aufgabe wird gleich durch eine neue ersetzt, sobald du dein Ergebnis prüfst.', 'warnung');
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const w = zahl(input.value);
+      if (Number.isNaN(w)) return s.melden('Bitte eine Zahl eingeben.', 'warnung');
+      const ok = Math.abs(w - a.loesung) <= Math.abs(a.loesung) * 0.02;
+      if (ok && !gezeigt) {
+        n++;
+        if (n >= anzahl) { s.bestehen(`Alle ${anzahl} Aufgaben richtig.`); n = 0; }
+        else s.melden(`Richtig: ${fmt(a.loesung, 2)} ${a.einheit}. Nächste Aufgabe.`, 'gut');
+        neu();
+      } else if (ok && gezeigt) {
+        s.melden('Richtig gerechnet. Weil du den Lösungsweg gesehen hast, kommt jetzt eine neue Aufgabe derselben Art.', 'warnung');
+        neu();
+      } else {
+        s.fehl(`Das stimmt noch nicht (erlaubt sind 2 % Abweichung). Prüfe die Einheiten: mA und A, kΩ und Ω.`);
+      }
+    });
+  });
+</script>
+
+<style>
+  .aufgabe { font-size: 1.1rem; }
+  .antwort { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.9rem; }
+  .antwort input { width: 9rem; }
+  .knoepfe { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+  .loesung { margin-top: 0.8rem; }
+</style>
