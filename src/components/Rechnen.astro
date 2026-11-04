@@ -86,6 +86,24 @@ const { id, titel = 'Rechenaufgaben', typ, anzahl = 3 } = Astro.props;
       return { text: `Durch einen Widerstand von ${ohm(r)} fließen ${i} mA.`, frage: 'Leistung P =', einheit: 'mW', loesung: p,
         weg: `P = I² × R = (${fmt(i / 1000, 3)} A)² × ${fmt(r)} Ω = ${fmt(p / 1000, 4)} W = ${fmt(p, 1)} mW.` };
     },
+    laufzeit() {
+      const kap = pick([1000, 2000, 2500, 2900, 3400]), i = pick([50, 80, 120, 180, 250]);
+      const h = kap / i;
+      return { text: `Ein Akku mit ${kap} mAh versorgt ein Gerät, das dauerhaft ${i} mA zieht.`, frage: 'Laufzeit =', einheit: 'h', loesung: h,
+        weg: `Laufzeit = Kapazität / Strom = ${kap} mAh / ${i} mA = ${fmt(h, 2)} h. Das ist der ideale Wert, in der Praxis ist es etwas weniger.` };
+    },
+    energie() {
+      const kap = pick([1000, 2000, 2500, 2900, 3400]), u = pick([3.6, 3.7]);
+      const wh = (kap / 1000) * u;
+      return { text: `Ein Li-Ion-Akku hat ${kap} mAh bei einer Nennspannung von ${fmt(u)} V.`, frage: 'Energie E =', einheit: 'Wh', loesung: wh,
+        weg: `Erst mAh in Ah: ${kap} mAh = ${fmt(kap / 1000, 2)} Ah. Dann E = Ah × V = ${fmt(kap / 1000, 2)} Ah × ${fmt(u)} V = ${fmt(wh, 2)} Wh.` };
+    },
+    klingeln() {
+      const kap = pick([2000, 2500, 2900]), i = pick([150, 200, 250, 300]), t = pick([5, 6, 8, 10]);
+      const mas = kap * 3600, proKlingeln = i * t, n = mas / proKlingeln;
+      return { text: `Ein Klingeln dauert ${t} s und zieht dabei ${i} mA. Der Akku hat ${kap} mAh. Ruhestrom zählen wir hier nicht mit.`, frage: 'Anzahl Klingeln ≈', einheit: '', loesung: n,
+        weg: `Akku in mAs: ${kap} mAh × 3600 s/h = ${fmt(mas, 0)} mAs. Ein Klingeln: ${i} mA × ${t} s = ${fmt(proKlingeln, 0)} mAs. Anzahl = ${fmt(mas, 0)} / ${fmt(proKlingeln, 0)} ≈ ${fmt(n, 0)}.` };
+    },
     pixel() {
       const f = pick([{ n: 'QVGA', b: 320, h: 240 }, { n: 'VGA', b: 640, h: 480 }, { n: 'SVGA', b: 800, h: 600 }, { n: 'XGA', b: 1024, h: 768 }, { n: 'UXGA', b: 1600, h: 1200 }]);
       const fmtx = pick([{ n: 'Graustufen', byte: 1 }, { n: 'RGB565', byte: 2 }, { n: 'RGB888', byte: 3 }]);

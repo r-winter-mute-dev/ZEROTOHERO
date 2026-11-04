@@ -1,0 +1,120 @@
+---
+id: m-5-2
+abzeichen: Zellenkenner
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: k4
+  - id: k5
+  - id: spannung
+    hardware: true
+  - id: sicherheit
+spick:
+  - t: "Voll"
+    v: "4,2 V (Ladeschluss)"
+  - t: "Nennspannung"
+    v: "3,6–3,7 V"
+  - t: "Leer"
+    v: "2,5 V (Entladeschluss laut Datenblatt BAK)"
+  - t: "Diese Zelle"
+    v: "Ohne Schutzschaltung: nur mit Lademodul mit DW01"
+  - t: "Laden"
+    v: "Nicht brennbarer Untergrund, unter Aufsicht, nicht abdecken"
+  - t: "Notfall"
+    v: "Abstand, Raum verlassen, 112. Nur kleine Akkus ohne Eigengefahr mit viel Wasser kühlen"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Zahl from '../components/Zahl.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+import TeileListe from '../components/TeileListe.astro';
+
+Jetzt kommt das Bauteil, das mehr Respekt verdient als alle anderen in diesem Kurs: eine **18650-Zelle**. Sie ist so groß wie ein dicker Filzstift und steckt in E-Bikes, Laptops und Akkuschraubern. Richtig behandelt ist sie harmlos. Falsch behandelt kann sie brennen. **Deine Mission: Lern die Zelle kennen, prüf sie und miss ihre Spannung.**
+
+<Hinweis art="sicherheit" titel="Für Jüngere">
+Wenn du unter 16 bist: Bitte für diesen und die nächsten Akte eine erwachsene Person dazuholen.
+</Hinweis>
+
+<TeileListe akte={[5]} titel={false} />
+
+## Theorie
+
+<Karte nr={1} titel="Das Spannungsfenster">
+Eine Li-Ion-Zelle hat keine feste Spannung, sie wandert mit dem Ladestand. Für die BAK-Zelle aus der Einkaufsliste gilt laut Händler: **4,2 V** ist voll (Ladeschluss), etwa **3,6 V** ist die Nennspannung, **2,5 V** ist leer (Entladeschluss) [Fachquelle: Roboter-Bausatz, Produktangaben BAK N18650CL-29]. Über 4,2 V und unter 2,5 V nimmt die Zelle Schaden. Mit dem Multimeter kannst du so jederzeit sehen, wie voll sie ungefähr ist.
+</Karte>
+
+<Merke>4,2 V voll, etwa 3,6 V Mitte, 2,5 V leer. Außerhalb dieses Fensters wird die Zelle beschädigt.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Spannungsfenster" fragen={[
+  { frage: 'Deine Zelle zeigt 3,9 V. Was heißt das?', richtig: 'Sie ist gut gefüllt, aber nicht ganz voll.', falsch: ['Sie ist überladen.', 'Sie ist fast leer.'], erklaerung: 'Voll sind 4,2 V, leer 2,5 V. 3,9 V liegt im oberen Bereich.' },
+]} />
+
+<Karte nr={2} titel="Viel Energie auf kleinem Raum">
+In einer 18650-Zelle stecken rund 10 Wh (Mission 5.1). Bei einem **Kurzschluss** fließt diese Energie in Sekunden ab, als Hitze. Laut Händler verträgt die Zelle dauerhaft 8 A, kurzzeitig 12 A. Ein Kurzschluss kann noch weit mehr ziehen. Wird eine Zelle beschädigt, überladen, tiefentladen oder überhitzt, kann sie innen so heiß werden, dass sie sich selbst weiter aufheizt und brennt [Fachquelle: DGUV Information 205-041]. Das heißt **thermisches Durchgehen**.
+</Karte>
+
+<Merke>Kurzschluss, Beschädigung, Überladen, Tiefentladen und Hitze sind die fünf Wege zum Akkubrand.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Gefahren" fragen={[
+  { frage: 'Welche Situation ist für eine 18650-Zelle gefährlich?', richtig: 'Lose in der Hosentasche zusammen mit Schlüsseln', falsch: ['Im Batteriehalter auf dem Tisch', 'Mit dem Multimeter auf V⎓ gemessen'], erklaerung: 'Schlüssel oder Münzen können Plus und Minus verbinden: ein Kurzschluss.' },
+]} />
+
+<Karte nr={3} titel="Die Schutzschaltung">
+Viele fertige Akkus haben eine eingebaute **Schutzschaltung**. Die BAK-Zelle aus der Einkaufsliste hat keine. Deshalb hängt sie im Kurs immer an einem Lademodul mit dem Schutzchip **DW01**. Er trennt die Zelle ab, wenn sie über 4,2 V geladen würde, wenn sie unter etwa 2,5 V fällt und wenn zu viel Strom fließt. Die Zelle wird nie direkt an den ESP32-CAM angeschlossen, immer nur über die Schutzschaltung.
+</Karte>
+
+<Merke>Diese Zelle hat keinen eigenen Schutz. Sie hängt immer an einem Lademodul mit DW01, nie direkt am Verbraucher.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Schutz" fragen={[
+  { frage: 'Was tut die Schutzschaltung DW01, wenn die Zelle zu leer wird?', richtig: 'Sie trennt die Zelle vom Verbraucher, bevor sie Schaden nimmt.', falsch: ['Sie lädt die Zelle automatisch nach.', 'Nichts, sie schützt nur beim Laden.'], erklaerung: 'Der DW01 schützt vor Überladen, Tiefentladen und Überstrom.' },
+]} />
+
+<Karte nr={4} titel="Regeln für den Alltag">
+Die Deutsche Gesetzliche Unfallversicherung empfiehlt für Li-Ion-Akkus unter anderem [Fachquelle: DGUV Information 205-041, zusammengefasst von der Universität Kassel]: nur mit passendem Ladegerät laden, auf **nicht brennbarem Untergrund**, möglichst **unter Aufsicht**, mit Abstand zu brennbarem Material. Beschädigte Akkus erkennst du an Beulen, Verfärbung, Geruch, auslaufender Flüssigkeit oder Erwärmung. Solche Akkus nicht mehr benutzen und nicht mehr laden. Zum Entsorgen die Pole mit Klebeband abkleben und zur Sammelstelle bringen.
+</Karte>
+
+<Merke>Laden auf nicht brennbarem Untergrund, unter Aufsicht, nichts darüberlegen. Beschädigt heißt: nie wieder benutzen.</Merke>
+
+<Quiz id="k4" titel="Kurzcheck: Alltag" fragen={[
+  { frage: 'Wo lädst du die Klingel am besten?', richtig: 'Auf einer Fliese oder Metallplatte, während du in der Nähe bist', falsch: ['Über Nacht auf dem Bett', 'In der Schublade, damit sie nicht stört'], erklaerung: 'Nicht brennbarer Untergrund und Aufsicht, so empfiehlt es die DGUV.' },
+]} />
+
+<Karte nr={5} titel="Wenn es doch passiert">
+Zischt, raucht oder bläht sich ein Akku auf: Abstand halten, andere warnen, den Raum verlassen, Tür schließen, **112** rufen. Der Rauch ist giftig. Feuerwehren empfehlen als Löschmittel **Wasser** [Fachquelle: Empfehlung von AGBF und Deutschem Feuerwehrverband 2018, zitiert vom Wissenschaftlichen Dienst des Bundestags]. Einen kleinen Akku darfst du nur dann selbst mit viel Wasser kühlen, wenn du dich dabei nicht gefährdest. Ein Akkubrand kann sich nach Stunden neu entzünden, deshalb gehört er danach ins Freie, nicht in den Müll.
+</Karte>
+
+<Merke>Im Notfall zuerst du: Abstand, Raum verlassen, 112. Wasser kühlt, aber nur ohne Eigengefahr.</Merke>
+
+<Quiz id="k5" titel="Kurzcheck: Notfall" fragen={[
+  { frage: 'Der Akku deiner Klingel zischt und raucht. Was tust du zuerst?', richtig: 'Abstand halten, Raum verlassen und 112 rufen', falsch: ['Den Akku mit den Fingern aus dem Halter ziehen', 'Ein Tuch darüberlegen'], erklaerung: 'Deine Sicherheit geht vor. Der Rauch ist giftig, und ein Tuch kann Feuer fangen.' },
+]} />
+
+## Die Zelle prüfen
+
+<Checkliste id="pruefen" punkte={[
+  'Die Zelle ansehen: Ist die Kunststoffhülle unbeschädigt? Kein Riss, kein Einschnitt, besonders am Pluspol.',
+  'Ist sie gerade und glatt? Keine Beule, kein Aufblähen, keine Verfärbung, kein Geruch.',
+  'Die Zelle in den Batteriehalter legen. Auf die Richtung achten: Der Pluspol ist auf der Zelle markiert.',
+  'Multimeter auf <strong>V⎓</strong>, rote Spitze an das rote Kabel des Halters, schwarze an das schwarze.',
+  'Spannung ablesen. Die Spitzen dürfen sich dabei nie berühren.',
+]} />
+
+<Zahl id="spannung" titel="Messwert: Spannung deiner Zelle" frage="Welche Spannung zeigt das Multimeter?" einheit="V" min={2.5} max={4.25} hilfe={[
+  { unter: 0, text: 'Ein Minus heißt: Spitzen vertauscht oder Zelle falsch herum im Halter. Trag den Wert ohne Minus ein, und prüf die Richtung im Halter.' },
+  { unter: 2.5, text: 'Unter 2,5 V ist die Zelle tiefentladen. Bitte nicht laden und nicht benutzen. Pole abkleben und zur Sammelstelle bringen.' },
+  { ueber: 4.25, text: 'Über 4,25 V ist für diese Zelle zu viel. Prüf, ob das Multimeter auf V⎓ steht und du wirklich eine einzelne Zelle misst.' },
+]} />
+
+<Merke>Neue Zellen werden meist halb geladen geliefert. Ein Wert um 3,6 V ist ganz normal.</Merke>
+
+## Sicherheitsquiz
+
+<Quiz id="sicherheit" titel="Sicherheitsquiz: Akku" fragen={[
+  { frage: 'Darfst du die BAK-Zelle direkt an den ESP32-CAM anschließen?', richtig: 'Nein, immer nur über ein Lademodul mit Schutzschaltung', falsch: ['Ja, wenn die Spannung passt', 'Ja, aber nur kurz'], erklaerung: 'Die Zelle hat keinen eigenen Schutz.' },
+  { frage: 'Die Kunststoffhülle am Pluspol ist eingerissen. Was tust du?', richtig: 'Nicht benutzen, Pole abkleben und zur Sammelstelle bringen', falsch: ['Mit Klebeband flicken und weiter nutzen', 'Einfach vorsichtig sein'], erklaerung: 'Die Hülle isoliert. Ist sie beschädigt, droht ein Kurzschluss gegen das Metallgehäuse.' },
+  { frage: 'Wie transportierst du eine einzelne Zelle?', richtig: 'Im Halter oder in einer Plastikbox, ohne Metallteile daneben', falsch: ['Lose in der Hosentasche', 'In einer Dose mit Schrauben'], erklaerung: 'Metall kann die Pole verbinden.' },
+  { frage: 'Kann sich ein gelöschter Akku wieder entzünden?', richtig: 'Ja, auch nach Stunden noch', falsch: ['Nein, gelöscht ist gelöscht', 'Nur wenn man ihn wieder lädt'], erklaerung: 'In den Zellen können chemische Reaktionen weiterlaufen. Deshalb gehört er danach ins Freie.' },
+]} />

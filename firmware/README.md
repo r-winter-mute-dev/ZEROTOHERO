@@ -7,6 +7,7 @@ Ein Ordner pro Akt, darin ein Arduino-Sketch pro Mission. Jeder Sketch ist für 
 | `akt-2-gehirn/` | 2 | 8 Sketches: Blink, serielle Ausgabe, Variablen, Funktionen, Ausgang, Eingang, Entprellen, Interrupts |
 | `akt-3-stimme/` | 3 | 4 Sketches: WLAN, HTTPS mit Zertifikatsprüfung, Zugangsdaten in `secrets.h`, Nachricht an Discord oder Telegram |
 | `akt-4-auge/` | 4 | 5 Sketches für den ESP32-CAM (Board „AI Thinker ESP32-CAM“): PSRAM-Test, erstes Foto, Foto senden, Blitz mit PWM, Klingel v1 als Zustandsautomat |
+| `akt-5-herz/` | 5 | 1 Sketch: Belastungstest am Akku, das Ergebnis kommt als Nachricht in den Chat |
 | `akt-6-schlaf/` | 6 | folgt: Tiefschlaf, Aufwachen per Taster, Akkustand |
 | `akt-7-schalter/` | 7 | folgt: Selbsthalteschaltung |
 

@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/r-winter-mute-dev/zerotohero/actions/workflows/deploy.yml"><img src="https://github.com/r-winter-mute-dev/zerotohero/actions/workflows/deploy.yml/badge.svg" alt="Veröffentlichung"></a>
-  <img src="https://img.shields.io/badge/spielbar-Akt_0–4-a6e3a1?labelColor=2a2a2a" alt="Spielbar: Akt 0 bis 4">
+  <img src="https://img.shields.io/badge/spielbar-Akt_0–5-a6e3a1?labelColor=2a2a2a" alt="Spielbar: Akt 0 bis 5">
   <img src="https://img.shields.io/badge/kostenlos-ohne_Anmeldung-cba6f7?labelColor=2a2a2a" alt="Kostenlos, ohne Anmeldung">
   <img src="https://img.shields.io/badge/Inhalte-CC_BY--SA_4.0-a0a0a0?labelColor=2a2a2a" alt="Inhalte: CC BY-SA 4.0">
   <img src="https://img.shields.io/badge/Code-MIT-a0a0a0?labelColor=2a2a2a" alt="Code: MIT">
@@ -51,7 +51,7 @@ Der Weg dorthin beginnt mit einer einzelnen LED.
 | 2 | Gehirn | Mikrocontroller (ESP32), erste Programme, Eingänge, Entprellen, Interrupts | ✅ |
 | 3 | Stimme | WLAN, HTTP und APIs, Verschlüsselung, Zugangsdaten, Nachricht an Discord oder Telegram | ✅ |
 | 4 | Auge | Kamera, Pixel und Bytes, Foto verschicken, Transistor und PWM. Ergebnis: Klingel v1, die ein Foto schickt | ✅ |
-| 5 | Herz | Li-Ion-Akku, Laden, Spannungswandler, Kondensatoren | 🚧 |
+| 5 | Herz | Li-Ion-Akku und Sicherheit, erste Lötstellen, Laden, Spannungswandler, Kondensatoren. Ergebnis: Die Klingel läuft am Akku | ✅ |
 | 6 | Schlaf | Energiebudget, Strom messen, Tiefschlaf, Akkustand | 🚧 |
 | 7 | Schalter | MOSFET, Selbsthalteschaltung, Ruhestrom fast null | 🚧 |
 | 8 | Gehäuse | Löten, Lochraster, Gehäuse, Montage | 🚧 |
@@ -66,7 +66,7 @@ Der Weg dorthin beginnt mit einer einzelnen LED.
 | 2 | ESP32-DevKit und ein USB-Datenkabel |
 | 3 | nichts Neues, nur ein 2,4-GHz-WLAN und Discord oder Telegram |
 | 4 | ESP32-CAM und Programmierplatine ESP32-CAM-MB |
-| 5 | Akku und Lademodul (folgt) |
+| 5 | 18650-Akku, Lademodul mit Schutzschaltung, Buck-Boost-Wandler 3,3 V, Elko, Lötstation |
 
 Die komplette Liste mit Links zu Roboter-Bausatz.de steht im Kurs auf der Seite **Einkaufsliste**, sortiert nach Akten.
 
@@ -77,9 +77,9 @@ Fehler gefunden, eine Erklärung unverständlich oder Lust, eine Mission zu schr
 Am meisten hilft gerade:
 
 - [ ] **Testen mit echter Hardware.** Einige Messbereiche sind vorläufig und brauchen Werte von echten Aufbauten.
-- [ ] **Feedback zu Akt 2 bis 4.** Die Sketches sind syntaktisch geprüft, aber noch nicht auf jedem Board getestet.
+- [ ] **Feedback zu Akt 2 bis 5.** Die Sketches sind syntaktisch geprüft, aber noch nicht auf jedem Board getestet.
 - [ ] **Feedback von Einsteigern.** Wo bist du hängen geblieben?
-- [ ] **Missionen für Akt 5 und folgende.**
+- [ ] **Missionen für Akt 6 und folgende.**
 
 ## Entstehung
 

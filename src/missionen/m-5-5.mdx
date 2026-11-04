@@ -1,0 +1,256 @@
+---
+id: m-5-5
+abzeichen: Pufferkünstler
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: geraet
+    hardware: true
+spick:
+  - t: "Kondensator"
+    v: "Kleiner Energiespeicher, gibt Strom sehr schnell ab"
+  - t: "Kapazität"
+    v: "In Farad (F), hier 1000 µF = 0,001 F"
+  - t: "Elko"
+    v: "Hat eine Richtung: Streifen = Minus"
+  - t: "Spannungsfestigkeit"
+    v: "Muss über der Betriebsspannung liegen (hier 50 V ≫ 3,3 V)"
+  - t: "Platz"
+    v: "So nah wie möglich an 3V3 und GND der ESP32-CAM"
+  - t: "Leitungen"
+    v: "U = R × I: Großer Strom an dünnem Kabel = Spannungsverlust"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Seriell from '../components/Seriell.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+import { url as seitenUrl } from '../config';
+
+Die Klingel läuft am Akku. Aber läuft sie auch zuverlässig, wenn WLAN und Blitz gleichzeitig Strom ziehen? Solche Spitzen dauern nur Millisekunden, doch genau dann kann die Spannung kurz einknicken. **Deine Mission: Bau einen Kondensator als Puffer ein und beweise mit einem Belastungstest, dass die Klingel nicht mehr neu startet.**
+
+## Theorie
+
+<Karte nr={1} titel="Auch Kabel haben Widerstand">
+Ein Steckbrücken-Kabel hat nur einen kleinen Widerstand, die Steckkontakte auch. Aber in Mission 1.3 hast du gelernt: U = R × I. Zieht die Klingel kurz 450 mA, fallen schon an 0,5 Ω insgesamt 0,23 V ab. Dazu kommt der Widerstand im Akku selbst. Diese Spannung fehlt dann am Chip, genau in dem Moment, in dem er sie am meisten braucht.
+</Karte>
+
+<Merke>Großer Strom mal kleiner Widerstand ergibt trotzdem einen Spannungsverlust. Kurze, dicke Leitungen helfen.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Leitungen" fragen={[
+  { frage: 'Die Zuleitung hat insgesamt 0,4 Ω. Wie viel Spannung fällt bei 500 mA daran ab?', richtig: '0,2 V', falsch: ['2 V', '0,02 V'], erklaerung: 'U = R × I = 0,4 Ω × 0,5 A = 0,2 V.' },
+]} />
+
+<Karte nr={2} titel="Der Kondensator als kleiner Eimer">
+Ein **Kondensator** speichert elektrische Ladung, ähnlich wie ein kleiner Eimer neben dem Wasserhahn. Er füllt sich in ruhigen Momenten und gibt seine Ladung in Bruchteilen einer Millisekunde ab, wenn plötzlich viel gebraucht wird. So überbrückt er die Spitze, bis Wandler und Leitungen nachkommen. Seine Größe heißt **Kapazität** und wird in Farad gemessen. Für die Klingel nimmst du **1000 µF**, also ein Tausendstel Farad.
+</Karte>
+
+<Merke>Ein Kondensator überbrückt kurze Stromspitzen. Er ersetzt keinen Akku, er glättet nur.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Kondensator" fragen={[
+  { frage: 'Wozu dient der Kondensator an der Klingel?', richtig: 'Er liefert bei kurzen Stromspitzen Ladung nach, damit die Spannung nicht einknickt.', falsch: ['Er ersetzt den Akku, wenn der leer ist.', 'Er macht aus 3,3 V mehr Spannung.'], erklaerung: 'Er ist ein Puffer für Millisekunden, kein Energiespeicher für Stunden.' },
+]} />
+
+<Karte nr={3} titel="Elkos haben eine Richtung">
+Kondensatoren mit großer Kapazität sind meist **Elektrolytkondensatoren**, kurz **Elkos**. Sie haben wie die LED eine Richtung. Der Streifen mit Minuszeichen auf dem Gehäuse markiert **Minus**, außerdem ist das Minus-Bein kürzer. Verpolt oder über ihrer **Nennspannung** betrieben, werden sie heiß und können aufplatzen. Der Elko aus der Einkaufsliste verträgt 50 V, bei 3,3 V ist er also weit im sicheren Bereich. Er gehört so nah wie möglich an 3V3 und GND der ESP32-CAM.
+</Karte>
+
+<Merke>Streifen und kurzes Bein = Minus an GND. Langes Bein = Plus an 3V3. So nah an die ESP32-CAM wie möglich.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Elko" fragen={[
+  { frage: 'Wie steckst du den Elko richtig ein?', richtig: 'Das Bein am Streifen an GND, das andere an 3V3', falsch: ['Egal, Kondensatoren haben keine Richtung', 'Das Bein am Streifen an 3V3'], erklaerung: 'Der Streifen markiert Minus. Verpolt kann ein Elko heiß werden und aufplatzen.' },
+]} />
+
+## Aufbau
+
+<Hinweis art="sicherheit" titel="Elko richtig herum">
+Prüf die Richtung zweimal, bevor du den Akku einlegst. Wird der Elko warm, zischt er oder wölbt sich seine Oberseite: sofort Akku heraus.
+</Hinweis>
+
+<Checkliste id="elko" punkte={[
+  'Akku aus dem Halter nehmen.',
+  'Den Elko direkt neben die ESP32-CAM stecken: Bein am <strong>Streifen</strong> in die Spalte von <strong>GND</strong>, das lange Bein in die Spalte von <strong>3V3</strong>.',
+  'Die Kabel vom Wandler zur ESP32-CAM so kurz wie möglich halten.',
+  'Richtung des Elkos noch einmal prüfen.',
+]} />
+
+## Belastungstest
+
+Der Test macht fünf Runden mit der größten Last, die die Klingel kennt: Blitz an, Foto, WLAN-Verbindung. Startet der Chip dabei neu, zählt er das mit. Weil kein USB-Kabel dranhängt, schickt er das Ergebnis in deinen Chat.
+
+<Checkliste id="test" punkte={[
+  'ESP32-CAM vom Steckbrett zurück auf die MB-Platine stecken, USB anschließen. Der Akku ist dabei <strong>nicht</strong> angeschlossen.',
+  'Neuen Sketch anlegen, <code>wurzeln.h</code> hinzufügen, <code>secrets.h</code> als Tab anlegen (wie in Mission 4.4).',
+  'Den Code unten hochladen. USB abziehen, ESP32-CAM zurück aufs Steckbrett.',
+  'Akku einlegen. Nach etwa einer halben Minute kommt der Bericht im Chat an.',
+  'Die Zeile ab <code>KW-CHECK</code> aus dem Chat kopieren und unten einfügen.',
+]} />
+
+<p><a class="knopf zweit" href={seitenUrl('firmware/wurzeln.h')} download="wurzeln.h">wurzeln.h herunterladen</a></p>
+
+```cpp
+// 0 to Hero – Mission 5.5: Belastungstest am Akku
+// Läuft OHNE USB, nur am Akku. Deshalb gibt es keinen seriellen Monitor:
+// Das Ergebnis kommt als Nachricht in deinen Chat.
+//
+// Der Test macht fünf Runden mit der größten Last der Klingel: Blitz an, Foto, WLAN aktiv.
+// Startet der Chip dabei wegen eines Spannungseinbruchs neu (Brownout), zählt er das mit.
+// Nach dem Bericht beginnt die Zählung von vorne.
+//
+// In diesem Ordner brauchst du: secrets.h (aus secrets.example.h) und wurzeln.h.
+// Board: "AI Thinker ESP32-CAM".
+
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <HTTPClient.h>
+#include <Preferences.h>
+#include <time.h>
+#include "esp_system.h"
+#include "wurzeln.h"
+#if __has_include("secrets.h")
+#include "secrets.h"
+#else
+#error "secrets.h fehlt: Kopiere secrets.example.h, nenne die Kopie secrets.h und trag deine Daten ein."
+#endif
+
+// ---------- Kamera (AI-Thinker ESP32-CAM) ----------
+// Pinbelegung laut AI-Thinker-Schaltplan. Für andere Kameraboards sind die Pins anders.
+#include "esp_camera.h"
+
+bool kameraStarten(framesize_t groesse, int qualitaet) {
+  camera_config_t c = {};
+  c.pin_pwdn = 32;  c.pin_reset = -1;  c.pin_xclk = 0;
+  c.pin_sccb_sda = 26;  c.pin_sccb_scl = 27;
+  c.pin_d7 = 35;  c.pin_d6 = 34;  c.pin_d5 = 39;  c.pin_d4 = 36;
+  c.pin_d3 = 21;  c.pin_d2 = 19;  c.pin_d1 = 18;  c.pin_d0 = 5;
+  c.pin_vsync = 25;  c.pin_href = 23;  c.pin_pclk = 22;
+  c.xclk_freq_hz = 20000000;            // Takt für den Bildsensor: 20 MHz
+  c.ledc_timer = LEDC_TIMER_0;
+  c.ledc_channel = LEDC_CHANNEL_0;
+  c.pixel_format = PIXFORMAT_JPEG;      // der Sensor liefert gleich ein fertiges JPEG
+  c.frame_size = groesse;
+  c.jpeg_quality = qualitaet;           // 10 = sehr gut, 63 = sehr schlecht
+  c.fb_count = 2;                       // zwei Bildpuffer ...
+  c.fb_location = CAMERA_FB_IN_PSRAM;   // ... im großen PSRAM
+  c.grab_mode = CAMERA_GRAB_LATEST;     // immer das neueste Bild nehmen
+
+  esp_err_t fehler = esp_camera_init(&c);
+  if (fehler != ESP_OK) {
+    Serial.printf("Kamera startet nicht: Fehler 0x%x (%s)\n", (unsigned)fehler, esp_err_to_name(fehler));
+    return false;
+  }
+  return true;
+}
+
+// Die ersten Bilder nach dem Start sind oft zu dunkel oder grünstichig,
+// weil die automatische Belichtung erst ein paar Bilder braucht. Die werfen wir weg.
+camera_fb_t* fotoMachen() {
+  for (int i = 0; i < 3; i++) {
+    camera_fb_t* alt = esp_camera_fb_get();
+    if (alt) esp_camera_fb_return(alt);
+    delay(100);
+  }
+  return esp_camera_fb_get();
+}
+
+// ---------- WLAN und Uhrzeit (wie in Akt 3) ----------
+bool wlanVerbinden(unsigned long maxMs) {
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WLAN_NAME, WLAN_PASSWORT);
+  unsigned long start = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - start < maxMs) delay(100);
+  return WiFi.status() == WL_CONNECTED;
+}
+
+bool uhrzeitHolen(unsigned long maxMs) {
+  configTime(0, 0, "pool.ntp.org", "time.google.com");
+  unsigned long start = millis();
+  while (time(nullptr) < 1700000000 && millis() - start < maxMs) delay(100);
+  return time(nullptr) >= 1700000000;
+}
+
+// ---------- Textnachricht in den Chat (wie in Mission 3.5) ----------
+int postJson(const String& url, const String& json) {
+  WiFiClientSecure client;
+  client.setCACert(WURZELN);
+  HTTPClient https;
+  if (!https.begin(client, url)) return -100;
+  https.addHeader("Content-Type", "application/json");
+  int code = https.POST(json);
+  https.end();
+  return code;
+}
+
+int nachrichtSenden(const String& text) {
+#if DIENST == 1
+  return postJson(DISCORD_WEBHOOK, String("{\"content\":\"") + text + "\"}");
+#elif DIENST == 2
+  return postJson(String("https://api.telegram.org/bot") + TELEGRAM_TOKEN + "/sendMessage",
+                  String("{\"chat_id\":\"") + TELEGRAM_CHAT_ID + "\",\"text\":\"" + text + "\"}");
+#else
+#error "DIENST in secrets.h muss 1 (Discord) oder 2 (Telegram) sein."
+#endif
+}
+
+const int BLITZ = 4;
+const int RUNDEN = 5;
+Preferences speicher;   // bleibt auch nach einem Neustart erhalten
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(BLITZ, OUTPUT);
+  digitalWrite(BLITZ, LOW);
+
+  // Warum ist der Chip gerade gestartet?
+  speicher.begin("kw55", false);
+  int brownouts = speicher.getInt("brownouts", 0);
+  if (esp_reset_reason() == ESP_RST_BROWNOUT) {
+    brownouts++;
+    speicher.putInt("brownouts", brownouts);
+  }
+
+  if (!kameraStarten(FRAMESIZE_VGA, 12)) return;
+  if (!wlanVerbinden(15000)) return;
+  if (!uhrzeitHolen(10000)) return;
+
+  // Fünf Runden größte Last: Blitz, Foto, WLAN
+  for (int i = 1; i <= RUNDEN; i++) {
+    digitalWrite(BLITZ, HIGH);
+    camera_fb_t* fb = fotoMachen();
+    digitalWrite(BLITZ, LOW);
+    if (fb) esp_camera_fb_return(fb);
+    WiFiClientSecure c;
+    c.setCACert(WURZELN);
+    HTTPClient h;
+    if (h.begin(c, "https://discord.com/api/v10/gateway")) { h.GET(); h.end(); }
+    delay(500);
+  }
+
+  char kennung[13];
+  snprintf(kennung, sizeof(kennung), "%012llX", (unsigned long long)ESP.getEfuseMac());
+  String bericht = String("Belastungstest: ") + RUNDEN + " Runden, Brownouts: " + brownouts
+          + ". Nachweis: KW-CHECK:m-5-5:" + kennung + ":" + brownouts + ":" + RUNDEN;
+  int code = nachrichtSenden(bericht);
+  Serial.println(bericht);
+  Serial.printf("Statuscode: %d\n", code);
+
+  if (code == 200 || code == 204) speicher.putInt("brownouts", 0);   // Bericht angekommen: neu zählen
+  speicher.end();
+}
+
+void loop() {}
+```
+
+<Hinweis titel="Probier es auch einmal ohne Elko">
+Wenn du neugierig bist: Nimm den Elko heraus und mach den Test noch einmal. Meldet der Bericht dann Brownouts, hast du die Wirkung des Kondensators gerade gemessen. Ob es ohne Elko zu Brownouts kommt, hängt von Akku, Kabeln und Steckbrett ab. Ein Ergebnis von 0 ohne Elko ist also auch möglich.
+</Hinweis>
+
+## Nachweis
+
+<Seriell id="geraet" titel="Nachweis: Belastungstest bestanden" muster="^KW-CHECK:m-5-5:[0-9A-F]{12}:0:5$" hinweis="Kopiere die Zeile ab KW-CHECK aus der Nachricht in deinem Chat. Sie wird nur angenommen, wenn es 0 Brownouts gab." />
+
+<Hinweis titel="Brownouts im Bericht?">
+Dann knickt die Spannung noch ein. Prüf: Sitzt der Elko richtig herum und nah an der ESP32-CAM? Sind die Kabel kurz? Ist der Akku voll? Nach jedem Bericht beginnt die Zählung von vorne, du kannst also einfach noch einmal testen.
+</Hinweis>

@@ -37,16 +37,20 @@ export const TEILE: Record<number, Teil[]> = {
     { teil: 'Programmierplatine ESP32-CAM-MB', zweck: 'USB-Anschluss für das ESP32-CAM', produkt: 'ESP32-Cam-MB USB-zu-TTL Modul', url: `${RB}/p/esp32-cam-mb-usb-zu-ttl-modul-fuer-esp32-cam`, hinweis: 'Hat einen CH340-Chip. Eventuell brauchst du dafür einen eigenen Treiber.' },
   ],
   5: [
-    { teil: '18650-Akku', zweck: 'Energiespeicher', produkt: 'BAK 18650 Lithium-Ionen-Akku 2900 mAh (flacher Pluspol)', url: `${RB}/p/bak-18650-lithium-ionen-akku-2900mah-3-6v-3-7v`, hinweis: 'Diese Zelle hat keine eigene Schutzschaltung. Sie darf nur zusammen mit einem Lademodul mit Schutz verwendet werden.' },
-    { teil: 'Lademodul mit Schutzschaltung', zweck: 'Laden, Schutz vor Über- und Tiefentladung', produkt: 'TP4056 1A Lademodul USB-C (mit Schutzschaltung DW01)', url: `${RB}/p/tp4056-1a-lithium-ionen-lipo-lademodul-fuer-arduino-usb-c`, hinweis: 'Nicht verwechseln: Das „Step-Up Lademodul TP4056“ und das „TP4056 Solar Lademodul Micro USB“ haben laut Shop keine Schutzfunktionen.' },
-    { teil: 'Batteriehalter für 1 × 18650', zweck: 'Akku sicher halten', produkt: 'Kategorie Batteriehalter', url: `${RB}/c/diy-elektronik/elektronische-bauelemente/batteriehalter/` },
-    { teil: '3,3-V-Wandler und Elko', zweck: 'Stabile Versorgung', hinweis: 'Wird nach der Messung am Prototyp festgelegt.' },
+    { teil: 'Lötstation mit Zubehör', zweck: 'Kabel an die Module löten (Mission 5.3)', produkt: 'yourDroid regelbare Lötstation 48W ZD-99 mit Zubehör', url: `${RB}/p/yourdroid-regelbare-loetstation-48w-zd-99-mit-zubehoer`, hinweis: 'Laut Shop mit Ablage, Schwamm, 10 g Lötzinn und dritter Hand. Temperaturgeregelt, das ist für Einsteiger wichtig. Eine Schutzbrille brauchst du zusätzlich.' },
+    { teil: 'Seitenschneider', zweck: 'Kabel kürzen und abisolieren', produkt: 'Kein Link: vorhandenes Werkzeug nutzen', hinweis: 'Eine kleine Elektronik-Zange reicht. Eine Abisolierzange macht es bequemer.' },
+    { teil: '18650-Akku', zweck: 'Energiespeicher', produkt: 'BAK 18650 Lithium-Ionen-Akku 2900 mAh (flacher Pluspol)', url: `${RB}/p/bak-18650-lithium-ionen-akku-2900mah-3-6v-3-7v`, hinweis: 'Diese Zelle hat keine eigene Schutzschaltung. Sie darf nur zusammen mit einem Lademodul mit Schutzschaltung verwendet werden.' },
+    { teil: 'Lademodul mit Schutzschaltung', zweck: 'Laden, Schutz vor Über- und Tiefentladung und Kurzschluss', produkt: 'TP4056 1A Lademodul USB-C (mit Schutzschaltung DW01)', url: `${RB}/p/tp4056-1a-lithium-ionen-lipo-lademodul-fuer-arduino-usb-c`, hinweis: 'Laut Shop im November 2026 nicht mehr verfügbar. Ersatz: ein TP4056-Modul mit DW01-Schutzschaltung, erkennbar an sechs Anschlüssen (IN+, IN−, B+, B−, OUT+, OUT−). Nicht verwechseln: Das „Step-Up Lademodul TP4056“ und das „TP4056 Solar Lademodul Micro USB“ haben laut Shop keine Schutzfunktionen.' },
+    { teil: 'Batteriehalter für 1 × 18650', zweck: 'Akku sicher halten, mit Kabeln', produkt: 'Kategorie Batteriehalter', url: `${RB}/c/diy-elektronik/elektronische-bauelemente/batteriehalter/`, hinweis: 'Achte auf „1 × 18650“ und angelötete Kabel. Die Zelle nie direkt anlöten.' },
+    { teil: 'Buck-Boost-Wandler 3,3 V', zweck: 'Stabile 3,3 V, egal wie voll der Akku ist', produkt: 'TPS63070 Buck-Boost Modul 3,3 V DC (Eingang 2–16 V, bis 2 A)', url: `${RB}/p/tps63070-buck-boost-modul-automatische-step-up-step-down-spannungsregelung-3-3-v-dc`, hinweis: 'Genau die 3,3-V-Variante nehmen. Die 5-V- und 9-V-Varianten würden den ESP32-CAM am 3V3-Pin zerstören.' },
+    { teil: 'Elko 1000 µF', zweck: 'Puffer gegen Stromspitzen', produkt: '20x Elko Elektrolytkondensator 50V 1000uF 13x25mm Radial', url: `${RB}/p/20x-elko-elektrolytkondensator-50v-1000uf-13x25mm-radial`, hinweis: 'Ein Elko reicht, der Rest ist Vorrat. Elkos haben eine Richtung: Der Streifen auf dem Gehäuse markiert Minus.' },
+    { teil: 'USB-Netzteil 5 V', zweck: 'Zum Laden', produkt: 'Kein Link: vorhandenes Handy-Netzteil nutzen', hinweis: 'Ein einfaches 5-V-Netzteil mit mindestens 1 A. Manche USB-C-Schnellladegeräte liefern dem Modul laut Händler keine 5 V, dann hilft ein USB-A-Netzteil mit passendem Kabel.' },
   ],
   7: [
     { teil: 'MOSFETs und Dioden', zweck: 'Selbsthalteschaltung', hinweis: 'Wird nach der Messung am Prototyp festgelegt.' },
   ],
   8: [
     { teil: 'Übungsplatine zum Löten', zweck: 'Löten lernen', produkt: 'Bausatz Übungsplatine zum Löten', url: `${RB}/p/bausatz-uebungsplatine-zum-loeten` },
-    { teil: 'Lötkolben, Lötzinn, Lochraster', zweck: 'Endmontage', hinweis: 'Folgt mit Akt 8.' },
+    { teil: 'Lochrasterplatine', zweck: 'Endmontage', hinweis: 'Folgt mit Akt 8. Lötkolben und Lötzinn hast du seit Akt 5.' },
   ],
 };

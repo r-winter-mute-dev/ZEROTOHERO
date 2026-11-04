@@ -1,0 +1,119 @@
+---
+id: m-5-4
+abzeichen: Spannungswandler
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: k4
+  - id: simulator
+  - id: ausgang
+    hardware: true
+  - id: foto
+    hardware: true
+spick:
+  - t: "Akku"
+    v: "4,2 V voll bis etwa 2,5 V leer"
+  - t: "ESP32 braucht"
+    v: "etwa 3,0–3,6 V, Brownout bei etwa 2,43 V"
+  - t: "Board-Regler AMS1117"
+    v: "Braucht etwa 1,1 V mehr am Eingang als am Ausgang"
+  - t: "Buck-Boost"
+    v: "Macht aus 2–16 V immer 3,3 V"
+  - t: "Anschluss"
+    v: "Akku → Lademodul B / OUT → Wandler VIN / VOUT → ESP32-CAM 3V3 und GND"
+  - t: "Nicht verwechseln"
+    v: "VCC an der ESP32-CAM ist ein Ausgang, kein Eingang"
+  - t: "Nie gleichzeitig"
+    v: "Akku-Versorgung und USB an der MB-Platine"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Versorgung from '../components/Versorgung.astro';
+import Zahl from '../components/Zahl.astro';
+import Bestaetigung from '../components/Bestaetigung.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+
+Der Akku liefert zwischen 4,2 V (voll) und 2,5 V (leer). Der ESP32 will aber gleichmäßige 3,3 V. Dazwischen gehört ein **Spannungswandler**. Welcher? Die naheliegende Antwort funktioniert nur mit vollem Akku, und genau das findest du hier heraus. **Deine Mission: Bau den passenden Wandler ein und lass die Klingel zum ersten Mal vom Akku laufen.**
+
+## Theorie
+
+<Karte nr={1} titel="Der Linearregler verheizt den Rest">
+Ein **Linearregler** funktioniert wie ein Ventil: Er lässt so viel durch, dass hinten genau 3,3 V ankommen, und verheizt die überschüssige Spannung als Wärme. Das ist einfach und billig. Auf der ESP32-CAM sitzt so ein Regler, der **AMS1117**. Er macht aus den 5 V am 5V-Pin die 3,3 V für den Chip. Aus 5 V sind das 1,7 V Differenz, die als Wärme verloren gehen.
+</Karte>
+
+<Merke>Ein Linearregler verheizt die überschüssige Spannung. Was reingeht, kommt als Strom auch raus, nur bei niedrigerer Spannung.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: Linearregler" fragen={[
+  { frage: 'Was passiert mit der Spannung, die ein Linearregler nicht durchlässt?', richtig: 'Sie wird im Regler zu Wärme.', falsch: ['Sie fließt zurück in den Akku.', 'Sie wird gespeichert.'], erklaerung: 'Linearregler verheizen die Differenz zwischen Eingang und Ausgang.' },
+]} />
+
+<Karte nr={2} titel="Der Dropout">
+Jeder Linearregler braucht am Eingang etwas **mehr** Spannung, als er ausgeben soll. Dieser Mindestabstand heißt **Dropout**. Beim AMS1117 sind es laut Datenblatt typisch 1,1 V, höchstens 1,3 V [Fachquelle: AMS1117-Datenblatt, bei 800 mA]. Für 3,3 V am Ausgang braucht er also gut 4,4 V am Eingang. Ein voller Akku hat 4,2 V, das reicht schon nicht mehr ganz. Ein halb leerer hat etwa 3,6 V, dann kommen nur noch 2,5 V beim Chip an.
+</Karte>
+
+<Merke>Dropout = Mindestabstand zwischen Eingang und Ausgang. Beim AMS1117 sind das etwa 1,1 V, zu viel für einen Li-Ion-Akku.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Dropout" fragen={[
+  { frage: 'Der Akku hat 3,8 V, der AMS1117 hat 1,1 V Dropout. Wie viel kommt beim Chip an?', richtig: 'Etwa 2,7 V, also zu wenig', falsch: ['3,3 V, der Regler gleicht das aus', '3,8 V'], erklaerung: '3,8 V − 1,1 V = 2,7 V. Unter 3,0 V arbeitet der ESP32 nicht mehr zuverlässig.' },
+]} />
+
+<Karte nr={3} titel="Der Schaltregler">
+Ein **Schaltregler** arbeitet anders: Er schaltet sehr schnell ein und aus und speichert dabei Energie kurz in einer Spule. So kann er Spannung herunter- **und** hochsetzen. Ein **Buck-Boost-Wandler** kann beides: Bei vollem Akku setzt er von 4,2 V herunter, bei fast leerem Akku von 3,0 V hinauf. Er verheizt dabei kaum etwas. Das Modul aus der Einkaufsliste macht laut Händler aus 2 bis 16 V immer 3,3 V [Fachquelle: Roboter-Bausatz, TPS63070-Modul].
+</Karte>
+
+<Merke>Ein Buck-Boost-Wandler hält 3,3 V, egal ob der Akku voll oder fast leer ist, und verheizt dabei wenig.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Buck-Boost" fragen={[
+  { frage: 'Warum passt ein Buck-Boost-Wandler besser zu einem Li-Ion-Akku als der AMS1117?', richtig: 'Er liefert 3,3 V auch dann, wenn der Akku unter 3,3 V fällt.', falsch: ['Er lädt den Akku nebenbei auf.', 'Er braucht keine Masse.'], erklaerung: 'Er kann herunter- und hochsetzen, ein Linearregler kann nur herunter.' },
+]} />
+
+<Karte nr={4} titel="Der richtige Pin">
+Weil der Wandler schon 3,3 V liefert, umgeht er den Regler auf dem Board und geht direkt an den Pin **3V3** der ESP32-CAM. Vorsicht bei der Beschriftung: Ein anderer Pin heißt **VCC**. Er ist laut Pinbelegung ein **Ausgang**, über den das Board Spannung abgibt [Fachquelle: Random Nerd Tutorials, Pinbelegung ESP32-CAM AI-Thinker]. Wer dort einspeist, erreicht den Chip nicht. Und: Die Versorgung über den Akku und das USB-Kabel an der MB-Platine nie gleichzeitig anschließen, sonst arbeiten zwei Versorgungen gegeneinander.
+</Karte>
+
+<Merke>Der Wandler kommt an 3V3 und GND, nicht an VCC. Akku und USB nie gleichzeitig.</Merke>
+
+<Quiz id="k4" titel="Kurzcheck: Pin" fragen={[
+  { frage: 'An welchen Pin der ESP32-CAM kommt der Ausgang des 3,3-V-Wandlers?', richtig: '3V3', falsch: ['VCC', '5V'], erklaerung: 'VCC ist ein Ausgang. Am 5V-Pin würde der Board-Regler mit seinem Dropout dazwischensitzen.' },
+]} />
+
+## Simulator
+
+<Versorgung id="simulator" titel="Simulator: Wie weit reicht der Akku?" />
+
+## Aufbau
+
+Lade zuerst **Klingel v1** aus Mission 4.6 auf die ESP32-CAM, solange sie noch auf der MB-Platine am USB-Kabel steckt. Danach ziehst du USB ab und nimmst die ESP32-CAM von der Platine.
+
+<Checkliste id="aufbau" punkte={[
+  'Klingel v1 (Mission 4.6) hochladen. Dann USB abziehen und die ESP32-CAM vorsichtig von der MB-Platine abziehen.',
+  'Die ESP32-CAM so ins Steckbrett stecken, dass sie die Mittelrinne überbrückt. Laut Pinbelegung passt sie so, dass außen je eine Lochreihe frei bleibt.',
+  'Akku <strong>noch nicht</strong> in den Halter legen.',
+  'Lademodul: B+ und B− an den Batteriehalter (rot an B+, schwarz an B−).',
+  'Wandler: OUT+ des Lademoduls an VIN des Wandlers, OUT− an GND des Wandlers.',
+  'Akku einlegen. Mit dem Multimeter am Ausgang des Wandlers messen, noch <strong>ohne</strong> ESP32-CAM: Es müssen etwa 3,3 V sein.',
+  'Akku wieder heraus. VOUT des Wandlers an <strong>3V3</strong> der ESP32-CAM, GND des Wandlers an <strong>GND</strong> der ESP32-CAM.',
+  'Noch einmal alles mit dieser Liste vergleichen, dann Akku einlegen.',
+]} />
+
+<Zahl id="ausgang" titel="Messwert: Ausgang des Wandlers" frage="Welche Spannung misst du am Ausgang des Wandlers (VOUT gegen GND), bevor die ESP32-CAM dranhängt?" einheit="V" min={3.2} max={3.4} hilfe={[
+  { unter: 0.5, text: 'Fast 0 V: Kommt Spannung am Eingang an? Miss an OUT+ und OUT− des Lademoduls. Steht dort 0 V, hat die Schutzschaltung abgeschaltet. Dann einmal kurz das Ladekabel anstecken.' },
+  { unter: 3.2, text: 'Etwas wenig. Ist der Akku fast leer (unter 2,5 V), arbeitet der Wandler nicht mehr. Erst laden.' },
+  { ueber: 3.6, text: 'Zu viel für den 3V3-Pin! Hast du vielleicht die 5-V-Variante des Wandlers? Auf keinen Fall die ESP32-CAM anschließen.' },
+  { ueber: 3.4, text: 'Etwas viel. Prüf, ob die 3,3-V-Variante verbaut ist, und miss noch einmal.' },
+]} />
+
+<Hinweis art="sicherheit" titel="Mehr als 3,6 V am Ausgang?">
+Dann sofort Akku heraus und die ESP32-CAM nicht anschließen. Am 3V3-Pin würde sie mit 5 V zerstört.
+</Hinweis>
+
+## Klingeln vom Akku
+
+Jetzt hängt die Klingel nur am Akku. Drück die **RST**-Taste der ESP32-CAM. Klingel v1 startet, verbindet sich mit dem WLAN und schickt ein Foto, ohne USB-Kabel.
+
+<Bestaetigung id="foto" titel="Foto vom Akku" text="Nach einem Druck auf RST kam ein Foto in meinem Chat an, während die Klingel nur am Akku hing." />
+
+<Merke>Ab jetzt ist der Chat dein serieller Monitor. Was die Klingel am Akku tut, siehst du nur noch dort.</Merke>

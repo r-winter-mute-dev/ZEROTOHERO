@@ -1,0 +1,102 @@
+---
+id: m-5-boss
+abzeichen: Energiedetektiv
+checks:
+  - id: boss
+spick:
+  - t: "Vorgehen"
+    v: "Vom Akku zum Chip: B → OUT → Wandler → 3V3, an jeder Stelle messen"
+  - t: "Akku"
+    v: "4,2 V voll, 2,5 V leer"
+  - t: "OUT = 0 V, B normal"
+    v: "Schutzschaltung hat abgeschaltet"
+  - t: "Am Chip"
+    v: "3,0–3,6 V"
+---
+import Logdiagnose from '../components/Logdiagnose.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Eine Akkuversorgung hat viele Stationen: Zelle, Schutzschaltung, Wandler, Kabel, Kondensator, Chip. Fällt eine aus, bleibt die Klingel stumm. Aber welche? Das verrät das Multimeter. **Dein Bosskampf: Fünf Klingeln versagen am Akku. Lies die Messprotokolle und finde die Ursache.**
+
+## Die Methode
+
+Miss dich vom Akku zum Chip vor. Wo die Spannung zum ersten Mal nicht stimmt, liegt der Fehler.
+
+1. **Zelle:** Spannung an B+ und B−. Zwischen 2,5 und 4,2 V?
+2. **Schutzschaltung:** Spannung an OUT+ und OUT−. Fast so hoch wie an B?
+3. **Wandler:** Spannung an VOUT. Etwa 3,3 V?
+4. **Chip:** Spannung direkt an 3V3 und GND der ESP32-CAM, am besten während sie sendet.
+
+<Merke>Vom Akku zum Chip messen. Die erste Stelle, an der die Spannung nicht stimmt, ist die Ursache.</Merke>
+
+<Hinweis titel="Lesetipp">
+Die Protokolle sind ausgedachte, aber typische Beispiele: Messwerte mit dem Multimeter und Nachrichten aus dem Chat.
+</Hinweis>
+
+<Logdiagnose id="boss" titel="Bosskampf: Läuft nur mit vollem Akku" anzahl={5} faelle={[
+  {
+    symptom: 'Jemand hat den Akku direkt an den 5V-Pin der ESP32-CAM angeschlossen, ohne Wandler. Frisch geladen klappt alles, am nächsten Tag nicht mehr.',
+    log: 'Tag 1: Akku 4,15 V -> Foto im Chat angekommen\nTag 2: Akku 3,82 V -> kein Foto\nMessung an 3V3 beim Senden: 2,61 V',
+    richtig: 'Der Board-Regler braucht etwa 1,1 V Abstand. Aus 3,8 V macht er nur noch rund 2,7 V, das reicht dem Chip nicht.',
+    falsch: ['Der Akku ist kaputt.', 'Das WLAN ist zu schwach.', 'Der Elko ist verpolt.'],
+    erklaerung: 'Das ist der Dropout aus Mission 5.5. Ein Buck-Boost-Wandler am 3V3-Pin löst das.',
+  },
+  {
+    symptom: 'Die Klingel ist komplett tot. Keine LED, kein Foto.',
+    log: 'Messung B+ gegen B−: 2,38 V\nMessung OUT+ gegen OUT−: 0,00 V',
+    richtig: 'Der Akku ist tiefentladen, die Schutzschaltung hat ihn abgetrennt.',
+    falsch: ['Der Wandler ist kaputt.', 'Der Elko fehlt.', 'Die ESP32-CAM ist kaputt.'],
+    erklaerung: 'Unter etwa 2,5 V trennt der DW01. Bei 2,38 V die Zelle nicht mehr laden: Sie ist unter dem Entladeschluss aus dem Datenblatt. Pole abkleben und zur Sammelstelle.',
+  },
+  {
+    symptom: 'Beim Umstecken ist ein Kabel abgerutscht und hat kurz geblitzt. Seitdem ist die Klingel tot.',
+    log: 'Messung B+ gegen B−: 3,86 V\nMessung OUT+ gegen OUT−: 0,00 V\nKurzschluss gefunden und beseitigt.',
+    richtig: 'Die Schutzschaltung hat wegen Überstrom abgeschaltet. Last trennen, bei manchen Modulen kurz das Ladekabel anstecken.',
+    falsch: ['Der Akku ist leer.', 'Der Wandler ist durchgebrannt.', 'Die Firmware ist gelöscht.'],
+    erklaerung: 'Der Akku ist voll, aber OUT ist tot: Die Schutzschaltung hat genau getan, wofür sie da ist. Deshalb: erst aufbauen, dann Strom an (Regel 3).',
+  },
+  {
+    symptom: 'Die Klingel startet nicht. Der Wandler liefert einwandfrei 3,3 V.',
+    log: 'Messung VOUT gegen GND am Wandler: 3,31 V\nMessung 3V3 gegen GND an der ESP32-CAM: 0,02 V\nVerkabelung: VOUT -> Pin „VCC“',
+    richtig: 'Der Wandler hängt am falschen Pin. VCC ist ein Ausgang, eingespeist wird an 3V3.',
+    falsch: ['Der Wandler ist zu schwach.', 'Der Akku ist leer.', 'Das Steckbrett ist kaputt.'],
+    erklaerung: 'Am Wandler stimmt alles, an 3V3 kommt nichts an. Also liegt der Fehler in der Verbindung dazwischen.',
+  },
+  {
+    symptom: 'Das Lademodul zeigt seit acht Stunden „lädt“ und wird nie fertig.',
+    log: 'LED: rot (lädt), seit 8 Stunden\nMessung B+ gegen B−: 4,19 V\nAn OUT angeschlossen: Wandler mit ESP32-CAM',
+    richtig: 'Die Klingel zieht während des Ladens Strom. Das Modul erkennt das Ladeende nicht, weil der Strom nie klein genug wird.',
+    falsch: ['Der Akku ist kaputt und nimmt keine Ladung an.', 'Das USB-Netzteil ist zu stark.', 'Die LED ist falsch gepolt.'],
+    erklaerung: 'Die Zelle ist mit 4,19 V längst voll. Zum Laden den Verbraucher abklemmen (Mission 5.4).',
+  },
+  {
+    symptom: 'Ohne Blitz klappt alles. Mit Blitz kommt im Chat ein Bericht mit Neustarts.',
+    log: 'Belastungstest: 5 Runden, Brownouts: 3.\nAufbau: 25 cm lange Kabel vom Wandler zur ESP32-CAM, kein Elko',
+    richtig: 'Lange Kabel und fehlender Puffer: Bei der Stromspitze knickt die Spannung am Chip ein.',
+    falsch: ['Der Blitz ist kaputt.', 'Der Akku ist überladen.', 'Die Uhrzeit fehlt.'],
+    erklaerung: 'Kurze Kabel und ein Elko direkt an 3V3 und GND fangen die Spitze ab (Mission 5.6).',
+  },
+  {
+    symptom: 'Neuer Aufbau mit Elko. Nach einer Minute riecht es seltsam, der Elko ist warm.',
+    log: 'Elko oben leicht gewölbt\nStreifen auf dem Elko zeigt zur Spalte von 3V3',
+    richtig: 'Der Elko ist verpolt. Sofort Akku heraus.',
+    falsch: ['Der Elko ist zu groß.', 'Der Wandler liefert zu wenig.', 'So etwas ist normal.'],
+    erklaerung: 'Der Streifen markiert Minus und gehört an GND. Einen verpolten, gewölbten Elko nicht weiterverwenden.',
+  },
+  {
+    symptom: 'Neuer Wandler eingebaut, die ESP32-CAM ist danach nie wieder angegangen.',
+    log: 'Messung VOUT gegen GND am Wandler: 5,02 V\nAufschrift auf dem Modul: 5V',
+    richtig: 'Es war die 5-V-Variante des Wandlers. 5 V am 3V3-Pin zerstören den Chip.',
+    falsch: ['Der Akku war zu voll.', 'Der Elko hat gefehlt.', 'Die Firmware passt nicht zum Wandler.'],
+    erklaerung: 'Darum misst du den Ausgang des Wandlers immer zuerst ohne ESP32-CAM (Mission 5.5).',
+  },
+]} />
+
+## Die Faustregeln aus diesem Bosskampf
+
+1. **Erst messen, dann anschließen.** Ein neuer Wandler wird ohne Verbraucher gemessen.
+2. **B normal, OUT null:** Die Schutzschaltung hat abgeschaltet. Sie hat einen Grund.
+3. **Zum Laden die Last ab,** und Elkos immer mit dem Streifen an GND.
+
+<Merke>Akku, Schutz, Wandler, Pin, Puffer: Wer jede Station einzeln misst, findet jeden Fehler.</Merke>

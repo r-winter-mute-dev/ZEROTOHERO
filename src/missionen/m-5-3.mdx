@@ -1,0 +1,95 @@
+---
+id: m-5-3
+abzeichen: Ladeprofi
+checks:
+  - id: k1
+  - id: k2
+  - id: k3
+  - id: k4
+  - id: voll
+    hardware: true
+spick:
+  - t: "Ladeverfahren"
+    v: "Erst konstanter Strom (CC), dann konstante Spannung 4,2 V (CV)"
+  - t: "Ladeende"
+    v: "Strom ist auf ein Zehntel gefallen"
+  - t: "TP4056-Anschlüsse"
+    v: "B+ / B− zum Akku, OUT+ / OUT− zum Verbraucher, IN+ / IN− oder USB zum Netzteil"
+  - t: "Ladestrom"
+    v: "bis 1 A, 2900 mAh brauchen also etwa 3–4 Stunden"
+  - t: "Beim Laden"
+    v: "Verbraucher abklemmen"
+---
+import Karte from '../components/Karte.astro';
+import Merke from '../components/Merke.astro';
+import Quiz from '../components/Quiz.astro';
+import Zahl from '../components/Zahl.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+
+Ein Akku nützt nur etwas, wenn man ihn wieder voll bekommt. Li-Ion-Zellen sind dabei wählerisch: Zu viel Spannung schadet ihnen, und sie vertragen nicht jeden Strom. Das Lademodul TP4056 kümmert sich darum. **Deine Mission: Lade deine Zelle mit dem Lademodul und miss, wie voll sie am Ende ist.**
+
+<Hinweis art="sicherheit" titel="Vor dem Laden">
+Leg das Lademodul mit Zelle auf einen **nicht brennbaren Untergrund**, zum Beispiel eine Fliese, und bleib in der Nähe. Nichts darüberlegen. Wird etwas heiß oder riecht es: USB-Kabel ziehen und Abstand halten (Mission 5.2).
+</Hinweis>
+
+## Theorie
+
+<Karte nr={1} titel="Erst Strom, dann Spannung">
+Li-Ion-Zellen lädt man in zwei Phasen. Zuerst mit **konstantem Strom** (englisch constant current, CC): Das Modul schiebt etwa 1 A hinein, und die Spannung der Zelle steigt langsam. Erreicht sie **4,2 V**, wechselt es zu **konstanter Spannung** (CV): Es hält genau 4,2 V, und der Strom wird von selbst immer kleiner. Ist er auf etwa ein Zehntel gefallen, hört das Modul auf [Fachquelle: TP4056-Datenblatt].
+</Karte>
+
+<Merke>Erst konstanter Strom bis 4,2 V, dann konstante Spannung, bis der Strom klein wird. Dann ist die Zelle voll.</Merke>
+
+<Quiz id="k1" titel="Kurzcheck: CC und CV" fragen={[
+  { frage: 'Die Zelle hat gerade 4,2 V erreicht. Was macht das Lademodul jetzt?', richtig: 'Es hält 4,2 V, und der Strom sinkt langsam.', falsch: ['Es schaltet sofort ab.', 'Es erhöht die Spannung, damit es schneller geht.'], erklaerung: 'Ab 4,2 V beginnt die CV-Phase. Die Zelle ist dann erst zu etwa vier Fünfteln voll.' },
+]} />
+
+<Karte nr={2} titel="Die Anschlüsse">
+Das Modul hat drei Paare: **IN+ / IN−** (oder die USB-Buchse) für das 5-V-Netzteil, **B+ / B−** für den Akku und **OUT+ / OUT−** für den Verbraucher. Die Schutzschaltung sitzt zwischen B und OUT. Deshalb kommt der Verbraucher immer an OUT, nie direkt an B, sonst ist der Schutz umgangen.
+</Karte>
+
+<Merke>Akku an B, Verbraucher an OUT, Netzteil an IN oder USB. Wer an B abgreift, umgeht den Schutz.</Merke>
+
+<Quiz id="k2" titel="Kurzcheck: Anschlüsse" fragen={[
+  { frage: 'Wo schließt du später den Spannungswandler der Klingel an?', richtig: 'An OUT+ und OUT−', falsch: ['An B+ und B−', 'An IN+ und IN−'], erklaerung: 'Nur OUT liegt hinter der Schutzschaltung.' },
+]} />
+
+<Karte nr={3} titel="Wie lange es dauert">
+Bei 1 A Ladestrom ist eine 2900-mAh-Zelle rechnerisch nach knapp 3 Stunden voll. Weil der Strom in der CV-Phase sinkt, dauert es in Wirklichkeit eher 3 bis 4 Stunden. Das Modul zeigt den Zustand mit LEDs: **Rot** heißt laden, **Blau oder Grün** heißt voll [Fachquelle: Händlerangaben, die Farben unterscheiden sich je nach Modul]. Das USB-Netzteil muss dafür mindestens 1 A liefern.
+</Karte>
+
+<Merke>Rote LED: lädt. Blaue oder grüne LED: voll. Rechne mit 3 bis 4 Stunden.</Merke>
+
+<Quiz id="k3" titel="Kurzcheck: Ladezeit" fragen={[
+  { frage: 'Warum dauert das Laden länger als Kapazität geteilt durch Ladestrom?', richtig: 'Weil der Strom in der zweiten Phase immer kleiner wird', falsch: ['Weil das Modul Pausen macht', 'Weil die Zelle beim Laden kleiner wird'], erklaerung: 'In der CV-Phase sinkt der Strom bis auf ein Zehntel.' },
+]} />
+
+<Karte nr={4} titel="Beim Laden den Verbraucher abklemmen">
+Das Modul erkennt „voll“, wenn der Ladestrom klein wird. Hängt aber ein Verbraucher an OUT, zieht der ständig Strom, und das Modul glaubt, die Zelle brauche noch etwas. Im schlimmsten Fall hört es nie auf. Deshalb gilt im Kurs: **Zum Laden den Verbraucher abklemmen.** In Akt 7 bekommt die Klingel einen Schalter, der das bequemer macht.
+</Karte>
+
+<Merke>Zum Laden den Verbraucher von OUT abklemmen. Sonst erkennt das Modul das Ladeende nicht sicher.</Merke>
+
+<Quiz id="k4" titel="Kurzcheck: Laden mit Verbraucher" fragen={[
+  { frage: 'Warum klemmst du die Klingel beim Laden ab?', richtig: 'Sonst fließt immer Strom, und das Modul erkennt das Ladeende nicht sicher.', falsch: ['Weil die Klingel sonst zu laut ist', 'Weil USB und Akku sonst kurzgeschlossen sind'], erklaerung: 'Das Ladeende erkennt das Modul am kleinen Ladestrom.' },
+]} />
+
+## Laden
+
+<Checkliste id="laden" punkte={[
+  'Lademodul und Zelle auf einen nicht brennbaren Untergrund legen.',
+  'Das Lademodul mit seinen angelöteten Kabeln (Mission 5.3) ins Steckbrett stecken. Rotes Kabel des Batteriehalters in die Spalte von <strong>B+</strong>, schwarzes in die Spalte von <strong>B−</strong>.',
+  'An OUT ist nichts angeschlossen.',
+  'Das USB-Netzteil anschließen. Die rote LED leuchtet.',
+  'In der Nähe bleiben. Nach etwa 10 Minuten die Zelle vorsichtig anfassen: Lauwarm ist normal, heiß nicht.',
+  'Warten, bis die LED auf Blau oder Grün wechselt. Dann USB abziehen.',
+  'Nach ein paar Minuten die Spannung an B+ und B− messen.',
+]} />
+
+<Zahl id="voll" titel="Messwert: Spannung nach dem Laden" frage="Welche Spannung misst du an B+ und B−, nachdem die LED „voll“ zeigt?" einheit="V" min={4.1} max={4.25} hilfe={[
+  { unter: 4.1, text: 'Etwas wenig für eine volle Zelle. Hat die LED wirklich gewechselt? Direkt nach dem Abziehen sinkt die Spannung oft ein paar Hundertstel, das ist normal. Hängt noch etwas an OUT?' },
+  { ueber: 4.25, text: 'Mehr als 4,25 V ist zu viel. Modul nicht weiter benutzen, Zelle beobachten und den Messbereich prüfen.' },
+]} />
+
+<Merke>Eine volle Zelle hat knapp 4,2 V. Ab jetzt weißt du bei jeder Messung, wie voll der Akku ist.</Merke>
