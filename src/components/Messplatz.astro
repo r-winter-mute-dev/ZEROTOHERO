@@ -174,23 +174,23 @@ const P = { A: [70, 60], B: [150, 60], C: [430, 60], D: [430, 240], E: [70, 240]
 <style>
   .aufbau { display: grid; grid-template-columns: minmax(0, 3fr) minmax(12rem, 2fr); gap: 1.2rem; align-items: start; }
   @media (max-width: 720px) { .aufbau { grid-template-columns: 1fr; } }
-  svg { width: 100%; height: auto; background: var(--maske); border-radius: var(--radius-klein); }
-  .draht path, .bauteil line, .bauteil rect, .bauteil path { stroke: var(--druck); }
-  .beschr { fill: var(--zinn); font-size: 15px; }
+  svg { width: 100%; height: auto; background: var(--grund); border-radius: var(--radius-klein); }
+  .draht path, .bauteil line, .bauteil rect, .bauteil path { stroke: var(--text); }
+  .beschr { fill: var(--leise); font-size: 15px; }
   .punkt { cursor: pointer; }
-  .punkt circle { fill: var(--maske-tief); stroke: var(--kupfer); stroke-width: 2.5; }
-  .punkt text { fill: var(--druck); font-size: 14px; font-weight: 700; pointer-events: none; }
+  .punkt circle { fill: var(--tief); stroke: var(--akzent); stroke-width: 2.5; }
+  .punkt text { fill: var(--text); font-size: 14px; font-weight: 700; pointer-events: none; }
   .punkt:hover circle, .punkt:focus-visible circle { stroke-width: 4; }
-  .punkt.ist-rot circle { fill: #b8473b; stroke: #ff8a7a; }
-  .punkt.ist-schwarz circle { fill: #222; stroke: var(--druck); }
-  .geraet { background: #2b2f2d; border-radius: 14px; padding: 1rem; border: 2px solid #444a47; }
-  .anzeige { background: #c9d3b4; color: #1d231c; font-size: 2.2rem; font-weight: 700; text-align: right; padding: 0.3rem 0.8rem; border-radius: 6px; font-variant-numeric: tabular-nums; margin-bottom: 0.8rem; }
+  .punkt.ist-rot circle { fill: #7d3a4e; stroke: #f38ba8; }
+  .punkt.ist-schwarz circle { fill: #222; stroke: var(--text); }
+  .geraet { background: #1f1f1f; border-radius: 14px; padding: 1rem; border: 2px solid #333333; }
+  .anzeige { background: #d4d4d4; color: #111111; font-size: 2.2rem; font-weight: 700; text-align: right; padding: 0.3rem 0.8rem; border-radius: 6px; font-variant-numeric: tabular-nums; margin-bottom: 0.8rem; }
   .einheit { font-size: 1.2rem; margin-left: 0.4rem; }
   .spitzen { border: 0; padding: 0; margin: 0 0 0.5rem; }
   .spitzen legend { font-size: 0.95rem; margin-bottom: 0.3rem; }
   .spitzen label { display: block; padding: 0.15rem 0; }
-  .rot { color: #ff8a7a; font-weight: 700; }
-  .schwarz { color: var(--druck); font-weight: 700; }
+  .rot { color: #f38ba8; font-weight: 700; }
+  .schwarz { color: var(--text); font-weight: 700; }
   .szenario { font-weight: 700; }
   .szenario:empty { display: none; }
   .diagnose { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin-top: 1rem; }

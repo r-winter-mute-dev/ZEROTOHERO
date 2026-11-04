@@ -1,0 +1,74 @@
+---
+id: m-2-boss
+abzeichen: Boot-Flüsterer
+checks:
+  - id: boss
+---
+import Logdiagnose from '../components/Logdiagnose.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Ein Mikrocontroller hat keinen Bildschirm. Wenn er nicht startet oder sich nicht programmieren lässt, sind die Meldungen in der Arduino IDE und im seriellen Monitor deine einzigen Hinweise. **Dein Bosskampf: Vier Boards machen Ärger. Lies die Logs und finde die Ursache.**
+
+## Was du wissen musst
+
+| Begriff | Bedeutung |
+| --- | --- |
+| Upload-Modus | Zum Programmieren muss das ESP32 in einen besonderen Startmodus. Meist schaltet die Programmierplatine das automatisch, manchmal hilft die Taste **BOOT**. |
+| Boot-Pins | Einige GPIOs (unter anderem 0, 2, 12 und 15) entscheiden beim Einschalten, wie der Chip startet. Hängt dort etwas, das den Pegel festlegt, startet er falsch [Fachquelle: Espressif-Datenblatt, „Strapping Pins“]. |
+| Brownout | Die Spannung bricht kurz ein, weil die Stromquelle nicht genug liefert. Das ESP32 startet dann zur Sicherheit neu. |
+| Baudrate | Die Geschwindigkeit der seriellen Übertragung, siehe Mission 2.2. |
+
+<Hinweis titel="Lesetipp">
+Die Logs sind gekürzte Beispiele. Echte Ausgaben sind länger, aber die entscheidende Zeile sieht ähnlich aus. Such nach Wörtern wie „error“, „failed“, „brownout“ oder „boot:“.
+</Hinweis>
+
+<Logdiagnose id="boss" titel="Bosskampf: Das Board startet nicht" anzahl={4} faelle={[
+  {
+    symptom: 'Der Upload bricht immer ab.',
+    log: 'Connecting......................................\nA fatal error occurred: Failed to connect to ESP32: Wrong boot mode detected (0x13)!\nThe chip needs to be in download mode.',
+    richtig: 'Das Board ist nicht im Upload-Modus. BOOT-Taste halten, bis „Connecting…“ erscheint.',
+    falsch: ['Das USB-Kabel ist zu lang.', 'Das Programm hat einen Tippfehler.', 'Die Baudrate im seriellen Monitor ist falsch.'],
+    erklaerung: 'Bei manchen Boards schaltet die Programmierschaltung nicht zuverlässig in den Upload-Modus. Die BOOT-Taste erzwingt ihn.',
+  },
+  {
+    symptom: 'Das Board startet ständig neu, sobald es läuft.',
+    log: 'Brownout detector was triggered\n\nets Jun  8 2016 00:22:57\nrst:0xc (SW_CPU_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)\n...\nBrownout detector was triggered',
+    richtig: 'Die Stromversorgung ist zu schwach: dünnes Kabel, USB-Hub oder schwache Quelle.',
+    falsch: ['Der Taster prellt.', 'Die Firmware ist zu groß.', 'Ein Boot-Pin ist falsch beschaltet.'],
+    erklaerung: 'Ein Brownout ist ein Spannungseinbruch. Später, mit WLAN und Kamera, wird das noch wichtiger (Akt 4 und 5).',
+  },
+  {
+    symptom: 'Im seriellen Monitor erscheint nur Zeichensalat.',
+    log: '⸮⸮⸮⸮x⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮⸮',
+    richtig: 'Die Baudrate im seriellen Monitor passt nicht zu Serial.begin().',
+    falsch: ['Der Chip ist defekt.', 'Die Stromversorgung ist zu schwach.', 'Das Board ist im Upload-Modus.'],
+    erklaerung: 'Stell im Monitor dieselbe Zahl ein wie in Serial.begin(), hier 115200.',
+  },
+  {
+    symptom: 'In der Arduino IDE taucht kein Port auf, obwohl das Board leuchtet.',
+    log: 'Werkzeuge → Port: (ausgegraut)\nA fatal error occurred: Could not open port: the port does not exist',
+    richtig: 'Das USB-Kabel kann nur laden oder der Treiber für den USB-Chip (CP2102/CH340) fehlt.',
+    falsch: ['Die LED an GPIO 2 ist kaputt.', 'Die Baudrate ist falsch.', 'Ein Interrupt blockiert den Port.'],
+    erklaerung: 'Leuchten heißt nur: Strom kommt an. Für den Port braucht es Datenleitungen im Kabel und einen Treiber.',
+  },
+  {
+    symptom: 'Seit am Board ein neuer Taster hängt, startet das Programm nicht mehr. Ohne den Taster läuft alles.',
+    log: 'rst:0x1 (POWERON_RESET),boot:0x3 (DOWNLOAD_BOOT(UART0/UART1/SDIO_REI_REO_V2))\nwaiting for download',
+    richtig: 'Der Taster hängt an GPIO 0, einem Boot-Pin, und zieht ihn beim Start auf LOW.',
+    falsch: ['Der Taster prellt beim Einschalten.', 'Die Stromversorgung ist zu schwach.', 'Die Baudrate ist falsch.'],
+    erklaerung: '„waiting for download“ heißt: Der Chip ist im Upload-Modus gestartet. GPIO 0 entscheidet darüber. Nimm einen anderen Pin, zum Beispiel GPIO 4.',
+  },
+  {
+    symptom: 'Nach dem Umbau auf GPIO 12 startet das Board in einer Schleife neu.',
+    log: 'rst:0x10 (RTCWDT_RTC_RESET),boot:0x33 (SPI_FAST_FLASH_BOOT)\nflash read err, 1000\nets_main.c 371',
+    richtig: 'GPIO 12 ist ein Boot-Pin. Ein Pull-up dort stellt beim Start die falsche Flash-Spannung ein.',
+    falsch: ['Die Firmware ist beschädigt.', 'Der Taster ist verpolt.', 'Das USB-Kabel ist zu lang.'],
+    erklaerung: 'GPIO 12 legt beim Start die Spannung für den Flash-Speicher fest. Für Taster und Sensoren lieber unkritische Pins wie GPIO 4, 13 oder 14 verwenden.',
+  },
+]} />
+
+## Die Faustregeln aus diesem Bosskampf
+
+1. **Erst Kabel und Strom prüfen**, dann die Software.
+2. **Boot-Pins** (0, 2, 12, 15) nur verwenden, wenn du weißt, was beim Start an ihnen hängt.
+3. **Lies die Meldung.** Die Ursache steht erstaunlich oft fast wörtlich darin.

@@ -1,0 +1,66 @@
+---
+// Fehlersuche anhand von Logausgaben. Zeigt nacheinander zufällige Fälle.
+import Station from './Station.astro';
+interface Fall { symptom: string; log: string; richtig: string; falsch: string[]; erklaerung: string; }
+interface Props { id: string; titel: string; faelle: Fall[]; anzahl?: number; }
+const { id, titel, faelle, anzahl = 3 } = Astro.props;
+---
+<Station id={id} titel={titel} art="Bosskampf">
+  <div class="ld" data-kw-log data-faelle={JSON.stringify(faelle)} data-anzahl={anzahl}>
+    <p class="ld-symptom" data-ld-symptom></p>
+    <pre class="ld-log" data-ld-log></pre>
+    <fieldset class="ld-wahl" data-ld-wahl><legend>Was ist die Ursache?</legend></fieldset>
+    <button class="knopf" type="button" data-ld-abgeben>Diagnose abgeben</button>
+  </div>
+</Station>
+
+<script>
+  import { mischen, station } from '../scripts/station';
+  document.querySelectorAll<HTMLElement>('[data-kw-log]').forEach((box) => {
+    const s = station(box.closest('[data-kw-check]') as HTMLElement);
+    const alle = JSON.parse(box.dataset.faelle!) as { symptom: string; log: string; richtig: string; falsch: string[]; erklaerung: string }[];
+    const anzahl = Math.min(Number(box.dataset.anzahl), alle.length);
+    let faelle = mischen(alle).slice(0, anzahl), i = 0;
+    const wahl = box.querySelector<HTMLFieldSetElement>('[data-ld-wahl]')!;
+
+    function zeigen() {
+      const f = faelle[i];
+      box.querySelector('[data-ld-symptom]')!.textContent = `Fall ${i + 1} von ${faelle.length}: ${f.symptom}`;
+      box.querySelector('[data-ld-log]')!.textContent = f.log;
+      wahl.querySelectorAll('label').forEach((l) => l.remove());
+      mischen([f.richtig, ...f.falsch]).forEach((a) => {
+        const l = document.createElement('label');
+        const r = document.createElement('input');
+        r.type = 'radio'; r.name = `${s.cid}-wahl`; r.value = a;
+        l.append(r, document.createTextNode(' ' + a));
+        wahl.append(l);
+      });
+    }
+    zeigen();
+
+    box.querySelector('[data-ld-abgeben]')!.addEventListener('click', () => {
+      const f = faelle[i];
+      const a = wahl.querySelector<HTMLInputElement>('input:checked')?.value;
+      if (!a) return s.melden('Wähle zuerst eine Ursache.', 'warnung');
+      if (a !== f.richtig) return s.fehl('Das passt nicht zum Log. Lies die Meldung Wort für Wort, oft steht die Ursache fast wörtlich drin.');
+      i++;
+      if (i >= faelle.length) {
+        s.bestehen(`Richtig. ${f.erklaerung} Damit sind alle ${faelle.length} Fälle gelöst.`);
+        box.querySelector('[data-ld-symptom]')!.textContent = 'Alle Fälle gelöst. Bosskampf gewonnen.';
+        box.querySelector<HTMLElement>('[data-ld-log]')!.hidden = true;
+        wahl.hidden = true;
+        box.querySelector<HTMLElement>('[data-ld-abgeben]')!.hidden = true;
+        return;
+      }
+      s.melden(`Richtig. ${f.erklaerung}`, 'gut');
+      zeigen();
+    });
+  });
+</script>
+
+<style>
+  .ld-symptom { font-weight: 700; }
+  .ld-log { white-space: pre-wrap; color: #c9c9c9; }
+  .ld-wahl { border: 1px solid var(--flaeche); border-radius: var(--radius-klein); margin: 0 0 1rem; }
+  .ld-wahl :global(label) { display: block; padding: 0.25rem 0; cursor: pointer; }
+</style>

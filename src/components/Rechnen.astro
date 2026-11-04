@@ -42,6 +42,16 @@ const { id, titel = 'Rechenaufgaben', typ, anzahl = 3 } = Astro.props;
         weg: `Am Widerstand liegt der Rest der Spannung: ${fmt(u)} V − ${fmt(led.uf)} V = ${fmt(u - led.uf)} V. R = U / I = ${fmt(u - led.uf)} V / ${fmt(i / 1000, 3)} A = ${fmt(r, 1)} Ω. In der Praxis nimmst du den nächstgrößeren Normwert.`,
       };
     },
+    gpio() {
+      const led = pick([{ farbe: 'rote', uf: 1.8 }, { farbe: 'gelbe', uf: 2.0 }, { farbe: 'grüne', uf: 2.1 }]);
+      const i = pick([3, 5, 8, 10]);
+      const r = (3.3 - led.uf) / (i / 1000);
+      return {
+        text: `Eine ${led.farbe} LED (Durchlassspannung ${fmt(led.uf)} V) hängt an einem GPIO des ESP32 (3,3 V) und soll mit ${i} mA leuchten.`,
+        frage: 'Vorwiderstand R =', einheit: 'Ω', loesung: r,
+        weg: `3,3 V − ${fmt(led.uf)} V = ${fmt(3.3 - led.uf)} V am Widerstand. R = ${fmt(3.3 - led.uf)} V / ${fmt(i / 1000, 3)} A = ${fmt(r, 1)} Ω.`,
+      };
+    },
     strom() {
       const u = pick([3, 5, 9, 12]), r = widerstand(100, 4700);
       const i = (u / r) * 1000;

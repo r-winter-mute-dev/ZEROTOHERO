@@ -8,4 +8,7 @@ export default defineConfig({
   base: process.env.BASE_PATH || '/',
   trailingSlash: 'ignore',
   integrations: [mdx()],
+  markdown: {
+    shikiConfig: { theme: 'catppuccin-mocha' },
+  },
 });

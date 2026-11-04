@@ -1,0 +1,52 @@
+---
+id: m-2-2
+checks:
+  - id: quiz
+  - id: geraet
+    hardware: true
+---
+import Karte from '../components/Karte.astro';
+import Quiz from '../components/Quiz.astro';
+import Seriell from '../components/Seriell.astro';
+
+Wenn deine Klingel später nicht tut, was sie soll, musst du in sie hineinschauen können. Das wichtigste Werkzeug dafür ist die serielle Ausgabe: Das Programm schreibt Text, und du liest ihn am Computer mit. **Deine Mission: Lass dein ESP32 dich mit Namen begrüßen.**
+
+## Theorie
+
+<Karte nr={1} titel="Die serielle Schnittstelle">
+Über das USB-Kabel kann das ESP32 nicht nur Programme empfangen, sondern auch Text senden. Die Zeichen werden nacheinander, also **seriell**, übertragen. In der Arduino IDE liest du sie im **seriellen Monitor** mit (Lupe oben rechts).
+</Karte>
+
+<Karte nr={2} titel="Die Baudrate">
+Sender und Empfänger müssen sich auf eine Geschwindigkeit einigen, die **Baudrate**. `Serial.begin(115200)` heißt: 115 200 Zeichenschritte pro Sekunde. Stellst du im seriellen Monitor einen anderen Wert ein, siehst du nur Zeichensalat.
+</Karte>
+
+<Karte nr={3} titel="print und println">
+`Serial.print("Text")` schreibt Text ohne Zeilenumbruch, `Serial.println("Text")` mit. Texte stehen in Anführungszeichen. Mit `+` hängst du Texte aneinander. `Serial.printf` ist eine Variante, die Zahlen in vorgegebener Form einsetzt. Die nutzen wir für den Gerätenachweis.
+</Karte>
+
+## Dein Programm
+
+Trag in der ersten Zeile deinen Namen ein, lade das Programm hoch und öffne den seriellen Monitor mit 115200 Baud.
+
+```cpp
+String name = "DEIN NAME";  // <- hier deinen Namen eintragen
+
+void setup() {
+  Serial.begin(115200);
+}
+
+void loop() {
+  Serial.println("Hallo! Ich bin die Klingel von " + name + ".");
+  Serial.printf("KW-CHECK:m-2-2:%012llX:%s\n", (unsigned long long)ESP.getEfuseMac(), name.c_str());
+  delay(2000);
+}
+```
+
+<Quiz id="quiz" titel="Quiz: Serielle Ausgabe" fragen={[
+  { frage: 'Im seriellen Monitor erscheinen nur seltsame Zeichen. Was ist die wahrscheinlichste Ursache?', richtig: 'Die Baudrate im Monitor passt nicht zu Serial.begin().', falsch: ['Der Name ist zu lang.', 'Das USB-Kabel ist zu kurz.'], erklaerung: 'Karte 2.' },
+  { frage: 'Was ist der Unterschied zwischen print und println?', richtig: 'println beginnt danach eine neue Zeile.', falsch: ['println ist schneller.', 'print funktioniert nur mit Zahlen.'], erklaerung: 'Karte 3.' },
+  { frage: 'Warum ist die serielle Ausgabe für die Klingel wichtig?', richtig: 'Damit du sehen kannst, was im Programm passiert, und Fehler findest.', falsch: ['Damit die Klingel Fotos verschicken kann.', 'Ohne sie startet das Programm nicht.'], erklaerung: 'Sie ist dein Fenster in das laufende Programm.' },
+]} />
+
+<Seriell id="geraet" titel="Gerätenachweis: Deine Klingel stellt sich vor" muster="^KW-CHECK:m-2-2:[0-9A-F]{12}:(?!DEIN NAME$).+$" hinweis="Der Nachweis klappt nur, wenn du deinen eigenen Namen eingetragen hast." />

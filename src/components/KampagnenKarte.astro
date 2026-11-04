@@ -62,33 +62,33 @@ import { url } from '../config';
 
 <style>
   .bahn { list-style: none; margin: 0; padding: 0; position: relative; }
-  .bahn::before { content: ''; position: absolute; left: 13px; top: 14px; bottom: 14px; width: 4px; background: rgba(201, 139, 79, 0.35); border-radius: 2px; }
+  .bahn::before { content: ''; position: absolute; left: 13px; top: 14px; bottom: 14px; width: 4px; background: var(--flaeche); border-radius: 2px; }
   .akt { position: relative; padding-left: 3rem; margin: 0 0 0.6rem; }
-  .pad { position: absolute; left: 0; top: 0.65rem; width: 30px; height: 30px; border-radius: 50%; background: var(--maske); border: 4px solid var(--kupfer); box-shadow: 0 0 0 4px var(--maske); }
-  .akt.fertig .pad { background: var(--kupfer); }
-  .akt.laeuft .pad { background: radial-gradient(circle, var(--kupfer-hell) 35%, var(--maske) 38%); }
+  .pad { position: absolute; left: 0; top: 0.65rem; width: 30px; height: 30px; border-radius: 50%; background: var(--grund); border: 4px solid var(--leise-dunkel); box-shadow: 0 0 0 4px var(--grund); }
+  .akt.fertig .pad { background: var(--akzent); border-color: var(--akzent); }
+  .akt.laeuft .pad { border-color: var(--akzent); background: radial-gradient(circle, var(--akzent-hell) 35%, var(--grund) 38%); }
   details { border-radius: var(--radius); }
   summary { cursor: pointer; display: grid; grid-template-columns: 1fr auto; gap: 0 1rem; padding: 0.7rem 0.9rem; border-radius: var(--radius); list-style: none; }
   summary::-webkit-details-marker { display: none; }
-  summary:hover { background: rgba(29, 82, 64, 0.5); }
-  details[open] summary { background: rgba(29, 82, 64, 0.5); }
+  summary:hover { background: var(--flaeche-leicht); }
+  details[open] summary { background: var(--flaeche-leicht); }
   .akt-titel { font-weight: 700; font-size: 1.15rem; }
-  .akt-teil { color: var(--zinn); grid-column: 1; font-size: 0.95rem; }
-  .akt-stand { grid-row: 1 / 3; grid-column: 2; align-self: center; color: var(--kupfer-hell); font-weight: 700; font-variant-numeric: tabular-nums; }
-  .akt-ziel { margin: 0.6rem 0.9rem; color: var(--zinn); }
+  .akt-teil { color: var(--leise); grid-column: 1; font-size: 0.95rem; }
+  .akt-stand { grid-row: 1 / 3; grid-column: 2; align-self: center; color: var(--akzent-hell); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .akt-ziel { margin: 0.6rem 0.9rem; color: var(--leise); }
   .missionen { list-style: none; padding: 0 0 0.6rem; margin: 0 0.4rem; }
   .missionen li { margin: 0; }
-  .missionen a { display: grid; grid-template-columns: 1.4rem 4.2rem 1fr auto; align-items: center; gap: 0.5rem; padding: 0.42rem 0.5rem; text-decoration: none; color: var(--druck); border-radius: var(--radius-klein); }
+  .missionen a { display: grid; grid-template-columns: 1.4rem 4.2rem 1fr auto; align-items: center; gap: 0.5rem; padding: 0.42rem 0.5rem; text-decoration: none; color: var(--text); border-radius: var(--radius-klein); }
   .missionen a:hover { background: rgba(255, 255, 255, 0.04); }
-  .mpad { width: 14px; height: 14px; border-radius: 50%; border: 2px dashed var(--zinn-dunkel); }
-  .offen .mpad, .aktuell .mpad { border: 3px solid var(--kupfer); }
-  .simuliert .mpad { border: 3px solid var(--zinn); background: var(--zinn); }
-  .real .mpad { border: 3px solid var(--kupfer); background: var(--kupfer); }
+  .mpad { width: 14px; height: 14px; border-radius: 50%; border: 2px dashed var(--leise-dunkel); }
+  .offen .mpad, .aktuell .mpad { border: 3px solid var(--akzent); }
+  .simuliert .mpad { border: 3px solid var(--leise); background: var(--leise); }
+  .real .mpad { border: 3px solid var(--akzent); background: var(--akzent); }
   .boss .mpad { border-radius: 3px; transform: rotate(45deg); }
-  .mnr { color: var(--zinn); font-variant-numeric: tabular-nums; }
-  .entwurf .mtitel { color: var(--zinn); }
-  .mstatus { font-size: 0.88rem; color: var(--zinn); }
-  .aktuell .mstatus { color: var(--kupfer-hell); font-weight: 700; }
+  .mnr { color: var(--leise); font-variant-numeric: tabular-nums; }
+  .entwurf .mtitel { color: var(--leise); }
+  .mstatus { font-size: 0.88rem; color: var(--leise); }
+  .aktuell .mstatus { color: var(--akzent-hell); font-weight: 700; }
   .real .mstatus { color: var(--gut); }
   @media (max-width: 520px) { .missionen a { grid-template-columns: 1.4rem 3.4rem 1fr; } .mstatus { grid-column: 2 / 4; } }
 </style>

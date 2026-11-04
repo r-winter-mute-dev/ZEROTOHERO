@@ -101,7 +101,7 @@ const meta = { id, xp: mission.xp, checks, abzeichen: fm.abzeichen };
       teile.push(info.upgrade ? 'Jetzt auch mit echter Hardware bestanden.' : `+${info.xp} XP${info.ersterVersuch ? ' (inklusive Bonus für den ersten Versuch)' : ''}.`);
       if (meta.abzeichen && !info.upgrade) teile.push(`Neues Abzeichen: ${meta.abzeichen}.`);
     } else teile.push(`Du hast diese Mission bereits abgeschlossen (${eintrag.xp} XP).`);
-    if (eintrag.status === 'simuliert') teile.push('Sobald du die Hardware hast, kannst du die übersprungenen Prüfungen nachholen. Dann wird dein Teil kupfern.');
+    if (eintrag.status === 'simuliert') teile.push('Sobald du die Hardware hast, kannst du die übersprungenen Prüfungen nachholen. Dann wird dein Teil farbig.');
     bel.querySelector('[data-bel-text]')!.textContent = teile.join(' ');
     if (frisch) bel.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
   }
@@ -116,18 +116,18 @@ const meta = { id, xp: mission.xp, checks, abzeichen: fm.abzeichen };
 <style>
   .mission { padding-top: 1.5rem; }
   .pfad { margin-bottom: 1.5rem; }
-  .pfad a { color: var(--zinn); }
+  .pfad a { color: var(--leise); }
   .mkopf { max-width: var(--breite); margin-bottom: 1.5rem; }
-  .mnr { color: var(--kupfer-hell); font-weight: 700; margin-bottom: 0.3rem; }
+  .mnr { color: var(--akzent-hell); font-weight: 700; margin-bottom: 0.3rem; }
   .mkurz { font-size: 1.2rem; }
   .sperre { max-width: var(--breite); border: 1px solid var(--warnung); border-radius: var(--radius); padding: 0.8rem 1rem 0; margin-bottom: 1.5rem; color: var(--warnung); }
-  .hw-schalter { max-width: var(--breite); display: flex; gap: 0.7rem; align-items: flex-start; padding: 0.8rem 1rem; border: 1px dashed var(--zinn-dunkel); border-radius: var(--radius); margin-bottom: 1.5rem; cursor: pointer; }
-  .hw-schalter input { margin-top: 0.3rem; width: 1.1rem; height: 1.1rem; accent-color: var(--kupfer); flex: none; }
+  .hw-schalter { max-width: var(--breite); display: flex; gap: 0.7rem; align-items: flex-start; padding: 0.8rem 1rem; border: 1px dashed var(--leise-dunkel); border-radius: var(--radius); margin-bottom: 1.5rem; cursor: pointer; }
+  .hw-schalter input { margin-top: 0.3rem; width: 1.1rem; height: 1.1rem; accent-color: var(--akzent); flex: none; }
   .inhalt :global(h2:first-child) { margin-top: 0.5rem; }
-  .entwurf { border: 1px dashed var(--zinn-dunkel); border-radius: var(--radius); padding: 1rem 1.2rem; }
-  .belohnung { max-width: var(--breite); margin: 2.5rem 0 1rem; padding: 1.4rem 1.5rem; border-radius: var(--radius); background: var(--platine); border: 2px solid var(--kupfer); }
+  .entwurf { border: 1px dashed var(--leise-dunkel); border-radius: var(--radius); padding: 1rem 1.2rem; }
+  .belohnung { max-width: var(--breite); margin: 2.5rem 0 1rem; padding: 1.4rem 1.5rem; border-radius: var(--radius); background: var(--flaeche); border: 2px solid var(--akzent); }
   .belohnung h2 { margin-top: 0; }
   .belohnung.frisch { animation: aufleuchten 1.2s ease-out; }
-  @keyframes aufleuchten { 0% { box-shadow: 0 0 0 0 rgba(227, 169, 111, 0.9); } 100% { box-shadow: 0 0 0 18px rgba(227, 169, 111, 0); } }
-  .blaettern { max-width: var(--breite); display: flex; justify-content: space-between; gap: 1rem; margin-top: 2.5rem; padding-top: 1.2rem; border-top: 1px solid var(--platine); flex-wrap: wrap; }
+  @keyframes aufleuchten { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--akzent-hell) 90%, transparent); } 100% { box-shadow: 0 0 0 18px color-mix(in srgb, var(--akzent-hell) 0%, transparent); } }
+  .blaettern { max-width: var(--breite); display: flex; justify-content: space-between; gap: 1rem; margin-top: 2.5rem; padding-top: 1.2rem; border-top: 1px solid var(--flaeche); flex-wrap: wrap; }
 </style>

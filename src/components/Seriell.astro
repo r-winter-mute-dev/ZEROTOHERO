@@ -27,7 +27,7 @@ const { id, titel, muster, baud = 115200, hinweis } = Astro.props;
     const s = station(box.closest('[data-kw-check]') as HTMLElement);
     const re = new RegExp(box.dataset.muster!);
     const log = box.querySelector<HTMLElement>('[data-se-log]')!;
-    const pruefe = (zeile: string) => { if (re.test(zeile)) { s.bestehen('Dein Gerät hat sich gemeldet.'); return true; } return false; };
+    const pruefe = (zeile: string) => { if (re.test(zeile.trim())) { s.bestehen('Dein Gerät hat sich gemeldet.'); return true; } return false; };
 
     box.querySelector('[data-se-verbinden]')!.addEventListener('click', async () => {
       const serial = (navigator as any).serial;
@@ -63,7 +63,7 @@ const { id, titel, muster, baud = 115200, hinweis } = Astro.props;
 </script>
 
 <style>
-  .log { background: #0a1f17; min-height: 3rem; padding: 0.6rem; border-radius: var(--radius-klein); font-size: 0.85rem; white-space: pre-wrap; }
+  .log { background: var(--tief); min-height: 3rem; padding: 0.6rem; border-radius: var(--radius-klein); font-size: 0.85rem; white-space: pre-wrap; }
   .log:empty { display: none; }
   details { margin-top: 0.8rem; }
 </style>

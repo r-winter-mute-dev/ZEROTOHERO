@@ -1,0 +1,88 @@
+---
+id: m-2-8
+checks:
+  - id: quiz
+  - id: geraet
+    hardware: true
+---
+import Karte from '../components/Karte.astro';
+import Quiz from '../components/Quiz.astro';
+import Seriell from '../components/Seriell.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Bisher fragt dein Programm den Knopf ständig ab. Das klappt nur, solange es nichts anderes zu tun hat. Später ist die Klingel aber beschäftigt: Sie verbindet sich mit dem WLAN oder schickt ein Foto. Klingelt in dieser Zeit jemand, darf der Druck nicht verloren gehen. **Deine Mission: Lass einen Interrupt den Tastendruck sofort bemerken, auch wenn das Programm gerade wartet.**
+
+## Theorie
+
+<Karte nr={1} titel="Polling: ständig nachschauen">
+Bisher liest `loop()` den Taster in jedem Durchlauf. Das heißt **Polling**. Steckt aber ein `delay(2000)` in der Schleife, schaut das Programm nur alle zwei Sekunden nach. Ein kurzer Druck dazwischen geht verloren.
+</Karte>
+
+<Karte nr={2} titel="Interrupt: sofort unterbrechen">
+Ein **Interrupt** ist eine Anweisung an den Chip: „Unterbrich sofort, was du gerade tust, sobald an diesem Pin etwas passiert.“ Dann läuft eine kleine Funktion, die **Interrupt-Routine**. Danach macht das Programm dort weiter, wo es war. `FALLING` heißt: auslösen, wenn der Pegel von HIGH auf LOW fällt, also beim Drücken.
+</Karte>
+
+<Karte nr={3} titel="Kurz halten und volatile">
+Die Interrupt-Routine soll so kurz wie möglich sein: nur einen Merker setzen, nichts ausgeben, nicht warten. Die eigentliche Arbeit macht `loop()`. Eine Variable, die im Interrupt geändert wird, bekommt das Wort `volatile`. Damit weiß der Compiler, dass sie sich jederzeit von außen ändern kann.
+</Karte>
+
+## Auf das Board laden
+
+Aufbau wie in Mission 2.6. Das Programm wartet absichtlich zwei Sekunden pro Durchlauf.
+
+```cpp
+const int TASTER_PIN = 4;
+
+volatile bool gedrueckt = false;
+volatile unsigned long letzterDruck = 0;
+int zaehler = 0;
+
+void IRAM_ATTR beimDruecken() {
+  unsigned long t = millis();
+  if (t - letzterDruck > 200) {   // einfaches Entprellen: 200 ms Sperrzeit
+    gedrueckt = true;
+    letzterDruck = t;
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(TASTER_PIN, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(TASTER_PIN), beimDruecken, FALLING);
+  Serial.println("Drücke den Taster 5-mal, auch während das Programm wartet.");
+}
+
+void loop() {
+  Serial.println("Beschäftigt …");
+  delay(2000);
+
+  if (gedrueckt) {
+    gedrueckt = false;
+    zaehler++;
+    Serial.print("Klingel! Druck ");
+    Serial.println(zaehler);
+    if (zaehler == 5) {
+      Serial.printf("KW-CHECK:m-2-8:%012llX\n", (unsigned long long)ESP.getEfuseMac());
+    }
+  }
+}
+```
+
+Drück kurz, mitten in einer „Beschäftigt“-Phase. Der Druck wird gemeldet, sobald `loop()` wieder dran ist. Ohne Interrupt wäre er verloren gewesen.
+
+<Hinweis titel="IRAM_ATTR">
+`IRAM_ATTR` vor der Funktion legt sie in einen besonders schnellen Speicher des ESP32. Bei Interrupt-Routinen auf dem ESP32 gehört es dazu [Fachquelle: Espressif-Dokumentation].
+</Hinweis>
+
+<Hinweis titel="Ausblick">
+Das Aufwecken aus dem Tiefschlaf in Akt 6 funktioniert ähnlich: Ein Pegelwechsel am Klingelknopf weckt den Chip. Was du hier lernst, brauchst du dort wieder.
+</Hinweis>
+
+<Quiz id="quiz" titel="Quiz: Interrupts" fragen={[
+  { frage: 'Warum geht ein kurzer Tastendruck beim Polling verloren, wenn loop() ein delay(2000) enthält?', richtig: 'Während des delay schaut das Programm nicht nach dem Taster.', falsch: ['delay schaltet den Taster ab.', 'Polling funktioniert nur mit LEDs.'], erklaerung: 'Karte 1.' },
+  { frage: 'Was gehört in eine Interrupt-Routine?', richtig: 'Nur das Nötigste, zum Beispiel einen Merker setzen', falsch: ['Die komplette Foto-Aufnahme', 'Ein delay, damit sich der Taster beruhigt'], erklaerung: 'Karte 3.' },
+  { frage: 'Wozu dient volatile bei der Variable gedrueckt?', richtig: 'Der Compiler weiß dann, dass sie sich jederzeit von außen ändern kann.', falsch: ['Sie wird dadurch schneller.', 'Sie bleibt nach dem Ausschalten erhalten.'], erklaerung: 'Karte 3.' },
+  { frage: 'Was bedeutet FALLING bei attachInterrupt?', richtig: 'Auslösen, wenn der Pegel von HIGH auf LOW fällt', falsch: ['Auslösen, wenn der Akku leer wird', 'Auslösen, wenn der Taster losgelassen wird'], erklaerung: 'Mit Pull-up fällt der Pegel beim Drücken (Karte 2).' },
+]} />
+
+<Seriell id="geraet" titel="Gerätenachweis: Fünfmal geklingelt" muster="^KW-CHECK:m-2-8:[0-9A-F]{12}$" />

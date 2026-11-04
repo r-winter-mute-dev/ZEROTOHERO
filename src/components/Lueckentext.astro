@@ -1,0 +1,51 @@
+---
+// Code-Lückentext: Jede Lücke "___" im Code wird zu einem Eingabefeld.
+// luecken[i].loesungen = erlaubte Antworten (Leerzeichen werden ignoriert).
+import Station from './Station.astro';
+interface Luecke { loesungen: string[]; tipp?: string; }
+interface Props { id: string; titel?: string; aufgabe: string; code: string; luecken: Luecke[]; }
+const { id, titel = 'Code-Puzzle', aufgabe, code, luecken } = Astro.props;
+const teile = code.split('___');
+if (teile.length - 1 !== luecken.length) throw new Error(`Lueckentext ${id}: ${teile.length - 1} Lücken im Code, aber ${luecken.length} Lösungen`);
+const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const html = teile.map((t, i) => esc(t) + (i < luecken.length
+  ? `<input type="text" class="lt-feld" aria-label="Lücke ${i + 1}" size="${Math.max(3, ...luecken[i].loesungen.map((l) => l.length)) + 1}" autocomplete="off" spellcheck="false" />`
+  : '')).join('');
+---
+<Station id={id} titel={titel} art="Code-Puzzle">
+  <form class="lt" data-kw-luecke data-luecken={JSON.stringify(luecken)}>
+    <p>{aufgabe}</p>
+    <pre class="lt-code"><code set:html={html} /></pre>
+    <button class="knopf" type="submit">Code prüfen</button>
+  </form>
+</Station>
+
+<script>
+  import { station } from '../scripts/station';
+  const norm = (s: string) => s.replace(/\s+/g, '').toLowerCase();
+  document.querySelectorAll<HTMLFormElement>('[data-kw-luecke]').forEach((form) => {
+    const s = station(form.closest('[data-kw-check]') as HTMLElement);
+    const luecken = JSON.parse(form.dataset.luecken!) as { loesungen: string[]; tipp?: string }[];
+    const felder = [...form.querySelectorAll<HTMLInputElement>('.lt-feld')];
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const falsch: number[] = [];
+      felder.forEach((f, i) => {
+        const ok = luecken[i].loesungen.some((l) => norm(l) === norm(f.value));
+        f.classList.toggle('falsch', !ok);
+        f.classList.toggle('richtig', ok);
+        if (!ok) falsch.push(i);
+      });
+      if (!falsch.length) return s.bestehen('Alle Lücken richtig. Diesen Code kannst du jetzt auf dein Board laden.');
+      const tipps = falsch.map((i) => luecken[i].tipp && `Lücke ${i + 1}: ${luecken[i].tipp}`).filter(Boolean);
+      s.fehl(`${felder.length - falsch.length} von ${felder.length} Lücken richtig. ${tipps.join(' ')}`);
+    });
+  });
+</script>
+
+<style>
+  .lt-code { white-space: pre; }
+  .lt-code :global(.lt-feld) { font-family: var(--mono); font-size: inherit; padding: 0 0.3em; margin: 0 0.1em; border: 1px dashed var(--akzent); background: var(--flaeche-leicht); color: var(--text); border-radius: 3px; }
+  .lt-code :global(.lt-feld.falsch) { border: 1px solid var(--fehler); }
+  .lt-code :global(.lt-feld.richtig) { border: 1px solid var(--gut); }
+</style>

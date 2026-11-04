@@ -1,6 +1,6 @@
 ---
 // Die Türklingel als Bestückungsplan. Jedes Teil gehört zu einem Akt und hat vier Zustände:
-// gesperrt (gestrichelt), aktiv (Kupferumriss), simuliert (grau gefüllt), real (kupfern gefüllt).
+// gesperrt (gestrichelt), aktiv (Akzentumriss), simuliert (grau gefüllt), real (Akzent gefüllt).
 import { KAMPAGNE } from '../data/kampagne';
 const akt = (teil: string) => KAMPAGNE.find((a) => a.teil === teil)!;
 const L = (teil: string, x: number, y: number, anchor = 'start') => ({ teil, x, y, anchor, a: akt(teil) });
@@ -105,24 +105,24 @@ const LABELS = [
 <style>
   .klingel { margin: 0; }
   svg { width: 100%; max-width: 26rem; height: auto; display: block; margin: 0 auto; overflow: visible; }
-  .spuren path { fill: none; stroke: rgba(201, 139, 79, 0.28); stroke-width: 3; }
-  .teil .form { fill: none; stroke: var(--zinn-dunkel); stroke-width: 2; stroke-dasharray: 5 6; transition: fill 0.4s, stroke 0.4s; }
-  .teil .aufdruck { fill: var(--zinn-dunkel); font-size: 14px; font-weight: 700; }
-  .teil.aktiv .form { stroke: var(--kupfer); stroke-width: 2.5; }
-  .teil.simuliert .form { stroke: var(--zinn); stroke-dasharray: none; fill: rgba(185, 192, 189, 0.22); }
-  .teil.real .form { stroke: var(--kupfer-hell); stroke-dasharray: none; stroke-width: 2.5; fill: rgba(201, 139, 79, 0.38); }
-  .teil.real .aufdruck, .teil.simuliert .aufdruck { fill: var(--druck); }
+  .spuren path { fill: none; stroke: color-mix(in srgb, var(--akzent) 28%, transparent); stroke-width: 3; }
+  .teil .form { fill: none; stroke: var(--leise-dunkel); stroke-width: 2; stroke-dasharray: 5 6; transition: fill 0.4s, stroke 0.4s; }
+  .teil .aufdruck { fill: var(--leise-dunkel); font-size: 14px; font-weight: 700; }
+  .teil.aktiv .form { stroke: var(--akzent); stroke-width: 2.5; }
+  .teil.simuliert .form { stroke: var(--leise); stroke-dasharray: none; fill: rgba(163, 163, 163, 0.22); }
+  .teil.real .form { stroke: var(--akzent-hell); stroke-dasharray: none; stroke-width: 2.5; fill: color-mix(in srgb, var(--akzent) 38%, transparent); }
+  .teil.real .aufdruck, .teil.simuliert .aufdruck { fill: var(--text); }
   .teil[data-teil='gehaeuse'] .form, .teil[data-teil='grundplatte'] .form { fill-opacity: 0.35; }
-  .teil.real { filter: drop-shadow(0 0 6px rgba(227, 169, 111, 0.45)); }
+  .teil.real { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--akzent-hell) 45%, transparent)); }
   .teil.auftritt { animation: einloeten 0.7s ease-out both; animation-delay: var(--verz); }
-  @keyframes einloeten { from { opacity: 0.15; } 60% { opacity: 1; filter: drop-shadow(0 0 14px rgba(255, 200, 140, 0.9)); } }
-  .druck { fill: var(--zinn-dunkel); font-size: 12.5px; }
-  .druck.an { fill: var(--druck); }
-  .druck-stand { fill: var(--kupfer-hell); }
-  .legende { display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; justify-content: center; font-size: 0.9rem; color: var(--zinn); margin-top: 0.8rem; }
+  @keyframes einloeten { from { opacity: 0.15; } 60% { opacity: 1; filter: drop-shadow(0 0 14px color-mix(in srgb, var(--akzent-hell) 90%, transparent)); } }
+  .druck { fill: var(--leise-dunkel); font-size: 12.5px; }
+  .druck.an { fill: var(--text); }
+  .druck-stand { fill: var(--akzent-hell); }
+  .legende { display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; justify-content: center; font-size: 0.9rem; color: var(--leise); margin-top: 0.8rem; }
   .l { display: inline-block; width: 0.9rem; height: 0.9rem; border-radius: 3px; margin-right: 0.35rem; vertical-align: -0.1rem; border: 2px solid; }
-  .l.gesperrt { border-color: var(--zinn-dunkel); border-style: dashed; }
-  .l.aktiv { border-color: var(--kupfer); border-style: dashed; }
-  .l.simuliert { border-color: var(--zinn); background: rgba(185, 192, 189, 0.3); }
-  .l.real { border-color: var(--kupfer-hell); background: rgba(201, 139, 79, 0.5); }
+  .l.gesperrt { border-color: var(--leise-dunkel); border-style: dashed; }
+  .l.aktiv { border-color: var(--akzent); border-style: dashed; }
+  .l.simuliert { border-color: var(--leise); background: rgba(163, 163, 163, 0.3); }
+  .l.real { border-color: var(--akzent-hell); background: color-mix(in srgb, var(--akzent) 50%, transparent); }
 </style>

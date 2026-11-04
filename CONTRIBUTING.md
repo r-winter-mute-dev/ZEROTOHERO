@@ -63,6 +63,8 @@ Text der Mission …
 | `Multimeter` | Trainer: Messart und Buchse wählen |
 | `Prellen` | Oszilloskop-Animation eines prellenden Tasters |
 | `Seriell` | Gerätenachweis über Web Serial (Chrome/Edge), mit manueller Eingabe als Ersatz. Noch nicht mit echter Hardware getestet |
+| `Lueckentext` | Code-Puzzle: Jede Lücke `___` im Code wird ein Eingabefeld. Den Code in `src/data/puzzles.ts` ablegen, weil MDX die Einrückung in mehrzeiligen Attributen entfernt |
+| `Logdiagnose` | Fehlersuche anhand von Logausgaben, zeigt zufällige Fälle nacheinander |
 
 ## Regeln für jede Mission
 

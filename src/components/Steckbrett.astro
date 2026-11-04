@@ -75,7 +75,7 @@ const y = (z: number) => 70 + z * 26 + (z >= 5 ? 26 : 0);
       f.l.forEach((l) => box.querySelector(`[data-loch="${l.id}"]`)?.classList.add('markiert'));
       const name = (l: { id: string; name: string }) => (l.name === 'Schiene' || l.name === 'Plus' || l.name === 'Minus' ? `das markierte Loch auf der Schiene` : l.name);
       box.querySelector('[data-sb-frage]')!.textContent = `Frage ${i + 1} von ${fragen.length}: Sind ${name(f.l[0])} und ${name(f.l[1])} miteinander verbunden?`;
-      box.querySelector('[data-sb-stand]')!.textContent = 'Die zwei Löcher sind im Bild kupferfarben markiert.';
+      box.querySelector('[data-sb-stand]')!.textContent = 'Die zwei Löcher sind im Bild farbig markiert.';
     }
     zeigen();
 
@@ -96,11 +96,11 @@ const y = (z: number) => 70 + z * 26 + (z >= 5 ? 26 : 0);
 
 <style>
   svg { width: 100%; max-width: 34rem; height: auto; display: block; }
-  .brett { fill: #e9e6dc; }
-  .rinne { fill: #cfcabb; }
-  .loch { fill: #4a4a44; }
-  :global(.steckbrett .loch.markiert) { fill: var(--kupfer); stroke: #7a4a1d; stroke-width: 2; }
-  .z { fill: #6a675e; font-size: 12px; }
+  .brett { fill: #d9d9d9; }
+  .rinne { fill: #bdbdbd; }
+  .loch { fill: #3d3d3d; }
+  :global(.steckbrett .loch.markiert) { fill: var(--akzent); stroke: #8a5fc2; stroke-width: 2; }
+  .z { fill: #555555; font-size: 12px; }
   .schiene-plus { stroke: #c0392b; stroke-width: 1.5; }
   .schiene-minus { stroke: #2c5aa0; stroke-width: 1.5; }
   .frage { font-weight: 700; margin-top: 1rem; }

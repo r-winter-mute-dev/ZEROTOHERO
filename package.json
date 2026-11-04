@@ -2,6 +2,9 @@
   "name": "klingelwerk",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22.23.4"
+  },
   "type": "module",
   "description": "Kostenloser, interaktiver Elektronik-Kurs: Lerne die Grundlagen und baue eine smarte Türklingel mit ESP32-CAM.",
   "scripts": {
