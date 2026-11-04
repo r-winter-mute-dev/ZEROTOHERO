@@ -4,7 +4,7 @@
 
 Klingelwerk ist ein kostenloser, interaktiver Kurs für alle, die bei null anfangen. Du lernst nicht erst Theorie und baust dann irgendwann etwas. Du baust von Anfang an an einem echten Gerät, und jedes Thema kommt genau dann, wenn die Klingel es braucht.
 
-**[Zum Kurs](https://DEIN-NAME.github.io/klingelwerk/)**
+**[Zum Kurs](https://r-winter-mute-dev.github.io/klingelwerk/)**
 
 ## Das Ziel
 
