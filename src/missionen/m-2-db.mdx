@@ -1,0 +1,126 @@
+---
+id: m-2-db
+abzeichen: Datenblatt-Leser
+checks:
+  - id: finden
+  - id: aufbau
+  - id: lesen
+  - id: echt
+spick:
+  - t: "Finden"
+    v: "Genauen Typ, dann Herstellerseite"
+  - t: "Dein ESP32"
+    v: "Modul ESP32-WROOM-32, Hersteller Espressif"
+  - t: "Absolute Maximum"
+    v: "Nie erreichen, kein Betriebsbereich"
+  - t: "Recommended Operating"
+    v: "Hier wird gearbeitet"
+  - t: "min / typ / max"
+    v: "Mit dem ungünstigsten Wert rechnen"
+  - t: "Fußnoten"
+    v: "Immer lesen, sie ändern die Werte"
+---
+import Quiz from '../components/Quiz.astro';
+import Zahl from '../components/Zahl.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Karte from '../components/Karte.astro';
+
+In diesem Kurs steht oft „laut Datenblatt“. Ein Datenblatt ist die Bedienungsanleitung eines Bauteils, geschrieben vom Hersteller. Es sagt dir, was das Teil kann, was es zerstört und wie man es anschließt. Wer Datenblätter lesen kann, muss nicht raten und nicht in Foren nach Meinungen suchen. **Deine Mission: Finde das Datenblatt deines ESP32 und lies die Grenzwerte ab, die du für die Klingel brauchst.**
+
+## Ein Datenblatt finden
+
+<Karte titel="Den genauen Typ kennen" nr={1}>
+Steht auf dem Bauteil ein Aufdruck, ist das der Anfang. Auf deinem ESP32-DevKit sitzt ein silbernes Blechgehäuse mit der Aufschrift **ESP32-WROOM-32**. Das ist das Modul, um das es geht. Jeder Buchstabe zählt: Ein ESP32-WROOM-32E oder ein ESP32-WROVER ist ein anderes Modul mit eigenem Datenblatt.
+</Karte>
+
+<Karte titel="Beim Hersteller suchen" nr={2}>
+Die beste Quelle ist der Hersteller, hier Espressif (espressif.com). Dort gibt es zu jedem Chip und Modul ein Datenblatt als PDF. Eine Websuche nach „ESP32-WROOM-32 datasheet pdf“ führt meist auch dorthin. Achte darauf, dass die Datei wirklich vom Hersteller stammt und nicht von einer Seite, die nur Kopien sammelt. Datenblätter haben Versionsnummern. Nimm die neueste.
+</Karte>
+
+<Karte titel="Chip, Modul, Board" nr={3}>
+Dein DevKit hat drei Ebenen: den Chip ESP32, das Modul ESP32-WROOM-32 mit Chip, Speicher und Antenne, und das Board mit USB-Anschluss, Spannungsregler und Tastern. Jede Ebene hat eigene Unterlagen. Das Datenblatt des Moduls sagt nichts über den USB-Chip auf dem Board. Dazu brauchst du die Unterlagen des Boardherstellers oder des Shops.
+</Karte>
+
+<Karte titel="Nachbauten" nr={4}>
+Viele einfache Bauteile gibt es von mehreren Herstellern unter demselben Namen. In Akt 5 begegnen dir der Schutzchip DW01 und der Regler AMS1117, beide werden vielfach nachgebaut. Die Werte können sich unterscheiden. Dann nimmst du das Datenblatt des Herstellers, dessen Logo oder Kürzel auf dem Chip steht, und planst mit Reserve.
+</Karte>
+
+<Merke>Genauen Typ herausfinden, Datenblatt beim Hersteller holen, neueste Version nehmen. Es gilt für genau dieses Bauteil, nicht für das Board drumherum.</Merke>
+
+<Quiz id="finden" titel="Kurzcheck: Finden" fragen={[
+  { frage: 'Du suchst die Grenzwerte deines ESP32-DevKit. Welches Datenblatt ist der beste Startpunkt?', richtig: 'Das Datenblatt des Moduls ESP32-WROOM-32 von Espressif', falsch: ['Ein Forenbeitrag mit einer Liste der Grenzwerte', 'Irgendein ESP32-Datenblatt, sie sind alle gleich'], erklaerung: 'Der Aufdruck auf dem Blechgehäuse nennt das Modul. Das Datenblatt des Herstellers ist die verlässliche Quelle.' },
+  { frage: 'Du willst wissen, welchen USB-Chip dein DevKit hat. Hilft das Datenblatt des ESP32-WROOM-32?', richtig: 'Nein, der USB-Chip sitzt auf dem Board, nicht im Modul', falsch: ['Ja, dort steht alles über das Board', 'Ja, im Abschnitt Absolute Maximum Ratings'], erklaerung: 'Das Datenblatt beschreibt nur das Modul. Was der Boardhersteller dazubaut, steht in dessen Unterlagen oder beim Shop.' },
+]} />
+
+## Wie ein Datenblatt aufgebaut ist
+
+Datenblätter großer Hersteller sind fast immer ähnlich gegliedert, meist auf Englisch:
+
+| Abschnitt | Was drinsteht | Wofür du ihn brauchst |
+| --- | --- | --- |
+| Overview, Features | Kurzfassung am Anfang | Passt das Bauteil überhaupt? |
+| Pin Definitions | Welcher Pin was tut | Verdrahten |
+| Absolute Maximum Ratings | Grenzen, ab denen das Bauteil Schaden nehmen kann | Nie erreichen |
+| Recommended Operating Conditions | Bereich, in dem es wie beschrieben arbeitet | Hier planst du |
+| Electrical oder DC Characteristics | Gemessene Werte mit Prüfbedingungen | Rechnen |
+| Functional Description | Wie es innen arbeitet, Tabellen, Betriebsarten | Verstehen, programmieren |
+| Schematics, Application | Beispielschaltungen mit Bauteilwerten | Nachbauen |
+| Revision History | Was sich zwischen den Versionen geändert hat | Prüfen, ob du die neueste hast |
+
+<Karte titel="Absolute Maximum ist keine Grenze zum Ausreizen" nr={5}>
+Der wichtigste Unterschied im ganzen Datenblatt: **Absolute Maximum Ratings** sind Belastungsgrenzen. Darüber kann das Bauteil kaputtgehen, und auch genau an der Grenze muss es nicht mehr richtig funktionieren. Gebaut wird im Bereich der **Recommended Operating Conditions**.
+</Karte>
+
+<Karte titel="Min, typ, max" nr={6}>
+Jeder Wert hat bis zu drei Spalten. **Typ** ist der übliche Wert, **min** und **max** sind die Grenzen, die jedes Exemplar einhält. Wer sicher planen will, rechnet mit dem ungünstigsten Wert. Steht nur ein typ-Wert da, ist nichts zugesagt: Einzelne Exemplare können deutlich abweichen.
+</Karte>
+
+<Karte titel="Bedingungen und Fußnoten" nr={7}>
+Neben vielen Werten stehen **Prüfbedingungen**, zum Beispiel „3,3 V, 25 °C“. Unter anderen Bedingungen kann der Wert anders sein. Kleine Ziffern hinter einem Wert verweisen auf **Fußnoten**. Die sind oft entscheidend, weil sie sagen, wann ein Wert nicht mehr gilt.
+</Karte>
+
+<Merke>Absolute Maximum: nie erreichen. Recommended: hier arbeiten. Mit min oder max rechnen, Bedingungen und Fußnoten mitlesen.</Merke>
+
+<Quiz id="aufbau" titel="Kurzcheck: Aufbau" fragen={[
+  { frage: 'Ein Wert steht bei den Absolute Maximum Ratings. Was bedeutet das?', richtig: 'Darüber kann das Bauteil Schaden nehmen. Dass es bei diesem Wert funktioniert, ist nicht zugesagt', falsch: ['Bis zu diesem Wert arbeitet es normal', 'Das ist der empfohlene Wert für beste Leistung'], erklaerung: 'Absolute Maximum Ratings sind Belastungsgrenzen. Für den Betrieb gelten die Recommended Operating Conditions.' },
+  { frage: 'Ein Wert hat nur eine Angabe in der Spalte „typ“. Was weißt du über dein Exemplar?', richtig: 'Nur, dass der Wert meistens ungefähr so ist. Zugesagt ist nichts', falsch: ['Genau diesen Wert', 'Dass er nie größer ist'], erklaerung: 'Garantiert sind nur min und max. Typ ist ein Erfahrungswert des Herstellers.' },
+]} />
+
+## Üben am ESP32-WROOM-32
+
+Ein paar Werte aus dem Datenblatt des ESP32-WROOM-32 (Espressif, Version 3.1). „VDD“ ist die Versorgungsspannung, bei dir 3,3 V.
+
+| Abschnitt | Größe | min | typ | max |
+| --- | --- | --- | --- | --- |
+| Absolute Maximum | Versorgungsspannung VDD33 | −0,3 V | | 3,6 V |
+| Recommended Operating | Versorgungsspannung VDD33 | 3,0 V | 3,3 V | 3,6 V |
+| Recommended Operating | Strom, den die Versorgung liefern können muss | 0,5 A | | |
+| DC Characteristics | Eingang wird als HIGH erkannt ab | 0,75 × VDD | | |
+| DC Characteristics | Eingang wird als LOW erkannt bis | | | 0,25 × VDD |
+| DC Characteristics | Strom aus einem Pin bei HIGH (Fußnote 2) | | 40 mA | |
+| DC Characteristics | Interner Pull-up-Widerstand | | 45 kΩ | |
+
+Fußnote 2 sagt sinngemäß: Die 40 mA gelten bei 3,3 V, höchster Treiberstärke und mindestens 2,64 V am Pin. Liefern mehrere Pins gleichzeitig Strom, sinkt der Wert pro Pin auf etwa 29 mA.
+
+<Quiz id="lesen" titel="Übung: Werte ablesen" fragen={[
+  { frage: 'Ein voller Li-Ion-Akku hat 4,2 V. Darf er direkt an den 3V3-Pin?', richtig: 'Nein, 4,2 V liegt über dem Absolute Maximum von 3,6 V', falsch: ['Ja, 4,2 V ist nur wenig mehr als 3,6 V', 'Ja, wenn das WLAN aus ist'], erklaerung: 'Über dem Absolute Maximum kann der Chip Schaden nehmen. Deshalb braucht die Klingel in Akt 5 einen Wandler, der genau 3,3 V liefert.' },
+  { frage: 'Absolute Maximum und Recommended Maximum sind beide 3,6 V. Was heißt das für dich?', richtig: 'Es gibt keine Reserve nach oben. Die Versorgung muss sauber bei 3,3 V bleiben', falsch: ['Man kann ruhig 3,6 V einstellen, das ist ja erlaubt', 'Die Werte widersprechen sich, das Datenblatt ist falsch'], erklaerung: 'Schon eine kleine Spitze über 3,6 V liegt außerhalb der Belastungsgrenze. 3,3 V lassen nach oben 0,3 V Luft.' },
+  { frage: 'In der Tabelle stehen 40 mA pro Pin. Kannst du also eine LED mit 40 mA direkt am GPIO betreiben?', richtig: 'Besser nicht: Das ist ein typ-Wert unter bestimmten Bedingungen, und laut Fußnote sinkt er, wenn mehrere Pins Strom liefern', falsch: ['Ja, 40 mA sind garantiert', 'Ja, sogar mehr, weil das kein Absolute Maximum ist'], erklaerung: 'Kein Maximalwert, nur typ, und eine Fußnote, die ihn einschränkt. Deshalb gilt im Kurs der Richtwert von höchstens etwa 20 mA pro Pin (Mission 2.5).' },
+  { frage: 'Ein Sensor liefert als HIGH-Signal nur 2,0 V. Erkennt der ESP32 das sicher als HIGH?', richtig: 'Nein, sicher erkannt wird HIGH erst ab 0,75 × 3,3 V ≈ 2,5 V', falsch: ['Ja, alles über 0 V ist HIGH', 'Ja, alles über 1,65 V ist HIGH'], erklaerung: '0,75 × 3,3 V = 2,475 V. Zwischen 0,25 × VDD und 0,75 × VDD ist nicht zugesagt, wie der Eingang das Signal liest.' },
+]} />
+
+## Selbst nachschlagen
+
+Öffne jetzt das echte Datenblatt: auf espressif.com nach „ESP32-WROOM-32 datasheet“ suchen und die PDF öffnen. Blättere zum Abschnitt **Electrical Characteristics** und dort zur Tabelle **DC Characteristics**. Such den internen Pull-down-Widerstand (R<sub>PD</sub>).
+
+<Zahl id="echt" titel="Nachgeschlagen: Interner Pull-down" frage="Welchen typischen Wert nennt das Datenblatt für den internen Pull-down-Widerstand?" einheit="kΩ" min={45} max={45} hardware={false} hilfe={[
+  { unter: 45, text: 'Schau in der Tabelle DC Characteristics in der Zeile RPD, Spalte typ.' },
+  { ueber: 45, text: 'Gesucht ist der Wert in Kiloohm aus der Spalte typ.' },
+]} />
+
+<Hinweis titel="Was du daraus mitnimmst">
+Für Pull-up und Pull-down nennt das Datenblatt nur einen typ-Wert. Für deinen Klingelknopf (Mission 2.6) reicht das völlig, denn dort zählt nur „HIGH oder LOW“. Für einen genauen Spannungsteiler (Akt 6) würdest du dich nie auf einen internen Widerstand verlassen, sondern echte Widerstände mit bekannter Toleranz nehmen.
+</Hinweis>
+
+<Merke>Datenblatt beim Hersteller holen, Abschnitt suchen, Wert mit Bedingungen und Fußnoten ablesen. Nur min und max sind zugesagt.</Merke>
