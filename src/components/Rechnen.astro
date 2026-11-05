@@ -112,6 +112,18 @@ const { id, titel = 'Rechenaufgaben', typ, anzahl = 3 } = Astro.props;
       return { text: `Ein Roboter hat eine Spurbreite von ${b} cm (Abstand der Räder). Das linke Rad fährt ${vl} cm/s, das rechte ${vr} cm/s.`, frage: 'Kurvenradius bis zur Robotermitte R =', einheit: 'cm', loesung: r,
         weg: `R = b/2 × (v_r + v_l) / (v_r − v_l) = ${fmt(b / 2)} cm × (${vr} + ${vl}) / (${vr} − ${vl}) = ${fmt(b / 2)} × ${vr + vl} / ${vr - vl} = ${fmt(r, 1)} cm. ${vl === 0 ? 'Steht ein Rad, ist der Radius genau die halbe Spurbreite: Der Roboter dreht um dieses Rad.' : 'Je ähnlicher die Geschwindigkeiten, desto größer der Radius.'}` };
     },
+    schall() {
+      const T = pick([0, 10, 20, 30]), t = pick([600, 1000, 1750, 2900, 5800]);
+      const c = 331.3 + 0.606 * T, d = (c * t * 1e-6 / 2) * 100;
+      return { text: `Der Ultraschallsensor meldet einen Echo-Puls von ${t} µs. Die Luft hat ${T} °C, der Schall ist also etwa 331,3 + 0,606 × ${T} = ${fmt(c, 1)} m/s schnell.`, frage: 'Abstand zum Hindernis d =', einheit: 'cm', loesung: d,
+        weg: `Der Schall läuft hin und zurück, deshalb wird durch 2 geteilt. d = c × t / 2 = ${fmt(c, 1)} m/s × ${fmt(t / 1e6, 6)} s / 2 = ${fmt(d / 100, 4)} m = ${fmt(d, 1)} cm.` };
+    },
+    anhalten() {
+      const v = pick([20, 30, 40, 50]), tr = pick([60, 100, 150, 200]), sb = pick([2, 3, 5, 8]);
+      const s = v * tr / 1000 + sb;
+      return { text: `Der Roboter fährt ${v} cm/s. Bis das Programm das Hindernis bemerkt und die Motoren bremst, vergehen ${tr} ms. Danach rollt er noch ${sb} cm, bis er steht.`, frage: 'Anhalteweg =', einheit: 'cm', loesung: s,
+        weg: `Während der Reaktionszeit fährt er ungebremst weiter: ${v} cm/s × ${fmt(tr / 1000, 3)} s = ${fmt(v * tr / 1000, 1)} cm. Dazu kommt der Bremsweg: ${fmt(v * tr / 1000, 1)} cm + ${sb} cm = ${fmt(s, 1)} cm. Der Roboter muss also spätestens bei diesem Abstand anfangen zu reagieren, besser mit Reserve.` };
+    },
     laufzeit() {
       const kap = pick([1000, 2000, 2500, 2900, 3400]), i = pick([50, 80, 120, 180, 250]);
       const h = kap / i;

@@ -186,11 +186,11 @@ export const FAHRROBOTER: Akt[] = [
     nr: 3, titel: 'Sehen', teil: 'augen', teilName: 'Augen (Sensoren)',
     ziel: 'Der Roboter erkennt eine Linie und Hindernisse.',
     missionen: [
-      m('r-3-1', '3.1', 'Licht, das zurückkommt', 'Einen Infrarot-Reflexsensor lesen.', 'Reflexion, Fototransistor, analog und digital, ADC (Kampagne 1, 6.4)', 'Messwert'),
-      m('r-3-2', '3.2', 'Die Linie erkennen', 'Zwei Sensoren kalibrieren und die Linie finden.', 'Schwellwert, Kalibrierung, Hysterese', 'Gerätenachweis'),
-      m('r-3-3', '3.3', 'Ultraschall', 'Den Abstand zu einem Hindernis messen.', 'Laufzeit, Schallgeschwindigkeit, Temperatur', 'Rechenaufgaben und Messwert'),
-      m('r-3-4', '3.4', 'Rechtzeitig halten', 'Vor einem Hindernis sicher anhalten.', 'Geschwindigkeit mit Maßband und Stoppuhr, Reaktionszeit, Bremsweg', 'Fahrprobe'),
-      m('r-3-boss', 'Boss 3', 'Sieht Gespenster', 'Fehlmessungen der Sensoren erklären.', 'Sonnenlicht, Winkel, weiche Oberflächen', 'Fehlerszenarien', { boss: true }),
+      m('r-3-1', '3.1', 'Licht, das zurückkommt', 'Einen Infrarot-Reflexsensor lesen.', 'Reflexion, Fototransistor, analog und digital, ADC (Kampagne 1, 6.4)', 'Messwert', { bereit: true }),
+      m('r-3-2', '3.2', 'Die Linie erkennen', 'Zwei Sensoren kalibrieren und die Linie finden.', 'Schwellwert, Kalibrierung, Hysterese', 'Gerätenachweis', { bereit: true }),
+      m('r-3-3', '3.3', 'Ultraschall', 'Den Abstand zu einem Hindernis messen.', 'Laufzeit, Schallgeschwindigkeit, Temperatur', 'Rechenaufgaben und Messwert', { bereit: true }),
+      m('r-3-4', '3.4', 'Rechtzeitig halten', 'Vor einem Hindernis sicher anhalten.', 'Geschwindigkeit mit Maßband und Stoppuhr, Reaktionszeit, Bremsweg', 'Fahrprobe', { bereit: true }),
+      m('r-3-boss', 'Boss 3', 'Sieht Gespenster', 'Fehlmessungen der Sensoren erklären.', 'Sonnenlicht, Winkel, weiche Oberflächen', 'Fehlerszenarien', { boss: true, bereit: true }),
     ],
   },
   {

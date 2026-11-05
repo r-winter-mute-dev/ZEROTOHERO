@@ -1,0 +1,91 @@
+---
+id: r-3-1
+checks:
+  - id: prinzip
+  - id: weiss
+    hardware: true
+  - id: schwarz
+    hardware: true
+  - id: geraet
+    hardware: true
+spick:
+  - t: "Prinzip"
+    v: "IR-LED leuchtet, Fototransistor misst, was zurückkommt"
+  - t: "Bester Abstand"
+    v: "2,5 mm laut Datenblatt, brauchbar 0,2–15 mm"
+  - t: "Anschluss"
+    v: "VCC → 3V3, GND → GND, AO → GPIO 36 (VP)"
+  - t: "Messen"
+    v: "analogReadMilliVolts(36)"
+  - t: "Weiß oder Schwarz höher?"
+    v: "Hängt vom Modul ab: messen, nicht raten"
+---
+import Quiz from '../components/Quiz.astro';
+import Zahl from '../components/Zahl.astro';
+import Seriell from '../components/Seriell.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Karte from '../components/Karte.astro';
+import Checkliste from '../components/Checkliste.astro';
+import { url as seitenUrl } from '../config';
+
+Dein Roboter kann fahren und lenken, aber er ist blind. In diesem Akt bekommt er Augen: zwei für die Linie unter ihm, eins für Hindernisse vor ihm. **Deine Mission: Lies einen Infrarot-Reflexsensor aus und finde heraus, wie er Weiß und Schwarz sieht.**
+
+## Licht, das zurückkommt
+
+<Karte titel="Zwei Bauteile in einem Gehäuse" nr={1}>
+Der TCRT5000 enthält eine Infrarot-LED und daneben einen **Fototransistor**. Die LED leuchtet nach unten, für deine Augen unsichtbar. Der Fototransistor schaut in dieselbe Richtung. Je mehr Licht vom Boden zurückkommt, desto mehr Strom lässt er durch.
+</Karte>
+
+<Karte titel="Weiß und Schwarz" nr={2}>
+Weißes Papier wirft viel Infrarotlicht zurück, mattes schwarzes Band schluckt das meiste. Der Fototransistor sieht also über Weiß viel und über Schwarz wenig Licht. Ein Widerstand auf dem Modul macht aus seinem Strom eine Spannung. Die liegt am Anschluss **AO** (analoger Ausgang) und kann vom ESP32 gemessen werden, so wie die Akkuspannung in <a href={seitenUrl('mission/m-6-4')}>Kampagne 1, Mission 6.4</a>.
+</Karte>
+
+<Karte titel="Was das Datenblatt sagt" nr={3}>
+Laut Datenblatt von Vishay ist das Signal am stärksten, wenn der Boden etwa **2,5 mm** entfernt ist. Zwischen 0,2 und 15 mm kommt noch mindestens ein Fünftel davon an. Ein eingebauter Filter hält einen Teil des Tageslichts ab, die LED leuchtet bei etwa 950 nm im Infraroten. Der Sensor gehört also dicht über den Boden, nicht auf das Dach des Roboters.
+</Karte>
+
+<Karte titel="Analog oder digital" nr={4}>
+Die meisten Module haben noch einen zweiten Ausgang **DO**. Ein Vergleicher-Chip schaltet ihn auf HIGH oder LOW, je nachdem, ob AO über oder unter einem Wert liegt, den du am Drehpoti einstellst. Das ist bequem, aber du siehst nicht, wie knapp es ist. Mit AO misst du die echte Spannung und entscheidest im Programm. Das brauchst du später für die Regelung.
+</Karte>
+
+<Merke>IR-LED leuchtet, Fototransistor misst, was zurückkommt. Weiß wirft viel zurück, Schwarz wenig. Abstand zum Boden: wenige Millimeter.</Merke>
+
+<Quiz id="prinzip" titel="Kurzcheck: Reflexsensor" fragen={[
+  { frage: 'Du baust den Sensor 3 cm über dem Boden ein. Was erwartest du?', richtig: 'Kaum noch Unterschied zwischen Weiß und Schwarz, weil zu wenig Licht zurückkommt', falsch: ['Einen besseren Überblick über die Linie', 'Genau dasselbe wie bei 3 mm'], erklaerung: 'Laut Datenblatt kommt schon ab 15 mm weniger als ein Fünftel des besten Signals an. 30 mm sind doppelt so weit.' },
+  { frage: 'Warum liest der Roboter AO und nicht DO?', richtig: 'AO liefert die echte Spannung. Damit kann das Programm selbst entscheiden und später fein regeln', falsch: ['DO funktioniert am ESP32 nicht', 'AO braucht weniger Strom'], erklaerung: 'DO kennt nur Linie oder keine Linie. Für einen ruhigen Linienfolger in Akt 4 brauchst du Zwischenwerte.' },
+]} />
+
+<Hinweis titel="Die unsichtbare LED sehen">
+Richte die Kamera deines Handys auf die Sensorunterseite. Viele Handykameras zeigen Infrarotlicht als schwaches lila oder weißes Leuchten. Manche Frontkameras filtern es weg, dann probier die Rückkamera.
+</Hinweis>
+
+## Messen
+
+<Checkliste id="aufbau" punkte={[
+  'Programmier-Regel: Akku AUS, 3V3-Kabel vom Wandler ab. Diese Mission läuft am USB, die Motoren bleiben aus.',
+  'Sensormodul: VCC an 3V3, GND an GND, AO an GPIO 36. Am Board steht dort oft „VP“ statt 36.',
+  'Programm aus <code>firmware/roboter-akt-3-sehen/r-3-1-reflex/</code> hochladen, seriellen Monitor öffnen.',
+  'Einen Streifen schwarzes Isolierband auf weißes Papier kleben.',
+  'Den Sensor flach über das Papier halten, etwa 3 bis 5 mm darüber. Ein Stapel Münzen oder ein Radiergummi als Abstandshalter hilft.',
+]} />
+
+Halte den Sensor nacheinander über Weiß und über Schwarz und lies die Werte ab. Nimm jeweils den Wert, der sich nach ein paar Sekunden einstellt.
+
+<Zahl id="weiss" titel="Messwert: über Weiß" frage="Welche Spannung zeigt AO über weißem Papier?" einheit="mV" min={0} max={3300} vorlaeufig hilfe={[
+  { ueber: 3300, text: 'Mehr als 3300 mV kann der ESP32 nicht messen. Hast du die Zahl richtig abgeschrieben?' },
+]} />
+
+<Zahl id="schwarz" titel="Messwert: über Schwarz" frage="Welche Spannung zeigt AO über dem schwarzen Band?" einheit="mV" min={0} max={3300} vorlaeufig hilfe={[
+  { ueber: 3300, text: 'Mehr als 3300 mV kann der ESP32 nicht messen. Hast du die Zahl richtig abgeschrieben?' },
+]} />
+
+Vergleich die beiden Werte. Bei vielen Modulen ist die Spannung über **Schwarz höher**: Der Fototransistor lässt wenig Strom durch, der Widerstand zieht AO nach oben. Es gibt aber auch Module, bei denen es andersherum ist. Deshalb misst der Roboter in Mission 3.2 selbst nach, statt sich auf eine Richtung zu verlassen.
+
+<Hinweis titel="Kaum Unterschied?">
+Liegen die Werte weniger als etwa 300 mV auseinander: Sensor näher an das Papier, anderes Band probieren (manches glänzende Band wirft Infrarot fast wie Weiß zurück), direkte Sonne oder Halogenlicht abschirmen.
+</Hinweis>
+
+<Seriell id="geraet" titel="Gerätenachweis: Sensor gelesen" muster="^KW-CHECK:r-3-1:[0-9A-F]{12}$" hinweis="Die Zeile erscheint nach etwa 5 Sekunden, wenn 25 Messungen ausgegeben wurden." />
+
+<Merke>Erst messen, dann programmieren. Ob Schwarz höher oder niedriger ist, sagt dir dein Sensor, nicht das Internet.</Merke>

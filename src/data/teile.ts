@@ -85,4 +85,10 @@ export const TEILE_ROBOTER: Record<number, Teil[]> = {
     { teil: 'Ein/Aus-Schalter', zweck: 'Trennt den Akku von Motoren und Elektronik', produkt: 'Kein fester Link: Schiebe- oder Kippschalter für mindestens 2 A', hinweis: 'Der Schalter muss den Anlaufstrom beider Motoren tragen. Kleine Steckbrett-Schiebeschalter sind oft nur für wenige 100 mA gedacht, ein Blick auf die Angabe im Shop lohnt sich.' },
     { teil: 'Klebepads, Kabelbinder, Schrauben', zweck: 'Steckbrett, Akkuhalter und Treiber auf dem Fahrgestell befestigen', produkt: 'Kein fester Link: doppelseitiges Klebeband oder Klettband, kleine Kabelbinder', hinweis: 'Das Steckbrett hat auf der Unterseite oft schon eine Klebefläche.' },
   ],
+  3: [
+    { teil: '2 Liniensensor-Module TCRT5000', zweck: 'Die Linie unter dem Roboter sehen (Mission 3.1 und 3.2)', produkt: 'Kein fester Link: TCRT5000-Modul mit Analogausgang AO, Versorgung ab 3,3 V', hinweis: 'Bei Roboter-Bausatz.de im November 2026 nicht gefunden, bei vielen Elektronikhändlern erhältlich. Achte auf einen Ausgang „AO“ (analog) und eine Angabe „3,3–5 V“. Die meisten Module haben zusätzlich einen digitalen Ausgang „DO“ mit Drehpoti, den brauchst du nicht.' },
+    { teil: 'Ultraschallsensor für 3,3 V', zweck: 'Abstand zu Hindernissen messen (Mission 3.3)', produkt: 'Kein fester Link: HC-SR04P oder RCWL-1601, Versorgung 3 bis 5,5 V', hinweis: 'Nicht den klassischen HC-SR04 nehmen: Laut Datenblatt im Shop (z. B. RBS10001) braucht er 5 V, und sein Echo-Signal wäre dann zu hoch für den ESP32. Das P im Namen ist wichtig.' },
+    { teil: 'Schwarzes Isolierband, weißer Karton', zweck: 'Teststrecke für die Liniensensoren', produkt: 'Kein fester Link: mattes schwarzes Isolierband (etwa 15–19 mm breit), weißer Karton oder Papier', hinweis: 'Manches glänzende Band reflektiert Infrarot fast wie Weiß. Probier in Mission 3.1 aus, ob dein Band genug Unterschied bringt.' },
+    { teil: 'Maßband und Stoppuhr', zweck: 'Geschwindigkeit messen (Mission 3.4)', produkt: 'Kein neuer Kauf: Zollstock oder Maßband, Stoppuhr im Handy' },
+  ],
 };

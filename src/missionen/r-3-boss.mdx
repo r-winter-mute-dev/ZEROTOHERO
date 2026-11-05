@@ -1,0 +1,77 @@
+---
+id: r-3-boss
+abzeichen: Sensor-Detektiv
+checks:
+  - id: boss
+spick:
+  - t: "Linie nicht erkannt"
+    v: "Höhe, Band, Licht, Kalibrierung"
+  - t: "Bremst grundlos"
+    v: "Kein Echo als 0 gewertet? Etwas im Schallkegel?"
+  - t: "Fährt dagegen"
+    v: "Schräge oder weiche Fläche, zu schnell, Haltabstand zu klein"
+  - t: "Vorgehen"
+    v: "Rohwerte im seriellen Monitor ansehen"
+---
+import Logdiagnose from '../components/Logdiagnose.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Sensoren lügen nicht, aber sie sehen manchmal etwas anderes, als du denkst. Ein Liniensensor im Sonnenlicht, ein Ultraschall vor dem Sofa: Plötzlich hält der Roboter vor Gespenstern oder fährt durch Wände. **Dein Bosskampf: Sechs Roboter sehen falsch. Lies die Rohwerte und finde die Ursache.**
+
+## Die Methode
+
+1. **Rohwerte ansehen:** Was misst der Sensor wirklich? Im seriellen Monitor, nicht nur die Entscheidung „Linie ja/nein“.
+2. **Mit der Erwartung vergleichen:** Weiß und Schwarz aus der Kalibrierung, Abstand mit dem Zollstock.
+3. **Eine Sache ändern:** Höhe, Licht, Oberfläche, Winkel. Dann wieder messen.
+
+<Merke>Erst die Rohwerte ansehen, dann die Entscheidung im Programm prüfen. Eine Sache nach der anderen ändern.</Merke>
+
+<Hinweis titel="Lesetipp">
+Die Fälle sind ausgedacht, aber typisch. Die Werte stammen aus dem seriellen Monitor.
+</Hinweis>
+
+<Logdiagnose id="boss" titel="Bosskampf: Sieht Gespenster" anzahl={5} faelle={[
+  {
+    symptom: 'Am Abend folgt der Roboter der Linie sicher. Am Nachmittag am Fenster erkennt er sie kaum noch.',
+    log: 'Kalibrierung abends: links weiß 420 mV, schwarz 2480 mV\nNachmittags, Sonne auf dem Boden:\nlinks über Weiß: 180 mV\nlinks über Schwarz: 640 mV\nSchwelle (vom Abend): 1450 mV',
+    richtig: 'Sonnenlicht enthält viel Infrarot. Es überstrahlt die Sensor-LED, und beide Werte liegen unter der alten Schwelle. Abschirmen und neu kalibrieren.',
+    falsch: ['Die Sensoren sind durch die Wärme kaputtgegangen.', 'Das schwarze Band ist ausgeblichen.'],
+    erklaerung: 'Der Tageslichtfilter hält einen Teil ab, aber direkte Sonne ist viel heller als die kleine LED. Eine Abschirmung um die Sensoren und eine Kalibrierung am Fahrort helfen.',
+  },
+  {
+    symptom: 'Nach dem Umbau des Fahrgestells meldet die Kalibrierung „Zu wenig Unterschied zwischen Weiß und Schwarz“.',
+    log: 'Weiß: links 2950 mV, rechts 2910 mV\nSpanne links: 120 mV, rechts: 140 mV\nAbstand Sensor – Boden nach dem Umbau: etwa 25 mm',
+    richtig: 'Die Sensoren sitzen zu hoch. Bei 25 mm kommt zu wenig Licht zurück.',
+    falsch: ['Das Programm rechnet die Spanne falsch aus.', 'GPIO 36 und 39 sind vertauscht.'],
+    erklaerung: 'Laut Datenblatt liegt das beste Signal bei etwa 2,5 mm, schon ab 15 mm kommt weniger als ein Fünftel an. Abstandshülsen kürzen oder die Sensoren tiefer setzen.',
+  },
+  {
+    symptom: 'Auf der neuen Teststrecke erkennt der Roboter die Linie gar nicht, obwohl sie für dich tiefschwarz aussieht.',
+    log: 'Altes Band (matt): weiß 410 mV, schwarz 2460 mV\nNeues Band (glänzend): weiß 410 mV, schwarz 690 mV',
+    richtig: 'Das glänzende Band wirft Infrarot fast so gut zurück wie Papier. Für den Sensor ist es kaum dunkler.',
+    falsch: ['Der Sensor ist zu nah am Boden.', 'Die Hysterese ist zu groß.'],
+    erklaerung: 'Was für deine Augen schwarz ist, muss im Infraroten nicht dunkel sein. Mattes Isolierband oder Druckertinte auf Papier funktionieren meist besser. Messen, nicht raten.',
+  },
+  {
+    symptom: 'Auf freier Fläche bremst der Roboter immer wieder ohne Grund, obwohl vor ihm meterweit nichts ist.',
+    log: 'Abstand: 1830 mm\nAbstand: 1825 mm\nkein Echo\n-> BREMSEN\nAbstand: 1840 mm\nIm Programm: if (mm < HALT_CM * 10) bremsen();',
+    richtig: 'abstandMm() liefert -1 bei fehlendem Echo, und -1 ist kleiner als der Haltabstand. Der Roboter wertet „nichts gehört“ als „ganz nah“.',
+    falsch: ['Der Sensor sieht den eigenen Schatten.', 'Die Batterie ist fast leer.'],
+    erklaerung: 'In der Vorlage steht deshalb if (mm > 0 && mm < HALT_CM * 10). Eine ungültige Messung darf nie wie ein echter Wert behandelt werden.',
+  },
+  {
+    symptom: 'Vor der Wohnzimmerwand hält der Roboter sauber. Vor dem Sofa fährt er ungebremst dagegen.',
+    log: 'Vor der Wand: Abstand 420, 310, 220 mm -> BREMSEN\nVor dem Sofa: kein Echo, kein Echo, kein Echo ... Kontakt',
+    richtig: 'Der weiche Stoff des Sofas schluckt den Ultraschall. Es kommt kein Echo zurück, also sieht der Roboter nichts.',
+    falsch: ['Das Sofa ist zu weit weg für den Sensor.', 'Der Roboter fährt zu langsam.'],
+    erklaerung: 'Ultraschall braucht harte, möglichst gerade Flächen. Weiche Polster, Vorhänge oder Fell schlucken ihn. Kein Sensor sieht alles, deshalb haben echte Roboter oft mehrere Arten von Sensoren.',
+  },
+  {
+    symptom: 'Der Roboter zeigt ständig etwa 4 cm Abstand an, egal, wohin er schaut.',
+    log: 'Abstand: 41 mm\nAbstand: 40 mm\nAbstand: 42 mm\nMit der Hand vor dem Sensor: 40 mm\nDer Sensor sitzt hinter der vorderen Kante des Fahrgestells',
+    richtig: 'Die Kante des Fahrgestells ragt in den Schallkegel. Der Sensor misst sein eigenes Fahrgestell.',
+    falsch: ['Der Sensor ist auf 4 cm fest eingestellt.', 'Die Temperatur im Programm ist falsch.'],
+    erklaerung: 'Der Schall breitet sich in einem Kegel von etwa 15° aus. Alles, was in diesen Kegel ragt, wirft ein Echo zurück. Den Sensor ganz nach vorn setzen, sodass er frei über die Kante schaut.',
+  },
+]} />

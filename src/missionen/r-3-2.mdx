@@ -1,0 +1,85 @@
+---
+id: r-3-2
+abzeichen: Spurenleser
+checks:
+  - id: trainer
+  - id: kalibrieren
+  - id: geraet
+    hardware: true
+spick:
+  - t: "Schwelle"
+    v: "In der Mitte zwischen Weiß und Schwarz"
+  - t: "Hysterese"
+    v: "Einschalten über, Ausschalten unter der Schwelle"
+  - t: "Kalibrieren"
+    v: "Weiß und Schwarz am echten Boden messen"
+  - t: "Anschluss"
+    v: "Links AO → GPIO 36, rechts AO → GPIO 39"
+  - t: "Abstand der Sensoren"
+    v: "Etwas breiter als die Linie"
+---
+import Quiz from '../components/Quiz.astro';
+import Seriell from '../components/Seriell.astro';
+import Hysterese from '../components/Hysterese.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Karte from '../components/Karte.astro';
+import Checkliste from '../components/Checkliste.astro';
+
+Du weißt jetzt, welche Spannung dein Sensor über Weiß und über Schwarz liefert. Der Roboter braucht aber eine Entscheidung: Linie oder keine Linie? **Deine Mission: Bau zwei Sensoren an, lass den Roboter sich selbst kalibrieren und sorge dafür, dass er an der Kante der Linie nicht flackert.**
+
+## Von der Spannung zur Entscheidung
+
+<Karte titel="Die Schwelle" nr={1}>
+Liegt Weiß bei 400 mV und Schwarz bei 2600 mV, ist die Mitte 1500 mV. Darüber heißt es „Linie“, darunter „Weiß“. Die Mitte ist die beste Wahl, weil der Abstand zu beiden Seiten gleich groß ist. Kleine Schwankungen kippen die Entscheidung dann am seltensten.
+</Karte>
+
+<Karte titel="Kalibrieren" nr={2}>
+Weiß und Schwarz sind nicht überall gleich: Ein anderer Boden, ein anderes Band, mehr Licht im Raum, und die Werte verschieben sich. Zwei Sensoren desselben Typs messen außerdem nie genau gleich. Deshalb misst der Roboter vor jeder Fahrt selbst nach: erst über Weiß, dann einmal quer über die Linie. Daraus berechnet er für jeden Sensor seine eigene Schwelle.
+</Karte>
+
+<Karte titel="Das Flackern an der Kante" nr={3}>
+Jedes Messsignal rauscht ein wenig. Fährt der Sensor langsam über die Kante der Linie, pendelt der Wert eine Weile um die Schwelle herum. Die Entscheidung springt dann mehrmals hin und her: Linie, Weiß, Linie, Weiß. Ein Roboter würde dabei zucken.
+</Karte>
+
+<Karte titel="Hysterese" nr={4}>
+Die Lösung: zwei Grenzen statt einer. Zum Einschalten muss der Wert über die obere Grenze steigen, zum Ausschalten unter die untere fallen. Dazwischen bleibt der alte Zustand. Ist dieses Band breiter als das Rauschen, gibt es an der Kante genau eine Umschaltung. Dasselbe Prinzip steckt in jedem Thermostat: Die Heizung geht bei 20 °C an und erst bei 21 °C wieder aus.
+</Karte>
+
+<Merke>Schwelle in die Mitte, für jeden Sensor einzeln kalibrieren. Gegen Flackern hilft Hysterese: zwei Grenzen statt einer.</Merke>
+
+<Hysterese id="trainer" titel="Trainer: Schwelle und Hysterese" />
+
+<Quiz id="kalibrieren" titel="Kurzcheck: Kalibrieren" fragen={[
+  { frage: 'Am Küchentisch lief alles. Auf dem Wohnzimmerboden erkennt der Roboter die Linie nicht mehr. Was hilft zuerst?', richtig: 'Auf dem neuen Boden neu kalibrieren', falsch: ['Die Schwelle im Programm fest auf 1500 mV stellen', 'Die Sensoren tauschen'], erklaerung: 'Der neue Boden wirft anders zurück als der Tisch. Die Kalibrierung misst Weiß und Schwarz dort, wo der Roboter wirklich fährt.' },
+  { frage: 'Ein Sensor misst über Weiß 450 mV und über Schwarz 2350 mV. Wo liegt die Schwelle?', richtig: '1400 mV', falsch: ['1900 mV', '2350 mV'], erklaerung: '(450 + 2350) / 2 = 1400 mV. Mit 20 % der Spanne als Hysterese (380 mV) schaltet er bei 1590 mV ein und bei 1210 mV wieder aus.' },
+]} />
+
+## Zwei Sensoren anbauen
+
+Für den einfachsten Linienfolger sitzen zwei Sensoren vorn am Roboter, links und rechts der Linie. Fährt der Roboter mittig, sehen beide Weiß. Driftet er nach rechts, gerät der linke Sensor auf die Linie, und umgekehrt.
+
+<Checkliste id="anbau" punkte={[
+  'Programmier-Regel: Akku AUS, 3V3-Kabel vom Wandler ab. Diese Mission läuft am USB.',
+  'Beide Module vorn unter das Fahrgestell schrauben oder kleben, Sensoren nach unten.',
+  'Abstand der beiden Sensoren: etwas mehr als die Breite deiner Linie. Bei 19 mm Band etwa 25 bis 30 mm.',
+  'Höhe über dem Boden: etwa 3 bis 8 mm. Unterlegscheiben oder Abstandshülsen helfen.',
+  'Beide Module: VCC an 3V3, GND an GND. AO des linken Sensors an GPIO 36 (VP), AO des rechten an GPIO 39 (VN).',
+  'Eine Teststrecke kleben: schwarzes Band auf weißem Karton, ein gerades Stück reicht.',
+]} />
+
+## Selbst kalibrieren
+
+Das Programm `firmware/roboter-akt-3-sehen/r-3-2-linie/` macht nach dem Start drei Dinge:
+
+1. **3 Sekunden Weiß:** Stell den Roboter so hin, dass beide Sensoren über Weiß sind.
+2. **8 Sekunden Hin und Her:** Schieb den Roboter langsam von Hand ein paarmal quer über die Linie, sodass jeder Sensor einmal ganz über dem Band war.
+3. **Anzeige:** Danach meldet er laufend, ob die Linie links, rechts, unter beiden oder gar nicht zu sehen ist.
+
+Aus Weiß und dem Ende, das am weitesten davon entfernt liegt, berechnet er für jeden Sensor Schwelle und Hysterese. So spielt es keine Rolle, ob dein Modul über Schwarz mehr oder weniger Spannung liefert. Die Nachweis-Zeile kommt nur, wenn beide Sensoren mindestens 300 mV Unterschied gesehen haben. Sie enthält die gemessene Spanne beider Sensoren in mV.
+
+<Seriell id="geraet" titel="Gerätenachweis: Beide Sensoren kalibriert" muster="^KW-CHECK:r-3-2:[0-9A-F]{12}:[0-9]{3,4}:[0-9]{3,4}$" hinweis="Erscheint keine Zeile, meldet das Programm, was fehlt. Meist sitzen die Sensoren zu hoch, oder ein Sensor wurde beim Schieben nie ganz über die Linie bewegt." />
+
+<Hinweis titel="Probier selbst">
+Schieb den Roboter langsam über die Kante und beobachte die Anzeige. Sie sollte sauber einmal umspringen. Setz im Programm testweise <code>s->band = 0;</code> (die Zeile ist im Code markiert) und vergleiche. Siehst du das Flackern aus dem Trainer?
+</Hinweis>

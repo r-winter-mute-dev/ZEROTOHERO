@@ -1,0 +1,116 @@
+---
+// Schwellwert-Trainer: Ein Liniensensor fährt langsam über die Kante einer schwarzen Linie.
+// Das Messsignal rauscht. Ohne Hysterese schaltet die Auswertung an der Kante mehrfach hin und her.
+// Modellwerte: Weiß etwa 450 mV, Schwarz etwa 2550 mV, Rauschen etwa ±250 mV. Echte Werte misst du in Mission 3.1.
+import Station from './Station.astro';
+interface Props { id: string; titel: string; }
+const { id, titel } = Astro.props;
+---
+<Station id={id} titel={titel} art="Trainer">
+  <div class="hy" data-kw-hyst>
+    <p class="hy-aufgabe" data-hy-aufgabe aria-live="polite"></p>
+    <svg viewBox="0 0 320 190" class="hy-svg" role="img" aria-label="Messkurve eines Liniensensors mit Schwelle und erkanntem Zustand">
+      <text x="4" y="12" class="hy-txt">mV</text>
+      <text x="4" y="30" class="hy-txt">3300</text>
+      <text x="4" y="130" class="hy-txt">0</text>
+      <rect x="34" y="20" width="282" height="110" class="hy-feld" />
+      <rect x="34" y="0" width="282" height="0" class="hy-band" data-hy-band />
+      <polyline class="hy-kurve" data-hy-kurve points="" />
+      <line x1="34" x2="316" class="hy-schwelle" data-hy-schwelle />
+      <text x="34" y="150" class="hy-txt">erkannt:</text>
+      <polyline class="hy-zustand" data-hy-zustand points="" />
+      <text x="34" y="186" class="hy-txt">Weiß</text>
+      <text x="286" y="186" class="hy-txt">Linie</text>
+    </svg>
+    <div class="hy-regler">
+      <label class="hy-schieber"><span>Schwelle: <strong data-hy-sw>800 mV</strong></span>
+        <input type="range" min="0" max="3300" step="50" value="800" data-hy-s aria-label="Schwelle in Millivolt" /></label>
+      <label class="hy-schieber"><span>Hysterese (Breite des Bands): <strong data-hy-hw>0 mV</strong></span>
+        <input type="range" min="0" max="1000" step="50" value="0" data-hy-h aria-label="Hysterese in Millivolt" /></label>
+      <p class="hy-zahl">Umschaltungen: <strong data-hy-n>0</strong></p>
+    </div>
+    <p class="hy-erkl" data-hy-erkl aria-live="polite"></p>
+    <p class="leise klein">Modellwerte: Weiß etwa 450 mV, Schwarz etwa 2550 mV, Rauschen etwa ±250 mV. Bei deinem Sensor können Weiß und Schwarz auch umgekehrt liegen, das misst du in Mission 3.1.</p>
+  </div>
+</Station>
+
+<script>
+  import { station } from '../scripts/station';
+  const N = 140, WEISS = 450, SCHWARZ = 2550;
+  // Fester Zufall, damit alle dieselbe Kurve sehen.
+  let saat = 7;
+  const zufall = () => { saat = (saat * 16807) % 2147483647; return saat / 2147483647; };
+  const SIGNAL = Array.from({ length: N }, (_, i) => {
+    const t = Math.min(1, Math.max(0, (i - 25) / 100));
+    const glatt = t * t * (3 - 2 * t);
+    return WEISS + (SCHWARZ - WEISS) * glatt + (zufall() - 0.5) * 500;
+  });
+  const x = (i: number) => 34 + (i / (N - 1)) * 282;
+  const y = (mv: number) => 130 - (Math.max(0, Math.min(3300, mv)) / 3300) * 110;
+
+  document.querySelectorAll<HTMLElement>('[data-kw-hyst]').forEach((box) => {
+    const s = station(box.closest('[data-kw-check]') as HTMLElement);
+    const sw = box.querySelector<HTMLInputElement>('[data-hy-s]')!;
+    const hw = box.querySelector<HTMLInputElement>('[data-hy-h]')!;
+    let schritt = 0;
+    box.querySelector('[data-hy-kurve]')!.setAttribute('points', SIGNAL.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' '));
+
+    function auswerten(S: number, H: number) {
+      let an = false, n = 0;
+      const zustand = SIGNAL.map((v) => {
+        const neu = an ? v > S - H / 2 : v > S + H / 2;
+        if (neu !== an) { n++; an = neu; }
+        return an;
+      });
+      return { zustand, n };
+    }
+
+    function zeichnen() {
+      const S = Number(sw.value), H = Number(hw.value);
+      const { zustand, n } = auswerten(S, H);
+      box.querySelector('[data-hy-sw]')!.textContent = `${S} mV`;
+      box.querySelector('[data-hy-hw]')!.textContent = `${H} mV (an ab ${S + H / 2}, aus unter ${S - H / 2})`;
+      const l = box.querySelector<SVGLineElement>('[data-hy-schwelle]')!;
+      l.setAttribute('y1', String(y(S))); l.setAttribute('y2', String(y(S)));
+      const band = box.querySelector<SVGRectElement>('[data-hy-band]')!;
+      band.setAttribute('y', String(y(S + H / 2))); band.setAttribute('height', String(Math.max(0, y(S - H / 2) - y(S + H / 2))));
+      box.querySelector('[data-hy-zustand]')!.setAttribute('points', zustand.map((z, i) => `${x(i).toFixed(1)},${z ? 158 : 174}`).join(' '));
+      box.querySelector('[data-hy-n]')!.textContent = String(n);
+
+      const e = box.querySelector<HTMLElement>('[data-hy-erkl]')!;
+      if (n === 0) e.textContent = 'Die Auswertung schaltet nie um: Die Schwelle liegt außerhalb dessen, was der Sensor misst. Der Roboter würde die Linie nicht sehen.';
+      else if (n === 1) e.textContent = 'Genau eine Umschaltung: Der Roboter erkennt die Linie einmal, sauber und ohne Flackern.';
+      else e.textContent = `${n} Umschaltungen an einer einzigen Kante. Das Rauschen springt um die Schwelle herum. Ein Roboter würde hier hin und her zucken.`;
+      e.className = `hy-erkl ${n === 1 ? 'gut' : n > 1 ? 'warnung' : ''}`;
+
+      if (schritt === 0 && S >= 1200 && S <= 1800 && H === 0) schritt = 1;
+      if (schritt === 1 && n === 1 && H > 0 && S >= 1000 && S <= 2000 && !s.gesperrt()) {
+        schritt = 2;
+        s.bestehen('Trainer geschafft: Schwelle in die Mitte, dazu ein Hystereseband, das breiter ist als das Rauschen.');
+      }
+      box.querySelector('[data-hy-aufgabe]')!.textContent = schritt === 0
+        ? 'Aufgabe 1 von 2: Stell die Schwelle etwa in die Mitte zwischen Weiß und Schwarz (Hysterese bei 0). Zähl die Umschaltungen.'
+        : schritt === 1 ? 'Aufgabe 2 von 2: Lass die Schwelle in der Mitte und vergrößere die Hysterese, bis der Sensor genau einmal umschaltet.'
+        : 'Geschafft. Probier ruhig weiter herum.';
+    }
+    [sw, hw].forEach((i) => i.addEventListener('input', zeichnen));
+    zeichnen();
+  });
+</script>
+
+<style>
+  .hy-aufgabe { font-weight: 700; }
+  .hy-svg { width: 100%; height: auto; background: var(--flaeche-leicht); border-radius: var(--radius-klein); margin-bottom: 0.7rem; }
+  .hy-feld { fill: none; stroke: var(--flaeche); }
+  .hy-band { fill: color-mix(in srgb, var(--akzent) 18%, transparent); }
+  .hy-kurve { fill: none; stroke: var(--leise); stroke-width: 1.2; }
+  .hy-schwelle { stroke: var(--akzent); stroke-width: 1.5; stroke-dasharray: 4 3; }
+  .hy-zustand { fill: none; stroke: var(--akzent-hell); stroke-width: 2; }
+  .hy-txt { fill: var(--leise); font-size: 9px; font-family: var(--schrift); }
+  .hy-regler { display: grid; gap: 0.2rem; }
+  .hy-schieber { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.4rem; }
+  .hy-schieber input { width: 100%; accent-color: var(--akzent); min-height: 2.75rem; }
+  .hy-zahl { margin: 0; }
+  .hy-erkl { margin: 0.8rem 0 0.5rem; padding: 0.6rem 0.8rem; border-radius: var(--radius-klein); background: rgba(255,255,255,0.04); }
+  .hy-erkl.gut { color: var(--gut); } .hy-erkl.warnung { color: var(--warnung); }
+</style>

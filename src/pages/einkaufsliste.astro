@@ -22,10 +22,10 @@ import TeileListe from '../components/TeileListe.astro';
     <h2 id="k2">Kampagne 2: Der Fahrroboter</h2>
     <p>
       Der Roboter nutzt viel aus Kampagne 1: ESP32-DevKit, Messwerkzeug und später die Akku-Versorgung. Neu sind vor allem
-      das Fahrgestell mit den Motoren und der Motortreiber. Die Teile für die Akte 3 bis 6 (Liniensensoren, Ultraschall)
-      folgen, sobald diese Akte geschrieben sind.
+      das Fahrgestell mit den Motoren und der Motortreiber. In Akt 3 kommen die Sensoren dazu: zwei Liniensensoren und ein Ultraschallsensor für 3,3 V.
+      Die Teile für die Akte 4 bis 6 folgen, sobald diese Akte geschrieben sind.
     </p>
-    <TeileListe kampagne="roboter" akte={[0, 1, 2]} />
+    <TeileListe kampagne="roboter" akte={[0, 1, 2, 3]} />
   </section>
 </Basis>
 
