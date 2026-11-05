@@ -81,5 +81,8 @@ export const TEILE_ROBOTER: Record<number, Teil[]> = {
   ],
   2: [
     { teil: 'Akku, Lademodul, Buck-Boost 3,3 V, Elko 1000 µF', zweck: 'Eine Versorgung für Motoren und ESP32', produkt: 'Kein neuer Kauf: aus Kampagne 1, Akt 5', hinweis: 'Achtung: Den Akku dann nicht in der Klingel und im Roboter gleichzeitig verwenden. Ein zweiter Satz ist bequemer.' },
+    { teil: '2 Widerstände 10 kΩ', zweck: 'Spannungsteiler: Der ESP32 misst die Motorspannung (Mission 2.2)', produkt: 'Kein neuer Kauf: aus dem Widerstandssortiment (Kampagne 1, Akt 1)' },
+    { teil: 'Ein/Aus-Schalter', zweck: 'Trennt den Akku von Motoren und Elektronik', produkt: 'Kein fester Link: Schiebe- oder Kippschalter für mindestens 2 A', hinweis: 'Der Schalter muss den Anlaufstrom beider Motoren tragen. Kleine Steckbrett-Schiebeschalter sind oft nur für wenige 100 mA gedacht, ein Blick auf die Angabe im Shop lohnt sich.' },
+    { teil: 'Klebepads, Kabelbinder, Schrauben', zweck: 'Steckbrett, Akkuhalter und Treiber auf dem Fahrgestell befestigen', produkt: 'Kein fester Link: doppelseitiges Klebeband oder Klettband, kleine Kabelbinder', hinweis: 'Das Steckbrett hat auf der Unterseite oft schon eine Klebefläche.' },
   ],
 };

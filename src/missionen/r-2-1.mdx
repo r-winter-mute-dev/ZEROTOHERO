@@ -1,0 +1,93 @@
+---
+id: r-2-1
+checks:
+  - id: mechanik
+  - id: richtung
+    hardware: true
+spick:
+  - t: "Schwerpunkt"
+    v: "Akku tief und nah an der Antriebsachse"
+  - t: "Linker Motor"
+    v: "AIN1 25, AIN2 26 → AOUT1/AOUT2"
+  - t: "Rechter Motor"
+    v: "BIN1 32, BIN2 33 → BOUT1/BOUT2"
+  - t: "Falsche Richtung"
+    v: "Die zwei Kabel dieses Motors tauschen"
+  - t: "Encoderscheiben"
+    v: "Jetzt mit aufstecken, Einsatz in Akt 5"
+---
+import Quiz from '../components/Quiz.astro';
+import Bestaetigung from '../components/Bestaetigung.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+
+Bisher lag ein einzelner Motor auf dem Tisch. Jetzt bekommt der Roboter einen Körper: zwei Motoren mit Rädern, ein Stützrad, und oben drauf Steckbrett, ESP32 und Treiber. **Deine Mission: Bau das Fahrgestell zusammen und sorge dafür, dass beide Räder in dieselbe Richtung drehen.**
+
+## Worauf es bei der Mechanik ankommt
+
+- **Zwei Antriebsräder, ein Stützrad.** Der Roboter lenkt, indem die beiden Räder unterschiedlich schnell drehen (Mission 2.4). Das Stützrad läuft nur mit und dreht sich in jede Richtung.
+- **Der Schwerpunkt.** Das schwerste Teil ist der Akku. Sitzt er tief und nah an der Achse der Antriebsräder, drücken die Räder fest auf den Boden und rutschen weniger. Sitzt er weit vorn über dem Stützrad, drehen die Antriebsräder leichter durch.
+- **Nichts darf schleifen.** Kabel weg von Rädern und Zahnrädern, mit Kabelbindern oder Klebeband festmachen.
+- **Abnehmbar bleiben.** Steckbrett und Akkuhalter mit Klettband oder Klebepads befestigen, damit du sie später wieder lösen kannst.
+
+<Merke>Schweres tief und nah an die Antriebsachse. Kein Kabel in der Nähe der Räder.</Merke>
+
+<Quiz id="mechanik" titel="Kurzcheck: Mechanik" fragen={[
+  { frage: 'Wohin gehört der Akku auf dem Fahrgestell?', richtig: 'Tief und nah an der Achse der Antriebsräder', falsch: ['Ganz vorn über dem Stützrad, dann kippt der Roboter nicht', 'Möglichst hoch, damit die Kabel kurz bleiben'], erklaerung: 'Gewicht auf den Antriebsrädern gibt Haftung. Ein hoher Schwerpunkt lässt den Roboter beim Bremsen kippeln.' },
+  { frage: 'Wie lenkt ein Roboter mit zwei Antriebsrädern und einem Stützrad?', richtig: 'Die beiden Antriebsräder drehen unterschiedlich schnell', falsch: ['Das Stützrad wird mit einem Motor gedreht', 'Er kann nur geradeaus fahren'], erklaerung: 'Das nennt man Differenzialantrieb. Wie das genau funktioniert, rechnest du in Mission 2.4 aus.' },
+]} />
+
+## Zusammenbau
+
+Halte dich an die Anleitung deines Fahrgestells. Bausätze dieser Art sehen ähnlich aus, unterscheiden sich aber in Schrauben und Halterungen.
+
+<Checkliste id="bau" punkte={[
+  'Beide Motoren mit den Haltern an die Grundplatte schrauben. Die Achsen zeigen nach außen.',
+  'Encoderscheiben auf die inneren Achsenden stecken, falls vorhanden. Du brauchst sie in Akt 5.',
+  'Räder fest auf die äußeren Achsen drücken.',
+  'Stützrad hinten oder vorn montieren, wie die Anleitung es vorsieht.',
+  'Akkuhalter tief und nah an der Antriebsachse befestigen. Akku bleibt noch draußen.',
+  'Steckbrett mit ESP32 und DRV8833 oben befestigen.',
+  'Motorkabel leicht verdrillen und mit Kabelbinder fixieren, sodass sie kein Rad berühren.',
+]} />
+
+## Den zweiten Motor anschließen
+
+Der DRV8833 hat zwei H-Brücken. Die zweite heißt B. Der linke Motor bleibt wie in Mission 1.4 an A, der rechte kommt an B. Versorgung noch wie in Akt 1: 2 × AA an VM, ESP32 am USB, gemeinsame Masse.
+
+<Checkliste id="b" punkte={[
+  'GPIO 32 an BIN1 (oft IN3), GPIO 33 an BIN2 (IN4).',
+  'Rechter Motor an BOUT1 und BOUT2 (OUT3, OUT4).',
+  'Roboter aufbocken: Räder in der Luft.',
+]} />
+
+Lade diesen kurzen Richtungstest hoch. Beide Räder sollen sich 2 Sekunden so drehen, dass der Roboter auf dem Boden **vorwärts** fahren würde, dann 2 Sekunden Pause.
+
+```cpp
+const int AIN1 = 25, AIN2 = 26, BIN1 = 32, BIN2 = 33, SLEEP = 27;
+
+void motoren(int links, int rechts) {
+  ledcWrite(AIN1, links > 0 ? links : 0);   ledcWrite(AIN2, links < 0 ? -links : 0);
+  ledcWrite(BIN1, rechts > 0 ? rechts : 0); ledcWrite(BIN2, rechts < 0 ? -rechts : 0);
+}
+
+void setup() {
+  pinMode(SLEEP, OUTPUT); digitalWrite(SLEEP, HIGH); delay(2);
+  ledcAttach(AIN1, 20000, 8); ledcAttach(AIN2, 20000, 8);
+  ledcAttach(BIN1, 20000, 8); ledcAttach(BIN2, 20000, 8);
+}
+
+void loop() {
+  motoren(150, 150);   // beide vorwärts
+  delay(2000);
+  motoren(0, 0);
+  delay(2000);
+}
+```
+
+<Hinweis titel="Ein Rad dreht falsch herum?">
+Das ist normal: Die Motoren sind spiegelbildlich eingebaut. Batterieschalter aus, dann die beiden Kabel **dieses** Motors am Treiber tauschen. Im Code änderst du nichts. So bedeutet „positiv“ ab jetzt für beide Räder „vorwärts“.
+</Hinweis>
+
+<Bestaetigung id="richtung" titel="Prüfung: Beide Räder vorwärts" art="Beobachtung" text="Bei motoren(150, 150) drehen beide Räder so, dass der Roboter vorwärts fahren würde, und kein Kabel schleift." knopf="Stimmt" />

@@ -66,7 +66,7 @@ Der Weg dorthin beginnt mit einer einzelnen LED.
 | :---: | --- | --- | :---: |
 | 0 | Werkbank | Ziel, Sicherheit mit bewegten Teilen | ✅ |
 | 1 | Motor | Gleichstrommotor, Anlaufstrom, H-Brücke, DRV8833 und PWM am ESP32 | ✅ |
-| 2 | Fahrwerk | Chassis, eine Versorgung für alles, Anfahrrampen, Lenken | 🛠️ |
+| 2 | Fahrwerk | Chassis, eine Versorgung für alles, Belastungstest, Anfahrrampen, Lenken | ✅ |
 | 3 | Augen | Infrarot-Liniensensoren, Ultraschall, Bremsweg | 🛠️ |
 | 4 | Regler | Zweipunktregler, P, PID, Einstellen | 🛠️ |
 | 5 | Tacho | Encoder, Geschwindigkeit, Odometrie | 🛠️ |

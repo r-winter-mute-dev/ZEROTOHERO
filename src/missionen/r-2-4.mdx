@@ -1,0 +1,82 @@
+---
+id: r-2-4
+abzeichen: Kurvenfahrer
+checks:
+  - id: trainer
+  - id: rechnen
+  - id: spur
+    hardware: true
+  - id: geraet
+    hardware: true
+  - id: schief
+spick:
+  - t: "Geradeaus"
+    v: "v<sub>l</sub> = v<sub>r</sub>"
+  - t: "Auf der Stelle"
+    v: "v<sub>l</sub> = −v<sub>r</sub>"
+  - t: "Kurvenradius"
+    v: "R = b/2 × (v<sub>r</sub> + v<sub>l</sub>) / (v<sub>r</sub> − v<sub>l</sub>)"
+  - t: "Ein Rad steht"
+    v: "R = b/2"
+  - t: "b"
+    v: "Spurbreite: Abstand der Radmitten"
+---
+import Quiz from '../components/Quiz.astro';
+import Zahl from '../components/Zahl.astro';
+import Rechnen from '../components/Rechnen.astro';
+import Seriell from '../components/Seriell.astro';
+import Differenzial from '../components/Differenzial.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Karte from '../components/Karte.astro';
+
+Dein Roboter hat kein Lenkrad. Er lenkt wie ein Panzer oder ein Rollstuhl: mit zwei Rädern, die unterschiedlich schnell drehen. **Deine Mission: Verstehe den Differenzialantrieb, berechne Kurvenradien und lass den Roboter auf dem Boden vier Figuren fahren.**
+
+## Differenzialantrieb
+
+<Karte titel="Gleich schnell" nr={1}>
+Drehen beide Räder gleich schnell in dieselbe Richtung, fährt der Roboter geradeaus. Seine Mitte bewegt sich mit dem Mittelwert der beiden Radgeschwindigkeiten.
+</Karte>
+
+<Karte titel="Verschieden schnell" nr={2}>
+Ist das rechte Rad schneller, legt es in derselben Zeit mehr Weg zurück. Der Roboter dreht sich nach links und fährt eine Kurve. Je größer der Unterschied, desto enger die Kurve.
+</Karte>
+
+<Karte titel="Gegeneinander" nr={3}>
+Drehen beide Räder gleich schnell, aber in entgegengesetzte Richtungen, bewegt sich die Mitte gar nicht. Der Roboter dreht auf der Stelle. Steht ein Rad, dreht er um genau dieses Rad.
+</Karte>
+
+<Karte titel="Der Radius" nr={4}>
+Mit der Spurbreite b, dem Abstand der beiden Räder, gilt für den Radius der Kurve, gemessen bis zur Mitte des Roboters: R = b/2 × (v<sub>r</sub> + v<sub>l</sub>) / (v<sub>r</sub> − v<sub>l</sub>). Sind beide gleich schnell, steht unten null, der Radius ist unendlich: geradeaus.
+</Karte>
+
+<Merke>Gleich schnell fährt gerade, gegeneinander dreht auf der Stelle. Der Unterschied der Räder bestimmt den Radius.</Merke>
+
+<Differenzial id="trainer" titel="Trainer: Lenken mit zwei Rädern" />
+
+<Rechnen id="rechnen" typ="kurve" titel="Rechenaufgaben: Kurvenradius" />
+
+## Deine Spurbreite
+
+Miss an deinem Roboter den Abstand von der Mitte des linken Rads zur Mitte des rechten Rads.
+
+<Zahl id="spur" titel="Messwert: Spurbreite" frage="Wie groß ist die Spurbreite deines Roboters?" einheit="cm" min={6} max={30} vorlaeufig hilfe={[
+  { unter: 6, text: 'Sehr schmal. Hast du von Radmitte zu Radmitte gemessen, nicht nur die Breite eines Rads?' },
+  { ueber: 30, text: 'Sehr breit für ein kleines Fahrgestell. Miss in Zentimetern, nicht in Millimetern.' },
+]} />
+
+## Fahrprobe auf dem Boden
+
+<Hinweis art="sicherheit">
+Freie Fläche von etwa 1 × 1 Meter auf dem Boden, nicht auf dem Tisch. Nichts Zerbrechliches in der Nähe, Haustiere aus dem Raum. Beim ersten Mal die Hand in der Nähe des Schalters halten.
+</Hinweis>
+
+Das Programm `firmware/roboter-akt-2-fahren/r-2-4-lenken/` wartet nach dem Einschalten 5 Sekunden, dann fährt es nacheinander: geradeaus, eine Drehung auf der Stelle, eine Drehung um das linke Rad und eine weite Linkskurve. Trag vorher deinen Anlaufwert bei `ANLAUF` ein. Danach Akku aus, 3V3-Kabel ab und über USB die Nachweis-Zeile auslesen.
+
+<Seriell id="geraet" titel="Gerätenachweis: Vier Figuren gefahren" muster="^KW-CHECK:r-2-4:[0-9A-F]{12}$" hinweis="Die Zeile erscheint beim Auslesen über USB, nachdem der Roboter einmal mit Akku gefahren ist." />
+
+<Quiz id="schief" titel="Beobachtung: Geradeaus?" fragen={[
+  { frage: 'Bei der ersten Figur bekommen beide Motoren denselben PWM-Wert. Trotzdem fährt der Roboter einen leichten Bogen. Warum?', richtig: 'Zwei Motoren sind nie ganz gleich: Reibung, Getriebe und Wicklung unterscheiden sich ein wenig', falsch: ['Der ESP32 rechnet bei einem Motor falsch', 'Das Stützrad lenkt absichtlich'], erklaerung: 'Gleicher PWM-Wert heißt gleiche mittlere Spannung, nicht gleiche Drehzahl. In Akt 5 misst der Roboter die Drehzahl mit Encodern und regelt beide Räder auf denselben Wert.' },
+]} />
+
+<Merke>Gleiche PWM ist nicht gleiche Drehzahl. Echtes Geradeausfahren braucht Messen und Regeln.</Merke>

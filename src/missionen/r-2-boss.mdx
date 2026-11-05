@@ -1,0 +1,80 @@
+---
+id: r-2-boss
+abzeichen: Fahrwerks-Mechaniker
+checks:
+  - id: boss
+spick:
+  - t: "Neustarts"
+    v: "Elko, Masse, ESP32 am Wandler?"
+  - t: "Dreht auf der Stelle"
+    v: "Ein Motor andersherum angeschlossen"
+  - t: "Bogen"
+    v: "Motoren ungleich, Rad schleift, Reifen locker"
+  - t: "Akku plötzlich aus"
+    v: "Schutzschaltung hat bei Stromspitze abgeschaltet"
+  - t: "Vorgehen"
+    v: "Mechanik, Versorgung, Signale, Programm"
+---
+import Logdiagnose from '../components/Logdiagnose.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Auf dem Tisch lief alles. Auf dem Boden fährt der Roboter im Kreis, bleibt stehen oder startet neu. Fehler beim Fahren haben drei mögliche Quellen: Mechanik, Versorgung, Programm. **Dein Bosskampf: Sechs Roboter fahren falsch. Finde die Ursache.**
+
+## Die Methode
+
+1. **Mechanik:** Aufbocken. Drehen beide Räder frei? Schleift etwas?
+2. **Versorgung:** Was sagt der Belastungstest aus Mission 2.2? Gibt es Neustarts?
+3. **Signale:** Bekommen beide Motoren, was das Programm schickt?
+4. **Programm:** Stimmen Vorzeichen, Pins und der Anlaufwert?
+
+<Merke>Erst aufbocken und Mechanik prüfen. Dann Versorgung, dann Signale, dann Programm.</Merke>
+
+<Hinweis titel="Lesetipp">
+Die Fälle sind ausgedacht, aber typisch. Die Beobachtungen stammen vom Boden, aus dem seriellen Monitor oder vom Multimeter.
+</Hinweis>
+
+<Logdiagnose id="boss" titel="Bosskampf: Fährt im Kreis" anzahl={5} faelle={[
+  {
+    symptom: 'Beim Programm „Geradeaus“ dreht der Roboter auf der Stelle, statt nach vorn zu fahren.',
+    log: 'Aufgebockt, motoren(150, 150):\nlinkes Rad: dreht vorwärts\nrechtes Rad: dreht rückwärts\nbeide gleich schnell',
+    richtig: 'Der rechte Motor ist andersherum angeschlossen. Seine zwei Kabel am Treiber tauschen.',
+    falsch: ['Der DRV8833 ist an Kanal B defekt.', 'Der Akku ist zu schwach für zwei Motoren.'],
+    erklaerung: 'Gleich schnell, aber gegeneinander: Das ist genau die Drehung auf der Stelle aus Mission 2.4. Die Motoren sind spiegelbildlich eingebaut, deshalb muss einer andersherum angeschlossen werden (Mission 2.1).',
+  },
+  {
+    symptom: 'Jedes Mal, wenn der Roboter losfährt, startet der ESP32 neu. Aufgebockt passiert es seltener als auf dem Boden.',
+    log: 'Belastungstest: KW-CHECK:r-2-2:A1B2C3D4E5F6:1890:4\nElko: liegt noch in der Tüte\n3V3-Pin des ESP32: verbunden mit VM statt mit dem Wandler',
+    richtig: 'Der ESP32 hängt direkt am Akku statt am Wandler, und der Elko fehlt. Jede Anlaufspitze reißt seine Spannung mit nach unten.',
+    falsch: ['Der Anlaufwert ist zu hoch eingestellt.', 'Die PWM-Frequenz von 20 kHz stört den ESP32.'],
+    erklaerung: 'Vier Neustarts und 1,9 V Einbruch. Auf dem Boden ist die Last größer als aufgebockt, deshalb passiert es dort öfter. Der Wandler hält die 3,3 V, der Elko puffert die Spitze.',
+  },
+  {
+    symptom: 'Der Roboter soll geradeaus fahren, zieht aber deutlich nach rechts. Auch nach dem Tausch der Akkus.',
+    log: 'Aufgebockt, motoren(150, 150): beide Räder drehen vorwärts\nRechtes Rad mit der Hand gedreht: schwergängig, kratzendes Geräusch\nEin Kabelbinder-Ende berührt die rechte Encoderscheibe',
+    richtig: 'Am rechten Rad schleift der Kabelbinder an der Encoderscheibe. Das Rad wird gebremst und dreht langsamer.',
+    falsch: ['Der rechte Motor bekommt zu viel Strom.', 'Das Programm vertauscht links und rechts.'],
+    erklaerung: 'Das langsamere Rad liegt auf der Innenseite der Kurve. Erst die Mechanik prüfen: Lässt sich jedes Rad leicht von Hand drehen?',
+  },
+  {
+    symptom: 'Bei voller Kraft aus dem Stand geht plötzlich alles aus: kein Motor, kein ESP32. Nach dem Anstecken des Ladekabels läuft alles wieder.',
+    log: 'Akku vorher: 3,9 V\nNach dem Ausfall an OUT+: 0,0 V\nAn B+ (direkt an der Zelle): 3,8 V\nElko fehlt, beide Motoren starten gleichzeitig mit PWM 255',
+    richtig: 'Die Schutzschaltung des Lademoduls hat bei der Stromspitze abgeschaltet. Die Zelle ist voll, nur der Ausgang ist gesperrt.',
+    falsch: ['Der Akku ist schlagartig leer geworden.', 'Der Schalter ist durchgebrannt.'],
+    erklaerung: 'Die Zelle hat noch 3,8 V, nur OUT+ ist tot: Der Schutz schaltet bei zu hohem Strom ab, damit nichts verbrennt. Bei üblichen Modulen setzen das Abklemmen der Last oder das Anstecken des Ladekabels ihn zurück. Abhilfe: Rampe beim Anfahren (Mission 2.3) und der Elko.',
+  },
+  {
+    symptom: 'Bei langsamer Fahrt mit 10 % bewegt sich der Roboter gar nicht, mit 20 % fährt er normal. Aufgebockt drehen die Räder schon bei 10 %.',
+    log: 'ANLAUF im Programm: 85 (gemessen aufgebockt)\nprozentZuPwm(10) = 100\nAuf dem Teppich: Räder stehen, Motoren brummen\nAuf glattem Boden: fährt langsam',
+    richtig: 'Auf dem Boden braucht der Roboter mehr Kraft als aufgebockt. Der Anlaufwert muss am fahrenden Roboter gemessen werden.',
+    falsch: ['Die Funktion prozentZuPwm rechnet falsch.', 'Der Treiber kann keine niedrigen Werte.'],
+    erklaerung: 'Aufgebockt muss der Motor nur sich selbst und das Getriebe drehen. Auf dem Boden kommen Gewicht und Rollwiderstand dazu, auf Teppich noch mehr. Miss den Anlaufwert dort, wo der Roboter fahren soll.',
+  },
+  {
+    symptom: 'Der Roboter fährt bei „Weite Linkskurve“ eine Rechtskurve. Alles andere stimmt.',
+    log: 'Programm: fahre("Weite Linkskurve", 60, 30, 2000)\nGeradeaus: richtig\nAuf der Stelle links drehen: richtig',
+    richtig: 'Die Werte sind vertauscht: Für eine Linkskurve muss das rechte Rad schneller sein, also links 30, rechts 60.',
+    falsch: ['Die Motoren sind falsch angeschlossen.', 'Der Kurvenradius ist zu groß für den Raum.'],
+    erklaerung: 'Alle anderen Figuren stimmen, also passen Verdrahtung und Mechanik. Das schnellere Rad liegt außen. Links 60, rechts 30 ergibt eine Rechtskurve.',
+  },
+]} />

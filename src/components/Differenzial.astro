@@ -1,0 +1,143 @@
+---
+// Lenk-Trainer: Differenzialantrieb von oben. Zwei Regler für das linke und rechte Rad, die Bahn wird gezeichnet.
+// Modell: Spurbreite 14 cm, 100 % = 30 cm/s, kein Schlupf. Modellwerte zum Verstehen.
+import Station from './Station.astro';
+interface Props { id: string; titel: string; }
+const { id, titel } = Astro.props;
+---
+<Station id={id} titel={titel} art="Trainer">
+  <div class="df" data-kw-diff>
+    <p class="df-aufgabe" data-df-aufgabe aria-live="polite"></p>
+    <div class="df-raster">
+      <svg viewBox="-150 -150 300 300" class="df-svg" role="img" aria-label="Draufsicht: Bahn des Roboters bei den eingestellten Radgeschwindigkeiten">
+        <g class="df-gitter">
+          {[-100, -50, 0, 50, 100].map((v) => (<><line x1={v} y1="-150" x2={v} y2="150" /><line x1="-150" y1={v} x2="150" y2={v} /></>))}
+        </g>
+        <path class="df-bahn" data-df-bahn d="" />
+        <g data-df-robo>
+          <rect x="-10" y="-12" width="20" height="24" rx="4" class="df-koerper" />
+          <rect x="-13" y="-6" width="3" height="12" class="df-rad" />
+          <rect x="10" y="-6" width="3" height="12" class="df-rad" />
+          <path d="M0 -12 L-4 -6 L4 -6 Z" class="df-nase" />
+        </g>
+        <text x="-146" y="146" class="df-txt">1 Kästchen = 50 cm</text>
+      </svg>
+      <div class="df-regler">
+        <label class="df-schieber"><span>Linkes Rad: <strong data-df-lw>50 %</strong></span>
+          <input type="range" min="-100" max="100" step="5" value="50" data-df-l aria-label="Linkes Rad in Prozent" /></label>
+        <label class="df-schieber"><span>Rechtes Rad: <strong data-df-rw>50 %</strong></span>
+          <input type="range" min="-100" max="100" step="5" value="50" data-df-r aria-label="Rechtes Rad in Prozent" /></label>
+        <dl class="df-werte">
+          <dt>Fahrt (Mitte)</dt><dd data-df-v></dd>
+          <dt>Drehung</dt><dd data-df-w></dd>
+          <dt>Kurvenradius</dt><dd data-df-rad></dd>
+        </dl>
+        <button type="button" class="knopf klein" data-df-los>Fahren (4 s)</button>
+      </div>
+    </div>
+    <p class="df-erkl" data-df-erkl aria-live="polite">Stell die Räder ein und drück „Fahren“.</p>
+    <p class="leise klein">Modell: Spurbreite 14 cm, 100 % entsprechen 30 cm/s, die Räder rutschen nicht. Echte Motoren sind nie ganz gleich schnell, das kommt in Akt 5.</p>
+  </div>
+</Station>
+
+<script>
+  import { fmt, station } from '../scripts/station';
+  const B = 14, VMAX = 30, T = 4;
+
+  document.querySelectorAll<HTMLElement>('[data-kw-diff]').forEach((box) => {
+    const s = station(box.closest('[data-kw-check]') as HTMLElement);
+    const l = box.querySelector<HTMLInputElement>('[data-df-l]')!;
+    const r = box.querySelector<HTMLInputElement>('[data-df-r]')!;
+    interface W { vl: number; vr: number; v: number; w: number; rad: number; }
+    const aufgaben: { text: string; pruef: (x: W) => boolean }[] = [
+      { text: 'Fahr geradeaus vorwärts.', pruef: (x) => x.vl === x.vr && x.vl > 0 },
+      { text: 'Dreh den Roboter auf der Stelle.', pruef: (x) => x.vl === -x.vr && x.vl !== 0 },
+      { text: 'Dreh um das stehende linke Rad (Radius = halbe Spurbreite).', pruef: (x) => x.vl === 0 && x.vr !== 0 },
+      { text: 'Fahr eine Linkskurve vorwärts mit einem Radius zwischen 20 und 40 cm.', pruef: (x) => x.v > 0 && x.w > 0 && x.rad >= 20 && x.rad <= 40 },
+    ];
+    let nr = 0, laeuft = 0;
+
+    function werte(): W {
+      const vl = Number(l.value), vr = Number(r.value);
+      const v = ((vl + vr) / 2) * VMAX / 100;              // cm/s
+      const w = ((vr - vl) * VMAX / 100) / B;              // rad/s, positiv = links
+      const rad = vr === vl ? Infinity : Math.abs((B / 2) * (vr + vl) / (vr - vl));
+      return { vl, vr, v, w, rad };
+    }
+
+    function anzeigen() {
+      const x = werte();
+      box.querySelector('[data-df-lw]')!.textContent = `${x.vl} %`;
+      box.querySelector('[data-df-rw]')!.textContent = `${x.vr} %`;
+      box.querySelector('[data-df-v]')!.textContent = `${fmt(x.v, 1)} cm/s`;
+      box.querySelector('[data-df-w]')!.textContent = x.w === 0 ? 'keine' : `${fmt(Math.abs(x.w * 180 / Math.PI), 0)} °/s ${x.w > 0 ? 'links' : 'rechts'}`;
+      box.querySelector('[data-df-rad]')!.textContent = x.rad === Infinity ? 'unendlich (gerade)' : `${fmt(x.rad, 1)} cm`;
+    }
+
+    function fahren() {
+      const x = werte();
+      const id = ++laeuft;
+      let px = 0, py = 60, th = 0, t = 0;   // th = 0 heißt: Nase zeigt nach oben
+      const SK = 1;                           // 1 SVG-Einheit = 1 cm (Gitter 50 cm)
+      let d = `M${px} ${py}`;
+      const bahn = box.querySelector<SVGPathElement>('[data-df-bahn]')!;
+      const robo = box.querySelector<SVGGElement>('[data-df-robo]')!;
+      let vorher = performance.now();
+      const schritt = (jetzt: number) => {
+        if (id !== laeuft) return;
+        const dt = Math.min(0.05, (jetzt - vorher) / 1000); vorher = jetzt;
+        t += dt;
+        th += x.w * dt;
+        px += -Math.sin(th) * x.v * dt * SK;
+        py += -Math.cos(th) * x.v * dt * SK;
+        d += ` L${px.toFixed(1)} ${py.toFixed(1)}`;
+        bahn.setAttribute('d', d);
+        robo.setAttribute('transform', `translate(${px} ${py}) rotate(${(-th * 180) / Math.PI})`);
+        if (t < T) requestAnimationFrame(schritt); else fertig(x);
+      };
+      robo.setAttribute('transform', `translate(${px} ${py})`);
+      requestAnimationFrame(schritt);
+    }
+
+    function fertig(x: W) {
+      const e = box.querySelector<HTMLElement>('[data-df-erkl]')!;
+      let text: string;
+      if (x.vl === 0 && x.vr === 0) text = 'Beide Räder stehen. Der Roboter auch.';
+      else if (x.vl === x.vr) text = `Beide Räder gleich schnell: Der Roboter fährt gerade ${x.vl > 0 ? 'vorwärts' : 'rückwärts'}.`;
+      else if (x.vl === -x.vr) text = 'Gleich schnell, aber gegeneinander: Der Roboter dreht auf der Stelle um seine Mitte.';
+      else if (x.vl === 0 || x.vr === 0) text = `Ein Rad steht. Der Roboter dreht um dieses Rad, Radius ${fmt(B / 2)} cm.`;
+      else text = `Das ${x.vr > x.vl ? 'rechte' : 'linke'} Rad ist schneller, also fährt er eine ${x.w > 0 ? 'Links' : 'Rechts'}kurve mit ${fmt(x.rad, 1)} cm Radius.`;
+      e.textContent = text;
+      const a = aufgaben[nr];
+      if (a && a.pruef(x) && !s.gesperrt()) {
+        nr++;
+        if (nr >= aufgaben.length) s.bestehen('Trainer geschafft: Gleich schnell fährt gerade, gegeneinander dreht auf der Stelle, der Unterschied bestimmt den Radius.');
+        else s.melden('Richtig. Weiter mit der nächsten Aufgabe.', 'gut');
+      } else if (a) s.melden('Das war noch nicht die Aufgabe. Ändere die Räder und fahr noch einmal.', '');
+      box.querySelector('[data-df-aufgabe]')!.textContent = nr < aufgaben.length ? `Aufgabe ${nr + 1} von ${aufgaben.length}: ${aufgaben[nr].text}` : 'Geschafft. Probier ruhig weiter herum.';
+    }
+
+    [l, r].forEach((i) => i.addEventListener('input', anzeigen));
+    box.querySelector('[data-df-los]')!.addEventListener('click', fahren);
+    box.querySelector('[data-df-aufgabe]')!.textContent = `Aufgabe 1 von ${aufgaben.length}: ${aufgaben[0].text}`;
+    anzeigen();
+  });
+</script>
+
+<style>
+  .df-aufgabe { font-weight: 700; }
+  .df-erkl { margin: 0.8rem 0 0.5rem; padding: 0.6rem 0.8rem; border-radius: var(--radius-klein); background: rgba(255,255,255,0.04); }
+  .df-raster { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+  @media (max-width: 720px) { .df-raster { grid-template-columns: 1fr; } }
+  .df-svg { width: 100%; height: auto; background: var(--flaeche-leicht); border-radius: var(--radius-klein); }
+  .df-gitter line { stroke: var(--flaeche); stroke-width: 0.6; }
+  .df-bahn { fill: none; stroke: var(--akzent); stroke-width: 2; stroke-linecap: round; }
+  .df-koerper { fill: var(--tief); stroke: var(--akzent-hell); stroke-width: 1.5; }
+  .df-rad { fill: var(--leise); }
+  .df-nase { fill: var(--akzent-hell); }
+  .df-txt { fill: var(--leise); font-size: 9px; font-family: var(--schrift); }
+  .df-schieber { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.7rem; }
+  .df-schieber input { width: 100%; accent-color: var(--akzent); min-height: 2.75rem; }
+  .df-werte { display: grid; grid-template-columns: 1fr auto; gap: 0.3rem 0.8rem; margin: 0 0 0.8rem; }
+  .df-werte dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+</style>

@@ -1,0 +1,79 @@
+---
+id: r-2-3
+checks:
+  - id: warum
+  - id: umrechnen
+  - id: geraet
+    hardware: true
+spick:
+  - t: "Rampe"
+    v: "In kleinen Schritten zum Ziel, z. B. 50 Schritte in 0,6 s"
+  - t: "Prozent → PWM"
+    v: "map(p, 1, 100, ANLAUF, 255)"
+  - t: "0 %"
+    v: "bleibt PWM 0"
+  - t: "ANLAUF"
+    v: "Dein Wert aus Mission 1.4"
+---
+import Quiz from '../components/Quiz.astro';
+import Seriell from '../components/Seriell.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Karte from '../components/Karte.astro';
+
+Vollgas aus dem Stand: Die Räder drehen kurz durch, der Roboter ruckt, der Akku bricht ein. Ein Mensch tritt beim Anfahren auch nicht schlagartig aufs Pedal. **Deine Mission: Bring dem Roboter bei, sanft anzufahren, und miss, wie viel das bringt.**
+
+## Rampen
+
+<Karte titel="Was eine Rampe ist" nr={1}>
+Statt den PWM-Wert sofort von 0 auf 200 zu setzen, erhöht das Programm ihn in vielen kleinen Schritten, zum Beispiel 50 Schritte in 0,6 Sekunden. Der Motor bekommt Zeit, Drehzahl aufzubauen. Mit der Drehzahl wächst seine Gegenspannung, und der Strom bleibt kleiner (Mission 1.2).
+</Karte>
+
+<Karte titel="Was sie bringt" nr={2}>
+Weniger Spitzenstrom heißt weniger Einbruch am Akku. Die Räder haften besser, weil die Kraft langsam kommt. Getriebe und Fahrgestell werden geschont, und der Roboter kippelt nicht. Beim Bremsen gilt dasselbe in umgekehrter Richtung.
+</Karte>
+
+<Karte titel="Der Preis" nr={3}>
+Eine Rampe kostet Zeit: Der Roboter reagiert etwas später. Für einen Notaus (Akt 6) ist das falsch. Dort soll er sofort stehen, also bremsen statt Rampe.
+</Karte>
+
+<Merke>Rampen senken den Spitzenstrom und schonen die Mechanik. Für den Notaus gilt: sofort bremsen.</Merke>
+
+<Quiz id="warum" titel="Kurzcheck: Rampen" fragen={[
+  { frage: 'Warum zieht ein Motor mit Rampe beim Anfahren weniger Spitzenstrom?', richtig: 'Er dreht schon ein wenig, wenn die Spannung steigt. Seine Gegenspannung bremst den Strom', falsch: ['Die Rampe schaltet einen Widerstand dazu', 'Der Akku liefert bei langsamer Steigung weniger Spannung'], erklaerung: 'Steht der Motor, gilt I = U / R. Mit jeder Umdrehung wächst die Gegenspannung und begrenzt den Strom.' },
+  { frage: 'Ein Hindernis taucht plötzlich auf. Soll der Roboter mit Rampe anhalten?', richtig: 'Nein, dann soll er sofort bremsen', falsch: ['Ja, sonst bricht der Akku ein', 'Ja, Rampen sind immer besser'], erklaerung: 'Sicherheit geht vor Komfort. Beim Bremsen fließt kein großer Strom aus dem Akku, der Motor wird über die Brücke kurzgeschlossen.' },
+]} />
+
+## In Prozent statt in PWM
+
+Aus Mission 1.4 weißt du: Unter deinem Anlaufwert brummt der Motor nur. Wer „fahr mit 10 %“ sagt, meint aber „langsam fahren“, nicht „brummen“. Das Programm rechnet deshalb Prozent in PWM um: 0 % bleibt 0, 1 % ist der Anlaufwert, 100 % ist 255.
+
+```cpp
+const int ANLAUF = 85;   // dein Wert aus Mission 1.4
+
+int prozentZuPwm(int prozent) {
+  prozent = constrain(prozent, -100, 100);
+  if (prozent == 0) return 0;
+  int betrag = map(abs(prozent), 1, 100, ANLAUF, 255);
+  return prozent > 0 ? betrag : -betrag;
+}
+```
+
+`map(wert, vonMin, vonMax, nachMin, nachMax)` rechnet einen Wert linear von einem Bereich in einen anderen um, mit ganzen Zahlen.
+
+<Quiz id="umrechnen" titel="Kurzcheck: Umrechnen" fragen={[
+  { frage: 'ANLAUF ist 85. Was gibt prozentZuPwm(50) zurück? (map rechnet 85 + (50 − 1) × (255 − 85) / (100 − 1) und schneidet die Nachkommastellen ab.)', richtig: '169', falsch: ['127', '85'], erklaerung: '49 × 170 = 8330, 8330 / 99 = 84 (ganzzahlig). 85 + 84 = 169. 50 % liegt also etwa in der Mitte zwischen Anlaufwert und Vollgas, nicht bei 127.' },
+  { frage: 'Was gibt prozentZuPwm(-100) zurück?', richtig: '-255: volle Kraft rückwärts', falsch: ['0', '-85'], erklaerung: 'Der Betrag 100 wird zu 255, das Vorzeichen bleibt. Negativ heißt rückwärts.' },
+]} />
+
+## Messen: Sprung gegen Rampe
+
+Das Programm `firmware/roboter-akt-2-fahren/r-2-3-sanft-anfahren/` fährt einmal schlagartig und einmal mit 0,6 s Rampe auf 80 % und misst beide Male den Einbruch an VM, wie in Mission 2.2. Trag vorher deinen Anlaufwert oben bei `ANLAUF` ein.
+
+Ablauf wie beim Belastungstest: hochladen, Akku-Betrieb mit aufgebocktem Roboter, dann Akku aus, 3V3-Kabel ab und über USB auslesen. Die Nachweis-Zeile hat die Form `KW-CHECK:r-2-3:<Chip>:<Einbruch schlagartig>:<Einbruch Rampe>`.
+
+<Seriell id="geraet" titel="Gerätenachweis: Sprung und Rampe gemessen" muster="^KW-CHECK:r-2-3:[0-9A-F]{12}:-?[0-9]{1,4}:-?[0-9]{1,4}$" hinweis="Die Zeile erscheint beim Auslesen über USB, wenn der Test vorher mit Akku gelaufen ist." />
+
+<Hinweis titel="Und wenn die Rampe kaum besser ist?">
+Mit Elko, kurzen Leitungen und einem frischen Akku sind beide Einbrüche schon klein. Der Unterschied wächst, wenn der Akku leerer wird oder die Leitungen dünn sind. Nimm den Elko testweise heraus (Akku vorher aus) und vergleiche noch einmal.
+</Hinweis>

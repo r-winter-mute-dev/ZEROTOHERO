@@ -1,0 +1,92 @@
+---
+id: r-2-2
+abzeichen: Stromverteiler
+checks:
+  - id: plan
+  - id: rechnen
+  - id: geraet
+    hardware: true
+spick:
+  - t: "Motoren"
+    v: "OUT+ direkt an VM (2,7–10,8 V)"
+  - t: "ESP32"
+    v: "OUT+ → Buck-Boost 3,3 V → 3V3-Pin"
+  - t: "Puffer"
+    v: "1000 µF direkt an VM/GND, Streifen an GND"
+  - t: "Messen"
+    v: "10 kΩ / 10 kΩ von VM an GPIO 34"
+  - t: "Einbruch"
+    v: "ΔU = R<sub>innen</sub> × I"
+  - t: "USB anstecken"
+    v: "Akku AUS, 3V3-Kabel ab, dann USB"
+---
+import Quiz from '../components/Quiz.astro';
+import Rechnen from '../components/Rechnen.astro';
+import Seriell from '../components/Seriell.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Karte from '../components/Karte.astro';
+import Checkliste from '../components/Checkliste.astro';
+
+Bisher hatten Motoren und ESP32 je eine eigene Quelle: Batterien und USB. Ein Roboter, der frei fährt, hat nur einen Akku. Genau hier gehen die meisten Roboter kaputt oder starten ständig neu. **Deine Mission: Versorge Motoren und ESP32 aus dem 18650-Akku und beweise mit einem Belastungstest, dass es keine Neustarts gibt.**
+
+## Ein Akku, zwei sehr verschiedene Verbraucher
+
+<Karte titel="Die Motoren sind grob" nr={1}>
+Die Motoren ziehen beim Anfahren für kurze Zeit ein Vielfaches ihres Laufstroms (Mission 1.2). Ihnen ist egal, ob die Spannung zwischen 3,0 und 4,2 V schwankt, sie drehen dann nur etwas langsamer. Der DRV8833 arbeitet laut Datenblatt mit 2,7 bis 10,8 V an VM. Die Akkuspannung passt also direkt.
+</Karte>
+
+<Karte titel="Der ESP32 ist empfindlich" nr={2}>
+Der ESP32 braucht stabile 3,3 V. Fällt seine Spannung zu tief, löst der Brownout-Schutz einen Neustart aus. Deshalb bekommt er seine Spannung über den Buck-Boost-Wandler aus Kampagne 1: Der hält die 3,3 V, auch wenn der Akku kurz einbricht.
+</Karte>
+
+<Karte titel="Warum der Akku einbricht" nr={3}>
+Akku, Schutzschaltung, Schalter und Leitungen haben zusammen einen kleinen Innenwiderstand. Fließt ein großer Strom, fällt daran eine Spannung ab: ΔU = R × I. Bei 0,2 Ω und 2 A sind das 0,4 V, die an VM fehlen. Der Elko direkt am Treiber liefert die ersten Millisekunden der Stromspitze selbst und glättet so den Einbruch.
+</Karte>
+
+<Merke>Motoren direkt an den Akku, ESP32 über den Wandler. Der Elko sitzt direkt am Treiber. Alle Massen sind verbunden.</Merke>
+
+<Quiz id="plan" titel="Kurzcheck: Der Versorgungsplan" fragen={[
+  { frage: 'Warum hängen die Motoren nicht auch am 3,3-V-Ausgang des Wandlers?', richtig: 'Der Wandler liefert laut Shop höchstens 2 A, und die Anlaufspitzen der Motoren würden auch die 3,3 V für den ESP32 einbrechen lassen', falsch: ['3,3 V sind zu viel für die Motoren', 'Der DRV8833 braucht genau 5 V'], erklaerung: 'Getrennte Wege: Die groben Stromspitzen gehen direkt vom Akku an den Treiber. Der Wandler versorgt nur den ESP32 und bleibt ruhig.' },
+  { frage: 'Warum misst der Roboter die Motorspannung an GPIO 34 und nicht an GPIO 14 wie die Klingel?', richtig: 'GPIO 34 hängt an ADC1. ADC2 ist gesperrt, sobald das WLAN läuft, und der Roboter wird später per WLAN gesteuert', falsch: ['GPIO 14 kann keine Spannung messen', 'GPIO 34 misst genauer, weil er näher am Akku ist'], erklaerung: 'Das kennst du aus Kampagne 1, Mission 6.4. GPIO 34 ist außerdem ein reiner Eingang: Man kann ihn nicht versehentlich als Ausgang schalten.' },
+  { frage: 'Der Teiler aus 10 kΩ und 10 kΩ halbiert die Spannung. Was sieht GPIO 34 bei vollem Akku (4,2 V)?', richtig: '2,1 V, das kann der ADC des ESP32 messen', falsch: ['4,2 V, der Teiler ändert nichts', '8,4 V'], erklaerung: 'U = 4,2 V × 10 kΩ / 20 kΩ = 2,1 V. Der Teiler zieht dabei dauerhaft 4,2 V / 20 kΩ = 0,21 mA.' },
+]} />
+
+<Rechnen id="rechnen" typ="einbruch" titel="Rechenaufgaben: Spannungseinbruch" />
+
+## Verdrahtung
+
+<Hinweis art="sicherheit" titel="Die Programmier-Regel">
+Ab jetzt hängt der 3V3-Pin des ESP32 am Wandler. USB und Akku dürfen nie gleichzeitig dran sein (Kampagne 1, Akt 5). Zum Hochladen und Auslesen: **Akku AUS, das Kabel vom Wandler zum 3V3-Pin abziehen, dann USB anstecken.** Umgekehrt: USB ab, Kabel wieder stecken, Akku EIN. Nimm für dieses Kabel eine gut sichtbare Farbe.
+</Hinweis>
+
+<Checkliste id="versorgung" punkte={[
+  'Batterien aus Akt 1 entfernen. Akku noch nicht einlegen.',
+  'OUT+ des Lademoduls an den Schalter. Vom Schalter zwei Leitungen: eine an VM des DRV8833, eine an IN+ des Buck-Boost-Wandlers.',
+  'OUT− des Lademoduls an GND des Treibers, an IN− des Wandlers und an GND des ESP32.',
+  'OUT+ des Wandlers (3,3 V) über die farbige Steckbrücke an den 3V3-Pin des ESP32. OUT− an GND.',
+  'Elko 1000 µF so nah wie möglich an VM und GND des Treibers. Der Streifen (Minus) an GND.',
+  'Teiler: 10 kΩ von VM nach GPIO 34, 10 kΩ von GPIO 34 nach GND.',
+  'Kontrolle ohne Akku: Durchgangsprüfer zwischen OUT+ und OUT−. Es darf nicht piepen.',
+  'Akku einlegen, Roboter aufbocken, Schalter EIN. Ohne Programm passiert nichts. Mit dem Multimeter: 3,3 V am 3V3-Pin, Akkuspannung an VM.',
+]} />
+
+## Belastungstest
+
+Das Programm `firmware/roboter-akt-2-fahren/r-2-2-belastungstest/` startet beide Motoren zehnmal schlagartig mit voller Kraft und misst dabei 400 ms lang so oft wie möglich die Spannung an VM. Der tiefste Wert jeder Runde ergibt den Einbruch. Startet der ESP32 durch Unterspannung neu, zählt das Programm das mit.
+
+So läuft es ab:
+
+1. Hochladen über USB (Akku aus, 3V3-Kabel ab).
+2. USB ab, 3V3-Kabel stecken, Roboter aufbocken, Akku EIN. Nach 3 Sekunden starten die zehn Runden, etwa 16 Sekunden lang.
+3. Akku AUS, 3V3-Kabel ab, USB an, seriellen Monitor öffnen. Ohne Spannung an VM zeigt das Programm nur das gespeicherte Ergebnis mit der Nachweis-Zeile. Drück notfalls die Reset-Taste.
+
+Die Zeile hat die Form `KW-CHECK:r-2-2:<Chip>:<größter Einbruch in mV>:<Neustarts>`. Bestanden ist sie nur mit 0 Neustarts.
+
+<Seriell id="geraet" titel="Gerätenachweis: Belastungstest ohne Neustart" muster="^KW-CHECK:r-2-2:[0-9A-F]{12}:[0-9]{1,4}:0$" hinweis="Steht am Ende eine Zahl größer als 0, gab es Neustarts. Prüfe Elko, Masseverbindungen und ob der ESP32 wirklich am Wandler hängt und nicht an VM." />
+
+<Hinweis titel="Was ist ein guter Wert?">
+Das hängt von Akku, Schaltern und Leitungen ab, eine feste Grenze gibt es nicht. Wichtig ist: Die Spannung an VM bleibt über 2,7 V, und der ESP32 startet nicht neu. Probier den Test einmal ohne Elko (Akku vorher aus!) und vergleiche die Zahlen.
+</Hinweis>
+
+<Merke>Belastungstest bestanden heißt: zehnmal Vollgas aus dem Stand, kein Neustart.</Merke>
