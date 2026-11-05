@@ -1,0 +1,90 @@
+---
+id: r-1-2
+abzeichen: Motorkenner
+checks:
+  - id: gegen
+  - id: wicklung
+    hardware: true
+  - id: rechnen
+  - id: folgen
+spick:
+  - t: "Im Lauf"
+    v: "I = (U − U<sub>gegen</sub>) / R"
+  - t: "Blockiert"
+    v: "I = U / R"
+  - t: "Gegenspannung"
+    v: "Wächst mit der Drehzahl"
+  - t: "DRV8833"
+    v: "1,5 A Dauerstrom pro Kanal (Datenblatt)"
+  - t: "Messleitungen"
+    v: "Eigenen Widerstand abziehen"
+---
+import Quiz from '../components/Quiz.astro';
+import Zahl from '../components/Zahl.astro';
+import Rechnen from '../components/Rechnen.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Karte from '../components/Karte.astro';
+import Checkliste from '../components/Checkliste.astro';
+
+Ein Motor zieht nicht immer gleich viel Strom. Frei drehend ist es wenig, beim Anfahren und beim Blockieren ein Vielfaches. Dieser Spitzenstrom entscheidet, welcher Treiber, welcher Akku und welcher Puffer-Kondensator passen. **Deine Mission: Miss den Widerstand deines Motors und rechne aus, wie viel Strom er zieht, wenn er steht.**
+
+## Der Motor ist auch ein Generator
+
+<Karte titel="Gegenspannung" nr={1}>
+Dreht sich eine Spule im Magnetfeld, entsteht in ihr eine Spannung. So funktioniert ein Fahrraddynamo. Im laufenden Motor passiert das auch: Die Spule erzeugt eine Spannung, die gegen die Batterie arbeitet. Sie heißt **Gegenspannung** und wächst mit der Drehzahl.
+</Karte>
+
+<Karte titel="Was den Strom begrenzt" nr={2}>
+Am Wicklungswiderstand R liegt nur der Unterschied zwischen Batterie und Gegenspannung. Der Strom ist also I = (U − U<sub>gegen</sub>) / R. Dreht der Motor schnell, ist die Gegenspannung fast so groß wie U, und es fließt wenig Strom.
+</Karte>
+
+<Karte titel="Wenn der Motor steht" nr={3}>
+Beim Anfahren und beim Blockieren dreht sich nichts. Dann ist die Gegenspannung null, und nur der kleine Wicklungswiderstand bremst: I = U / R. Das ist der **Blockierstrom** oder Anlaufstrom, oft ein Vielfaches des Leerlaufstroms.
+</Karte>
+
+<Merke>Ein drehender Motor bremst seinen eigenen Strom mit der Gegenspannung. Steht er, gilt nur I = U / R.</Merke>
+
+<Quiz id="gegen" titel="Kurzcheck: Gegenspannung" fragen={[
+  { frage: 'Ein Motor wird beim Bergauffahren langsamer. Was passiert mit seinem Strom?', richtig: 'Er steigt, weil die Gegenspannung kleiner wird', falsch: ['Er sinkt, weil der Motor weniger tut', 'Er bleibt gleich, die Batterie ist ja dieselbe'], erklaerung: 'Weniger Drehzahl heißt weniger Gegenspannung. Am Widerstand liegt mehr Spannung, also fließt mehr Strom. Mehr Last heißt mehr Strom.' },
+  { frage: 'Wann zieht ein Motor den größten Strom?', richtig: 'Wenn er steht und trotzdem Spannung bekommt: beim Anfahren oder blockiert', falsch: ['Bei höchster Drehzahl', 'Kurz bevor man ihn abschaltet'], erklaerung: 'Ohne Drehung keine Gegenspannung. Deshalb ist der Strom beim Anlaufen am höchsten.' },
+]} />
+
+## Den Wicklungswiderstand messen
+
+Den Blockierstrom misst du nicht direkt: Den Motor festzuhalten, während er an der Batterie hängt, erhitzt ihn und kann die Sicherung im Multimeter auslösen. Du misst stattdessen den Widerstand und rechnest.
+
+<Checkliste id="ohm" punkte={[
+  'Motor ganz von der Batterie trennen. Widerstand misst man nur stromlos.',
+  'Multimeter auf den kleinsten Ω-Bereich (oft 200 Ω), rote Leitung in die V-Ω-Buchse.',
+  'Die Messspitzen fest aneinanderhalten und den Wert notieren. Das ist der Widerstand der Messleitungen, oft 0,1 bis 0,5 Ω.',
+  'Die Spitzen an die beiden Motoranschlüsse halten. Wert ablesen.',
+  'Die Achse mit der Hand ein Stück weiterdrehen und noch zweimal messen. Der Wert schwankt, weil die Bürsten auf anderen Segmenten des Kommutators liegen.',
+  'Vom kleinsten Messwert den Widerstand der Messleitungen abziehen.',
+]} />
+
+<Zahl id="wicklung" titel="Messwert: Wicklungswiderstand" frage="Welchen Widerstand hat die Wicklung deines Motors (ohne Messleitungen)?" einheit="Ω" min={0.5} max={40} vorlaeufig hilfe={[
+  { unter: 0.5, text: 'Sehr wenig. Hast du die Messspitzen vielleicht direkt aneinander gehalten? Oder den Widerstand der Leitungen zu groß abgezogen?' },
+  { ueber: 40, text: 'Viel für einen kleinen Getriebemotor. Haben die Spitzen guten Kontakt? Lötfahnen manchmal etwas abkratzen. Zeigt das Multimeter „1“ oder „OL“, ist der Kreis offen.' },
+]} />
+
+<Hinweis titel="Probier selbst: Der Motor als Dynamo">
+Multimeter auf Gleichspannung, kleinster Bereich. Die Messspitzen an den Motor, dann die Achse oder das Rad schnell mit den Fingern drehen. Du siehst eine kleine Spannung, und sie wird größer, je schneller du drehst. Das ist die Gegenspannung.
+</Hinweis>
+
+## Rechnen
+
+<Rechnen id="rechnen" typ="blockier" titel="Rechenaufgaben: Blockierstrom" />
+
+Rechne jetzt mit deinem eigenen Wert: 3 V geteilt durch deinen Wicklungswiderstand. Vergleich das mit deinem Leerlaufstrom aus Mission 1.1.
+
+## Was das für den Roboter bedeutet
+
+Der Motortreiber DRV8833 schafft laut Datenblatt 1,5 A Dauerstrom pro Kanal und kurzzeitig 2 A Spitze. Bei größeren Strömen schaltet seine Schutzschaltung ab. Zwei Motoren, die gleichzeitig anfahren, ziehen ihren Anlaufstrom aus demselben Akku. Diese Spitze ist der Grund für den Puffer-Kondensator in Akt 2.
+
+<Quiz id="folgen" titel="Kurzcheck: Folgen für den Aufbau" fragen={[
+  { frage: 'Ein Motor hat 3 Ω Wicklungswiderstand und läuft an 4,2 V. Reicht ein Kanal des DRV8833 für den Anlauf?', richtig: 'Knapp: 1,4 A liegt unter 1,5 A Dauerstrom, aber ein blockierter Motor wird trotzdem heiß', falsch: ['Nein, der Strom liegt bei 12,6 A', 'Ja, der Strom ist nur 0,14 A'], erklaerung: 'I = 4,2 V / 3 Ω = 1,4 A. Der Treiber hält das aus, doch die Wärme im Motor bleibt. Blockieren ist kein Dauerzustand.' },
+  { frage: 'Warum startet ein ESP32 manchmal neu, wenn beide Motoren gleichzeitig anfahren?', richtig: 'Die Anlaufströme lassen die Akkuspannung kurz einbrechen', falsch: ['Die Motoren senden Funkstörungen ins WLAN', 'Der ESP32 erkennt die Motoren als USB-Gerät'], erklaerung: 'Großer Strom durch den Innenwiderstand von Akku und Leitungen senkt die Spannung. Fällt sie zu tief, löst der Unterspannungsschutz (Brownout) des ESP32 einen Neustart aus.' },
+]} />
+
+<Merke>Anlaufstrom = U / R. Er bestimmt Treiber, Akku und Puffer. Blockieren ist kein Dauerzustand.</Merke>

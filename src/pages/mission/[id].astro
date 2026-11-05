@@ -1,6 +1,6 @@
 ---
 import Basis from '../../layouts/Basis.astro';
-import { ALLE_MISSIONEN, aktVon, naechste, vorherige } from '../../data/kampagne';
+import { ALLE_MISSIONEN, aktVon, kampagneVon, naechste, vorherige } from '../../data/kampagne';
 import { url } from '../../config';
 
 export function getStaticPaths() {
@@ -10,6 +10,7 @@ export function getStaticPaths() {
 const { id } = Astro.params as { id: string };
 const mission = ALLE_MISSIONEN.find((x) => x.id === id)!;
 const akt = aktVon(id)!;
+const kamp = kampagneVon(id);
 const vor = vorherige(id);
 const nach = naechste(id);
 
@@ -26,7 +27,7 @@ const spick: { t: string; v: string }[] = fm.spick ?? [];
 <Basis titel={`${mission.nr} ${mission.titel}`} beschreibung={mission.kurz}>
   <article class="huelle mission" data-mission={id} data-meta={JSON.stringify(meta)}>
     <nav class="pfad leise klein" aria-label="Brotkrumen">
-      <a href={url('')}>Kampagne</a> / Akt {akt.nr}: {akt.titel}
+      <a href={url(kamp.nr === 1 ? '' : `#kampagne-${kamp.nr}`)}>Kampagne {kamp.nr}: {kamp.titel}</a> / Akt {akt.nr}: {akt.titel}
     </nav>
     <header class="mkopf">
       <p class="mnr">{mission.boss ? `Bosskampf ${akt.nr}` : `Mission ${mission.nr}`}</p>

@@ -1,0 +1,73 @@
+---
+id: r-0-2
+abzeichen: Sicher auf Rädern
+checks:
+  - id: bewegung
+  - id: blockieren
+  - id: akku
+  - id: umbauen
+spick:
+  - t: "Regel 1"
+    v: "Beim Testen aufbocken: Räder in der Luft"
+  - t: "Regel 2"
+    v: "Blockiert? Sofort Strom weg"
+  - t: "Regel 3"
+    v: "Akku-Regeln aus Kampagne 1 gelten weiter"
+  - t: "Regel 4"
+    v: "Umbauen nur ohne Strom"
+---
+import Quiz from '../components/Quiz.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Ein Motor tut genau das, was dein Programm sagt, auch wenn das Programm einen Fehler hat. Dann fährt der Roboter plötzlich los, vom Tisch, gegen die Wand oder über deine Finger. Die Kräfte sind klein, aber Zahnräder können Haut und Haare einklemmen, und ein Sturz vom Tisch zerbricht Teile. **Deine Mission: Lerne die vier Regeln für bewegte Elektronik.**
+
+## Regel 1: Beim Testen aufbocken
+
+Stell das Fahrgestell beim Programmieren und Testen auf eine kleine Schachtel oder einen Stapel Bücher, sodass **die Räder in der Luft hängen**. So siehst du, was die Motoren tun, und der Roboter kann nicht wegfahren. Auf den Boden kommt er erst, wenn er auf dem Tisch macht, was er soll. Und dann auf den Boden, nicht auf den Tisch.
+
+Lange Haare zusammenbinden, Schals und lose Ärmel weg von den Rädern. Ins drehende Getriebe fasst du nicht.
+
+<Merke>Beim Testen hängen die Räder in der Luft. Gefahren wird auf dem Boden.</Merke>
+
+<Quiz id="bewegung" titel="Kurzcheck: Bewegte Teile" fragen={[
+  { frage: 'Du lädst ein neues Programm hoch. Wo steht der Roboter?', richtig: 'Aufgebockt, die Räder hängen frei in der Luft', falsch: ['Auf dem Tisch, damit ich ihn schnell greifen kann', 'Egal, er fährt ja erst später los'], erklaerung: 'Nach dem Hochladen startet das Programm sofort. Ein Fehler darin kann die Motoren sofort einschalten.' },
+]} />
+
+## Regel 2: Blockiert? Sofort Strom weg
+
+Hält etwas ein Rad fest, dreht der Motor nicht mehr, zieht aber ein Vielfaches seines normalen Stroms. Warum das so ist, rechnest du in Mission 1.2 aus. Die Folge: Motor, Treiber und Akku werden heiß. Der Motortreiber DRV8833 hat laut Datenblatt eine Schutzschaltung gegen Überstrom und Übertemperatur, der Motor selbst hat keine.
+
+Brummt ein Motor, ohne sich zu drehen, oder riecht es warm: Schalter aus oder Batterie heraus, dann nachsehen.
+
+<Merke>Ein blockierter Motor zieht sehr viel Strom. Brummen ohne Drehen heißt: Strom weg.</Merke>
+
+<Quiz id="blockieren" titel="Kurzcheck: Blockieren" fragen={[
+  { frage: 'Ein Rad hat sich in einem Kabel verfangen, der Motor brummt nur noch. Was tust du zuerst?', richtig: 'Strom abschalten, dann das Kabel lösen', falsch: ['Das Rad mit der Hand weiterdrehen', 'Warten, bis sich das Kabel von selbst löst'], erklaerung: 'Erst sicher, dann suchen. Mit Strom kann das Rad beim Lösen plötzlich losdrehen.' },
+]} />
+
+## Regel 3: Die Akku-Regeln gelten weiter
+
+Ab Akt 2 fährt der Roboter mit dem 18650-Akku aus Kampagne 1. Alles aus Kampagne 1, Mission 0.2 und Akt 5, gilt weiter:
+
+- Der Akku hängt immer am Lademodul mit Schutzschaltung, nie direkt am Verbraucher.
+- Die Zelle wird nie gelötet. Eine verbeulte oder heiße Zelle kommt nicht mehr zum Einsatz.
+- **Akku und USB nie gleichzeitig am ESP32**, wenn der ESP32 über den 3V3-Pin vom Wandler versorgt wird. Zum Programmieren: erst Akku aus, dann USB dran.
+
+Neu beim Roboter: Er stößt an, fällt um, Kabel scheuern. Der Akkuhalter sitzt deshalb fest verschraubt oder geklebt, und kein Kabel liegt an einer scharfen Kante.
+
+<Quiz id="akku" titel="Kurzcheck: Akku im Roboter" fragen={[
+  { frage: 'Du willst ein neues Programm aufspielen. Der Roboter läuft gerade mit Akku. Was tust du?', richtig: 'Erst den Akku ausschalten, dann das USB-Kabel anstecken', falsch: ['USB einfach dazu stecken, das schadet nicht', 'Den Akku während des Hochladens laden'], erklaerung: 'Zwei Quellen gegeneinander am 3V3-Pin können Wandler, USB-Port oder Board beschädigen.' },
+]} />
+
+## Regel 4: Umbauen nur ohne Strom
+
+Das kennst du: erst Strom weg, dann umstecken. Beim Motortreiber kommt eine neue Gefahr dazu. Eine H-Brücke (Mission 1.3) kann bei einem Verdrahtungsfehler Plus und Minus direkt verbinden. Deshalb prüfst du jede neue Verdrahtung erst ohne Motorversorgung, dann mit.
+
+<Hinweis art="sicherheit" titel="Netzteile">
+Für den Roboter nutzt du nur Batterien, den Akku mit Lademodul oder USB. Kein Labornetzteil ohne Strombegrenzung, keine Spannung über dem, was Motoren und Treiber laut Datenblatt vertragen.
+</Hinweis>
+
+<Quiz id="umbauen" titel="Kurzcheck: Umbauen" fragen={[
+  { frage: 'Du willst die Motorkabel am Treiber tauschen. Was ist die richtige Reihenfolge?', richtig: 'Motorversorgung aus, umstecken, prüfen, dann wieder einschalten', falsch: ['Bei laufendem Motor umstecken, dann sieht man sofort, ob es geht', 'Nur das USB-Kabel ziehen, die Batterien dürfen dranbleiben'], erklaerung: 'Die Motorversorgung ist eine eigene Quelle. Auch ohne USB liegt am Treiber Spannung an.' },
+]} />

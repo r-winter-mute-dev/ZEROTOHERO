@@ -1,0 +1,129 @@
+---
+id: r-1-4
+abzeichen: Treiber-Bändiger
+checks:
+  - id: verdrahtung
+  - id: code
+  - id: geraet
+    hardware: true
+  - id: anlauf
+    hardware: true
+spick:
+  - t: "Pins"
+    v: "AIN1 → GPIO 25, AIN2 → GPIO 26, nSLEEP → GPIO 27"
+  - t: "Versorgung"
+    v: "VM an 2 × AA, ESP32 über USB, GND gemeinsam"
+  - t: "Wahrheitstabelle"
+    v: "10 vor · 01 rück · 11 bremsen · 00 Freilauf"
+  - t: "PWM"
+    v: "20 kHz, 8 Bit (0–255)"
+  - t: "nSLEEP"
+    v: "Muss HIGH sein, sonst schläft der Treiber"
+---
+import Quiz from '../components/Quiz.astro';
+import Zahl from '../components/Zahl.astro';
+import Seriell from '../components/Seriell.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Karte from '../components/Karte.astro';
+import Checkliste from '../components/Checkliste.astro';
+import { url as seitenUrl } from '../config';
+
+Jetzt steuert dein Programm den Motor: vorwärts, rückwärts, bremsen und langsam. Dazwischen sitzt der Motortreiber DRV8833. Er enthält zwei H-Brücken, also genug für beide Räder. **Deine Mission: Schließ einen Motor über den DRV8833 an den ESP32 an und lass ihn ein Programm abfahren.**
+
+## Warum ein Treiber?
+
+<Karte titel="Der GPIO ist zu schwach" nr={1}>
+Ein GPIO-Pin des ESP32 liefert nur wenige Milliampere. Dein Motor braucht im Leerlauf über hundert Milliampere und beim Anlaufen ein Vielfaches davon (Mission 1.2). Direkt am Pin würde der Motor nicht laufen, und der Pin könnte Schaden nehmen.
+</Karte>
+
+<Karte titel="Zwei Stromkreise" nr={2}>
+Der Treiber trennt Signal und Leistung. Die Eingänge AIN1 und AIN2 brauchen kaum Strom und bekommen ihr Signal vom ESP32. Der Motorstrom kommt aus einer eigenen Quelle am Anschluss **VM** und fließt über die H-Brücke im Treiber zum Motor.
+</Karte>
+
+<Karte titel="Der Schlaf-Eingang" nr={3}>
+Der DRV8833 hat einen Eingang nSLEEP. Das n heißt: aktiv bei LOW. Laut Datenblatt zieht ihn ein interner Widerstand auf LOW, der Treiber schläft also, solange niemand den Pin auf HIGH legt. Manche Module legen ihn schon auf der Platine auf HIGH, andere führen ihn als Pin heraus, oft beschriftet mit EEP, SLP oder STBY.
+</Karte>
+
+<Merke>Der ESP32 gibt nur das Signal. Der Motorstrom kommt über VM aus einer eigenen Quelle. nSLEEP muss HIGH sein.</Merke>
+
+## Verdrahtung
+
+<Hinweis art="sicherheit">
+Räder oder Motor aufbocken. Batterieschalter AUS, bis alles verkabelt und kontrolliert ist.
+</Hinweis>
+
+Die Beschriftung auf deinem Modul kann abweichen. Häufig sind IN1 bis IN4 und OUT1 bis OUT4 statt AIN/BIN und AOUT/BOUT. Vergleiche mit der Produktseite oder dem Aufdruck auf der Platine.
+
+<Checkliste id="drv" punkte={[
+  'DRV8833-Modul ins Steckbrett, neben den ESP32.',
+  'ESP32 GND an GND des Moduls.',
+  'Minus der 2 × AA ebenfalls an GND des Moduls. Jetzt haben alle dieselbe Masse.',
+  'Plus der 2 × AA (über den Schalter) an VM, oft beschriftet mit VCC oder VIN. <strong>Nicht</strong> an 3V3 oder 5V des ESP32.',
+  'GPIO 25 an AIN1 (IN1), GPIO 26 an AIN2 (IN2).',
+  'Hat dein Modul einen Pin EEP, SLP oder STBY: an GPIO 27.',
+  'Die beiden Motorkabel an AOUT1 und AOUT2 (OUT1, OUT2).',
+  'Kontrolle ohne Batterie: Mit dem Durchgangsprüfer sicherstellen, dass VM und GND nicht verbunden sind.',
+]} />
+
+<Quiz id="verdrahtung" titel="Kurzcheck: Verdrahtung" fragen={[
+  { frage: 'Warum hängt der Minuspol der Batterien auch am GND des ESP32?', richtig: 'Damit die Signale an AIN1 und AIN2 einen gemeinsamen Bezugspunkt mit dem Treiber haben', falsch: ['Damit der Motor mehr Strom bekommt', 'Damit die Batterien über USB geladen werden'], erklaerung: 'Der Treiber vergleicht die Eingangsspannung mit seinem GND. Ohne gemeinsame Masse ist das Signal vom ESP32 für ihn bedeutungslos.' },
+  { frage: 'Warum kommt VM nicht an den 3V3-Pin des ESP32?', richtig: 'Die Stromspitzen der Motoren würden die Spannung des ESP32 einbrechen lassen, und der Regler auf dem Board ist dafür nicht gebaut', falsch: ['3,3 V sind zu viel für den Motor', 'Der DRV8833 braucht genau 5 V'], erklaerung: 'Motor und Mikrocontroller an derselben schwachen Quelle: Beim Anfahren bricht die Spannung ein, der ESP32 startet neu. Deshalb getrennte Quellen, gemeinsame Masse.' },
+]} />
+
+## Das Programm
+
+Die Funktion `motor()` nimmt eine Zahl von −255 bis +255. Positiv heißt vorwärts, negativ rückwärts, die Größe ist der PWM-Wert. Der jeweils andere Eingang bleibt auf 0.
+
+```cpp
+const int AIN1 = 25;
+const int AIN2 = 26;
+const int SLEEP = 27;
+
+void motor(int v) {
+  v = constrain(v, -255, 255);
+  if (v > 0) { ledcWrite(AIN1, v); ledcWrite(AIN2, 0); }
+  else if (v < 0) { ledcWrite(AIN1, 0); ledcWrite(AIN2, -v); }
+  else { ledcWrite(AIN1, 0); ledcWrite(AIN2, 0); }
+}
+
+void bremsen() {
+  ledcWrite(AIN1, 255);
+  ledcWrite(AIN2, 255);
+}
+
+void setup() {
+  pinMode(SLEEP, OUTPUT);
+  digitalWrite(SLEEP, HIGH);            // Treiber aufwecken
+  delay(2);
+  ledcAttach(AIN1, 20000, 8);           // 20 kHz, 8 Bit
+  ledcAttach(AIN2, 20000, 8);
+}
+```
+
+Das vollständige Programm mit Ablauf, Rampe und Gerätenachweis liegt im Repository unter `firmware/roboter-akt-1-motor/r-1-4-motor-am-esp32/`. Es fährt immer wieder dieselbe Runde: vorwärts, Freilauf, rückwärts, bremsen, dann eine langsame Rampe von 0 bis 255.
+
+<Hinweis titel="Warum 20 kHz?">
+Bei niedriger PWM-Frequenz hörst du den Motor pfeifen, weil die Spule im Takt mitschwingt. 20 kHz liegen über dem, was die meisten Menschen hören. Der ESP32 schafft diese Frequenz bei 8 Bit Auflösung problemlos.
+</Hinweis>
+
+<Quiz id="code" titel="Kurzcheck: Code lesen" fragen={[
+  { frage: 'Was tut motor(-128)?', richtig: 'IN1 = 0, IN2 = PWM 128: rückwärts mit etwa halber Kraft', falsch: ['Vorwärts mit halber Kraft', 'Bremsen'], erklaerung: 'Negativ heißt rückwärts, also PWM auf IN2. 128 von 255 sind etwa 50 %.' },
+  { frage: 'Du lässt digitalWrite(SLEEP, HIGH) weg, und dein Modul führt nSLEEP als Pin heraus, der nirgends angeschlossen ist. Was passiert?', richtig: 'Der Motor dreht nie, weil der Treiber schläft', falsch: ['Der Motor dreht nur rückwärts', 'Nichts, der Pin ist unwichtig'], erklaerung: 'Laut Datenblatt hält ein interner Pulldown nSLEEP auf LOW. Ohne HIGH bleiben alle Ausgänge aus.' },
+]} />
+
+## Hochladen und zusehen
+
+Programm hochladen, seriellen Monitor auf 115200 Baud öffnen, dann den Batterieschalter EIN. Der Monitor zeigt jeden Schritt an, und der Motor sollte genau das tun. Nach einer Runde erscheint die Nachweis-Zeile.
+
+<Seriell id="geraet" titel="Gerätenachweis: Eine Runde gefahren" muster="^KW-CHECK:r-1-4:[0-9A-F]{12}$" hinweis="Die Zeile kommt nach der Rampe, etwa 25 Sekunden nach dem Start." />
+
+<Zahl id="anlauf" titel="Messwert: Anlauf-PWM" frage="Ab welchem PWM-Wert hat sich das Rad in der Rampe zu drehen begonnen?" einheit="" min={5} max={250} vorlaeufig hilfe={[
+  { ueber: 250, text: 'Dreht der Motor erst ganz am Ende? Prüfe die Batterien (unter 2,7 V arbeitet der DRV8833 laut Datenblatt nicht zuverlässig) und ob das Getriebe klemmt.' },
+]} />
+
+Unterhalb dieses Werts brummt der Motor nur: Die Kraft reicht nicht, um Haftreibung und Getriebe zu überwinden. Für den Roboter heißt das: Werte zwischen 0 und deinem Anlaufwert sind nutzlos. In Akt 2 lernst du, damit umzugehen.
+
+<Merke>Unter dem Anlaufwert brummt der Motor nur. Darüber steigt die Drehzahl mit dem PWM-Wert.</Merke>
+
+<p class="leise klein">Firmware-Ordner im Repository: <a href="https://github.com/r-winter-mute-dev/ZEROTOHERO/tree/main/firmware/roboter-akt-1-motor" rel="noopener" target="_blank">firmware/roboter-akt-1-motor</a>. Kampagne 1, Mission 4.5 erklärt PWM am Blitz: <a href={seitenUrl('mission/m-4-5')}>4.5 öffnen</a>.</p>

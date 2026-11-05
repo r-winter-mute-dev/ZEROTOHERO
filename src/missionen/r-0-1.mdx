@@ -1,0 +1,66 @@
+---
+id: r-0-1
+checks:
+  - id: wissen
+  - id: verstanden
+spick:
+  - t: "Ziel"
+    v: "Linie folgen, vor Hindernissen halten, per Handy fahren"
+  - t: "Neu in Akt 1"
+    v: "Fahrgestell mit 2 Motoren, Motortreiber DRV8833"
+  - t: "Schon da"
+    v: "ESP32-DevKit, Multimeter, Steckbrett, 2 × AA"
+---
+import Quiz from '../components/Quiz.astro';
+import Merke from '../components/Merke.astro';
+import Bestaetigung from '../components/Bestaetigung.astro';
+import Hinweis from '../components/Hinweis.astro';
+import TeileListe from '../components/TeileListe.astro';
+
+Deine Klingel sitzt still an der Tür und wartet. Der Roboter in dieser Kampagne bewegt sich: Er fährt, sieht eine Linie auf dem Boden, hält vor einer Wand an und lässt sich vom Handy aus steuern. **Deine Mission: Lerne den Roboter kennen und prüfe, was du aus Kampagne 1 schon mitbringst.**
+
+<Merke>Ziel von Kampagne 2: ein Roboter, der einer Linie folgt, vor Hindernissen hält und per Handy fährt.</Merke>
+
+## Woraus der Roboter besteht
+
+| Akt | Teil | Was es tut |
+| --- | --- | --- |
+| 0 | Werkbank | Überblick und Sicherheit mit bewegten Teilen |
+| 1 | Motor | Gleichstrommotor, H-Brücke, Motortreiber am ESP32 |
+| 2 | Fahrwerk | Chassis, eine Versorgung für alles, lenken |
+| 3 | Augen | Liniensensoren und Ultraschall |
+| 4 | Regler | Vom Zickzack zur ruhigen Fahrt: P und PID |
+| 5 | Tacho | Encoder zählen die Radumdrehungen |
+| 6 | Funk | Webserver, Fernsteuerung und Notaus |
+
+Ein Unterschied zur Klingel: Der Roboter **regelt**. Er misst ständig, wo die Linie liegt, und korrigiert die Motoren viele Male pro Sekunde. Messen, entscheiden, handeln, wieder messen: Diese Schleife heißt Regelkreis. Sie steckt in fast allem, was sich selbst bewegt, vom Staubsaugerroboter bis zum Roboterarm.
+
+<Merke>Ein Regelkreis misst, vergleicht mit dem Ziel und korrigiert. Immer wieder.</Merke>
+
+## Was du mitbringen solltest
+
+Du kannst hier sofort anfangen. Leichter wird es mit Wissen aus Kampagne 1:
+
+- **Akt 0 und 1:** Multimeter, Spannung, Strom, ohmsches Gesetz. Das brauchst du gleich in Akt 1.
+- **Akt 2:** ein Programm auf den ESP32 laden, den seriellen Monitor lesen, PWM. Ab Mission 1.4 nötig.
+- **Akt 5:** Akku, Lademodul und Wandler. Ab Akt 2 fährt der Roboter mit dem 18650-Akku.
+
+<Hinweis titel="Lücken?">
+Fehlt dir etwas davon, öffne die passende Mission in Kampagne 1. Du musst sie nicht abschließen, Lesen reicht oft schon. Die Missionen von Kampagne 2 sind unabhängig davon freigeschaltet.
+</Hinweis>
+
+<Quiz id="wissen" titel="Kurzcheck: Was du schon kannst" fragen={[
+  { frage: 'Ein Motor hat einen Widerstand von 4 Ω und hängt an 3 V. Wie viel Strom fließt, wenn er sich nicht dreht?', richtig: '0,75 A', falsch: ['12 A', '1,33 A'], erklaerung: 'I = U / R = 3 V / 4 Ω = 0,75 A. Warum das nur gilt, wenn er steht, lernst du in Mission 1.2.' },
+  { frage: 'Was macht PWM mit einer LED oder einem Motor?', richtig: 'Schaltet schnell an und aus. Der Anteil der Zeit „an“ bestimmt die mittlere Leistung.', falsch: ['Senkt die Spannung stufenlos wie ein Widerstand', 'Ändert die Richtung des Stroms'], erklaerung: 'PWM heißt Pulsweitenmodulation. Du kennst sie vom Blitz in Kampagne 1, Mission 4.5.' },
+  { frage: 'Warum brauchen zwei Geräte, die Signale austauschen, eine gemeinsame Masse?', richtig: 'Spannung ist immer ein Unterschied. Ohne gemeinsamen Bezugspunkt ist „3,3 V“ am Signal bedeutungslos.', falsch: ['Damit mehr Strom fließt', 'Das braucht man nur bei Netzspannung'], erklaerung: 'Masse und Bezugspunkt: Kampagne 1, Mission 1.2.' },
+]} />
+
+## Die Teile für Akt 0 und 1
+
+Neu kaufen musst du nur das Fahrgestell mit den Motoren und den Motortreiber. Alles andere liegt aus Kampagne 1 schon bei dir.
+
+<TeileListe kampagne="roboter" akte={[0, 1]} />
+
+Die vollständige Liste steht auf der Seite Einkaufsliste.
+
+<Bestaetigung id="verstanden" titel="Bereit?" art="Start" hardware={false} text="Ich weiß, was der Roboter können soll und welche Teile ich für Akt 1 brauche." knopf="Los geht’s" />

@@ -4,7 +4,9 @@
 
 export type TeilKey =
   | 'grundplatte' | 'knopf' | 'gehirn' | 'stimme' | 'auge'
-  | 'herz' | 'schlaf' | 'schalter' | 'gehaeuse';
+  | 'herz' | 'schlaf' | 'schalter' | 'gehaeuse'
+  // Kampagne 2
+  | 'werkbank' | 'motor' | 'fahrwerk' | 'augen' | 'regler' | 'tacho' | 'funk';
 
 export interface Mission {
   id: string;
@@ -146,20 +148,119 @@ export const KAMPAGNE: Akt[] = [
   },
 ];
 
-export const ALLE_MISSIONEN: Mission[] = KAMPAGNE.flatMap((a) => a.missionen);
+// ---------- Kampagne 2: Der Fahrroboter ----------
+export const FAHRROBOTER: Akt[] = [
+  {
+    nr: 0, titel: 'Startrampe', teil: 'werkbank', teilName: 'Werkbank',
+    ziel: 'Wissen, was gebaut wird, und sicher mit bewegten Teilen arbeiten.',
+    missionen: [
+      m('r-0-1', '0.1', 'Das Ziel', 'Den fertigen Fahrroboter kennenlernen und prüfen, was du schon kannst.', 'Überblick, Teile, Voraussetzungen aus Kampagne 1', 'Bestätigen', { bereit: true }),
+      m('r-0-2', '0.2', 'Sicherheit', 'Die Regeln für Motoren, Räder und Akku lernen.', 'Bewegte Teile, Blockieren, Akku, Aufbocken', 'Sicherheitsquiz', { bereit: true }),
+    ],
+  },
+  {
+    nr: 1, titel: 'Der Motor', teil: 'motor', teilName: 'Motor',
+    ziel: 'Einen Gleichstrommotor verstehen und vom ESP32 aus steuern.',
+    missionen: [
+      m('r-1-1', '1.1', 'Wie ein Motor dreht', 'Einen Getriebemotor am Akku laufen lassen und seinen Strom messen.', 'Magnet, Spule, Kommutator, Getriebe', 'Messwert Leerlaufstrom', { bereit: true }),
+      m('r-1-2', '1.2', 'Der Anlaufstrom', 'Ausrechnen und messen, wie viel Strom ein blockierter Motor zieht.', 'Wicklungswiderstand, Gegenspannung, Blockierstrom', 'Rechenaufgaben und Messwert', { bereit: true }),
+      m('r-1-3', '1.3', 'Die H-Brücke', 'Verstehen, wie vier Schalter die Drehrichtung umkehren.', 'H-Brücke, Kurzschluss-Verbot, Freilauf und Bremsen', 'Trainer', { bereit: true }),
+      m('r-1-4', '1.4', 'Motor am ESP32', 'Den Motor über den DRV8833 vorwärts, rückwärts und langsam drehen lassen.', 'DRV8833, Wahrheitstabelle, PWM', 'Gerätenachweis', { bereit: true }),
+      m('r-1-boss', 'Boss 1', 'Der Motor macht Ärger', 'Typische Motorfehler anhand von Messungen finden.', 'Polung, Versorgung, Sleep-Pin, Blockieren', 'Fehlerszenarien', { boss: true, bereit: true }),
+    ],
+  },
+  {
+    nr: 2, titel: 'Fahren', teil: 'fahrwerk', teilName: 'Fahrwerk',
+    ziel: 'Der Roboter fährt geradeaus und um die Kurve.',
+    missionen: [
+      m('r-2-1', '2.1', 'Das Fahrgestell', 'Chassis, Motoren und Räder zusammenbauen.', 'Mechanik, Kabelführung', 'Bestätigen'),
+      m('r-2-2', '2.2', 'Eine Versorgung für alles', 'Motoren und ESP32 aus einem Akku versorgen, ohne Neustarts.', 'Stromspitzen, Puffer, gemeinsame Masse', 'Belastungstest'),
+      m('r-2-3', '2.3', 'Sanft anfahren', 'Mit einer Rampe anfahren und bremsen.', 'PWM-Frequenz, Rampen, Trägheit', 'Gerätenachweis'),
+      m('r-2-4', '2.4', 'Lenken', 'Mit zwei unterschiedlich schnellen Rädern Kurven fahren.', 'Differenzialantrieb, Kurvenradius', 'Rechenaufgaben und Fahrprobe'),
+      m('r-2-boss', 'Boss 2', 'Fährt im Kreis', 'Fehler in Antrieb und Versorgung finden.', 'Ungleiche Motoren, Brownout, Verdrahtung', 'Fehlerszenarien', { boss: true }),
+    ],
+  },
+  {
+    nr: 3, titel: 'Sehen', teil: 'augen', teilName: 'Augen (Sensoren)',
+    ziel: 'Der Roboter erkennt eine Linie und Hindernisse.',
+    missionen: [
+      m('r-3-1', '3.1', 'Licht, das zurückkommt', 'Einen Infrarot-Reflexsensor lesen.', 'Reflexion, Fototransistor, analog und digital', 'Messwert'),
+      m('r-3-2', '3.2', 'Die Linie erkennen', 'Zwei Sensoren kalibrieren und die Linie finden.', 'Schwellwert, Kalibrierung, Hysterese', 'Gerätenachweis'),
+      m('r-3-3', '3.3', 'Ultraschall', 'Den Abstand zu einem Hindernis messen.', 'Laufzeit, Schallgeschwindigkeit, Temperatur', 'Rechenaufgaben und Messwert'),
+      m('r-3-4', '3.4', 'Rechtzeitig halten', 'Vor einem Hindernis sicher anhalten.', 'Bremsweg, Reaktionszeit', 'Fahrprobe'),
+      m('r-3-boss', 'Boss 3', 'Sieht Gespenster', 'Fehlmessungen der Sensoren erklären.', 'Sonnenlicht, Winkel, weiche Oberflächen', 'Fehlerszenarien', { boss: true }),
+    ],
+  },
+  {
+    nr: 4, titel: 'Regeln', teil: 'regler', teilName: 'Regler',
+    ziel: 'Der Roboter folgt einer Linie ruhig und schnell.',
+    missionen: [
+      m('r-4-1', '4.1', 'Ein und aus', 'Mit einem Zweipunktregler der Linie folgen.', 'Regelkreis, Sollwert, Istwert', 'Simulator'),
+      m('r-4-2', '4.2', 'Der P-Regler', 'Proportional zur Abweichung lenken.', 'Regelabweichung, Verstärkung', 'Simulator'),
+      m('r-4-3', '4.3', 'PID', 'Integral und Differenzial verstehen.', 'Bleibende Abweichung, Dämpfung', 'Simulator'),
+      m('r-4-4', '4.4', 'Einstellen', 'Den Regler am echten Roboter einstellen.', 'Schrittweises Tuning, Messen statt Raten', 'Rundenzeit'),
+      m('r-4-boss', 'Boss 4', 'Zittert auf der Linie', 'Reglerfehler an Messkurven erkennen.', 'Schwingen, Überschwingen, zu träge', 'Fehlerszenarien', { boss: true }),
+    ],
+  },
+  {
+    nr: 5, titel: 'Messen', teil: 'tacho', teilName: 'Tacho (Encoder)',
+    ziel: 'Der Roboter weiß, wie schnell und wie weit er fährt.',
+    missionen: [
+      m('r-5-1', '5.1', 'Der Encoder', 'Radumdrehungen mit einer Gabellichtschranke zählen.', 'Gabellichtschranke, Interrupts, Prellen', 'Gerätenachweis'),
+      m('r-5-2', '5.2', 'Geschwindigkeit', 'Aus Impulsen die Geschwindigkeit berechnen.', 'Impulse pro Umdrehung, Radumfang', 'Rechenaufgaben und Messwert'),
+      m('r-5-3', '5.3', 'Wo bin ich?', 'Strecke und Drehwinkel aus den Rädern berechnen.', 'Odometrie, Schlupf', 'Fahrprobe'),
+      m('r-5-4', '5.4', 'Gleich schnell', 'Beide Räder auf dieselbe Drehzahl regeln.', 'Drehzahlregelung, zwei Regelkreise', 'Geradeausfahrt'),
+    ],
+  },
+  {
+    nr: 6, titel: 'Fernsteuern', teil: 'funk', teilName: 'Funk',
+    ziel: 'Der Roboter fährt per Handy und hält sicher an, wenn die Verbindung abreißt.',
+    missionen: [
+      m('r-6-1', '6.1', 'Ein Webserver', 'Auf dem ESP32 eine kleine Webseite bereitstellen.', 'HTTP-Server, IP-Adresse, lokales Netz', 'Gerätenachweis'),
+      m('r-6-2', '6.2', 'Die Fernbedienung', 'Den Roboter vom Handy aus steuern.', 'WebSocket, Latenz', 'Fahrprobe'),
+      m('r-6-3', '6.3', 'Notaus', 'Bei Funkverlust sofort anhalten.', 'Watchdog, sicherer Zustand', 'Fehlertest'),
+      m('r-6-boss', 'Finale', 'Der Parcours', 'Linie, Hindernis und Fernsteuerung in einem Lauf.', 'Alles aus Kampagne 2', 'Parcours', { boss: true }),
+    ],
+  },
+];
 
-export function aktVon(missionId: string): Akt | undefined {
-  return KAMPAGNE.find((a) => a.missionen.some((x) => x.id === missionId));
+export interface Kampagne {
+  id: string;
+  nr: number;
+  titel: string;
+  kurz: string;
+  voraussetzung?: string;
+  akte: Akt[];
 }
 
+export const KAMPAGNEN: Kampagne[] = [
+  { id: 'klingel', nr: 1, titel: 'Die smarte Türklingel', kurz: 'Vom ersten Stromkreis bis zur Akku-Klingel, die ein Foto schickt.', akte: KAMPAGNE },
+  { id: 'roboter', nr: 2, titel: 'Der Fahrroboter', kurz: 'Motoren, Sensoren und Regelung: ein Roboter, der einer Linie folgt und per Handy fährt.',
+    voraussetzung: 'Kampagne 1 bis einschließlich Akt 2 (ESP32 programmieren) und Akt 5 (Akku und Wandler), oder gleichwertiges Vorwissen.', akte: FAHRROBOTER },
+];
+
+export const ALLE_MISSIONEN: Mission[] = KAMPAGNEN.flatMap((k) => k.akte.flatMap((a) => a.missionen));
+export const missionenVon = (k: Kampagne): Mission[] => k.akte.flatMap((a) => a.missionen);
+
+export function kampagneVon(missionId: string): Kampagne {
+  return KAMPAGNEN.find((k) => k.akte.some((a) => a.missionen.some((x) => x.id === missionId))) ?? KAMPAGNEN[0];
+}
+
+export function aktVon(missionId: string): Akt | undefined {
+  return kampagneVon(missionId).akte.find((a) => a.missionen.some((x) => x.id === missionId));
+}
+
+// Freischaltung innerhalb einer Kampagne: Die erste Mission jeder Kampagne ist immer offen.
 export function vorherige(missionId: string): Mission | undefined {
-  const i = ALLE_MISSIONEN.findIndex((x) => x.id === missionId);
-  return i > 0 ? ALLE_MISSIONEN[i - 1] : undefined;
+  const liste = missionenVon(kampagneVon(missionId));
+  const i = liste.findIndex((x) => x.id === missionId);
+  return i > 0 ? liste[i - 1] : undefined;
 }
 
 export function naechste(missionId: string): Mission | undefined {
-  const i = ALLE_MISSIONEN.findIndex((x) => x.id === missionId);
-  return i >= 0 && i < ALLE_MISSIONEN.length - 1 ? ALLE_MISSIONEN[i + 1] : undefined;
+  const liste = missionenVon(kampagneVon(missionId));
+  const i = liste.findIndex((x) => x.id === missionId);
+  return i >= 0 && i < liste.length - 1 ? liste[i + 1] : undefined;
 }
 
 export const LEVEL = [

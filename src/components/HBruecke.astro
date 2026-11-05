@@ -1,0 +1,201 @@
+---
+// H-Brücken-Trainer: vier Schalter, ein Motor. Zweiter Teil: dieselbe Brücke über IN1/IN2 wie beim DRV8833.
+// Zuordnung IN1/IN2 nach der Wahrheitstabelle im TI-Datenblatt DRV8833:
+// 0/0 Freilauf (alle aus), 1/0 vorwärts, 0/1 rückwärts, 1/1 bremsen (beide unteren Schalter an).
+import Station from './Station.astro';
+interface Props { id: string; titel: string; }
+const { id, titel } = Astro.props;
+---
+<Station id={id} titel={titel} art="Trainer">
+  <div class="hb" data-kw-hbruecke>
+    <p class="hb-aufgabe" data-hb-aufgabe aria-live="polite"></p>
+    <div class="hb-raster">
+      <svg viewBox="0 0 320 260" class="hb-svg" role="img" aria-label="H-Brücke: vier Schalter S1 bis S4 um einen Motor, oben Plus, unten GND">
+        <text x="120" y="20" class="hb-txt">Plus (Motorspannung)</text>
+        <line x1="80" y1="30" x2="240" y2="30" class="hb-draht" data-t="top" />
+        <line x1="80" y1="30" x2="80" y2="62" class="hb-draht" data-t="l-oben" />
+        <line x1="80" y1="98" x2="80" y2="162" class="hb-draht" data-t="l-mitte" />
+        <line x1="80" y1="198" x2="80" y2="230" class="hb-draht" data-t="l-unten" />
+        <line x1="240" y1="30" x2="240" y2="62" class="hb-draht" data-t="r-oben" />
+        <line x1="240" y1="98" x2="240" y2="162" class="hb-draht" data-t="r-mitte" />
+        <line x1="240" y1="198" x2="240" y2="230" class="hb-draht" data-t="r-unten" />
+        <line x1="80" y1="130" x2="134" y2="130" class="hb-draht" data-t="motor" />
+        <line x1="186" y1="130" x2="240" y2="130" class="hb-draht" data-t="motor" />
+        <line x1="80" y1="230" x2="240" y2="230" class="hb-draht" data-t="gnd" />
+        <text x="146" y="250" class="hb-txt">GND</text>
+        <circle cx="160" cy="130" r="26" class="hb-motor" data-hb-motor />
+        <text x="152" y="136" class="hb-txt fett">M</text>
+        <text x="160" y="176" class="hb-txt klein mitte" data-hb-dreh></text>
+        <text x="62" y="134" class="hb-txt klein">A</text>
+        <text x="250" y="134" class="hb-txt klein">B</text>
+        {[['S1', 80, 62], ['S2', 80, 162], ['S3', 240, 62], ['S4', 240, 162]].map(([n, x, y]) => (
+          <g data-hb-schalter={n}>
+            <rect x={Number(x) - 16} y={y} width="32" height="36" rx="5" class="hb-sch" />
+            <text x={Number(x) - 9} y={Number(y) + 23} class="hb-txt fett">{n}</text>
+          </g>
+        ))}
+        <text x="160" y="70" class="hb-blitz mitte" data-hb-blitz>Kurzschluss!</text>
+      </svg>
+
+      <div class="hb-regler">
+        <div class="hb-modus" role="radiogroup" aria-label="Steuerung">
+          <label><input type="radio" name={`${id}-modus`} value="schalter" checked data-hb-modus /> Vier Schalter</label>
+          <label><input type="radio" name={`${id}-modus`} value="drv" data-hb-modus /> Wie der DRV8833 (IN1, IN2)</label>
+        </div>
+        <div class="hb-knoepfe" data-hb-teil="schalter">
+          {['S1', 'S2', 'S3', 'S4'].map((n) => (
+            <button type="button" class="knopf zweit klein" aria-pressed="false" data-hb-taste={n}>{n} {n === 'S1' || n === 'S3' ? '(oben)' : '(unten)'}</button>
+          ))}
+        </div>
+        <div class="hb-knoepfe" data-hb-teil="drv" hidden>
+          <button type="button" class="knopf zweit klein" aria-pressed="false" data-hb-in="1">IN1 = 0</button>
+          <button type="button" class="knopf zweit klein" aria-pressed="false" data-hb-in="2">IN2 = 0</button>
+        </div>
+        <dl class="hb-werte">
+          <dt>Zustand</dt><dd data-hb-zustand>Freilauf</dd>
+          <dt>Strom durch den Motor</dt><dd data-hb-richtung>keiner</dd>
+        </dl>
+        <button type="button" class="knopf zweit klein" data-hb-aus>Alle Schalter aus</button>
+      </div>
+    </div>
+    <p class="hb-erkl" data-hb-erkl aria-live="polite">Tippe auf die Schalter und beobachte, wo Strom fließt.</p>
+  </div>
+</Station>
+
+<script>
+  import { station } from '../scripts/station';
+
+  type Zustand = 'frei' | 'vor' | 'rueck' | 'bremse' | 'kurz';
+  const PFAD: Record<string, string[]> = {
+    vor: ['top', 'l-oben', 'l-mitte', 'motor', 'r-mitte', 'r-unten', 'gnd'],
+    rueck: ['top', 'r-oben', 'r-mitte', 'motor', 'l-mitte', 'l-unten', 'gnd'],
+    bremseU: ['l-mitte', 'motor', 'r-mitte', 'l-unten', 'r-unten', 'gnd'],
+    bremseO: ['top', 'l-oben', 'r-oben', 'l-mitte', 'motor', 'r-mitte'],
+    kurzL: ['top', 'l-oben', 'l-mitte', 'l-unten', 'gnd'],
+    kurzR: ['top', 'r-oben', 'r-mitte', 'r-unten', 'gnd'],
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-kw-hbruecke]').forEach((box) => {
+    const s = station(box.closest('[data-kw-check]') as HTMLElement);
+    const an: Record<string, boolean> = { S1: false, S2: false, S3: false, S4: false };
+    let in1 = 0, in2 = 0, modus = 'schalter';
+
+    const aufgaben: { text: string; modus: string; ziel: Zustand }[] = [
+      { text: 'Lass den Motor vorwärts drehen (Strom von A nach B).', modus: 'schalter', ziel: 'vor' },
+      { text: 'Lass ihn rückwärts drehen (Strom von B nach A).', modus: 'schalter', ziel: 'rueck' },
+      { text: 'Bremse den Motor: Schließ ihn kurz, ohne die Versorgung kurzzuschließen.', modus: 'schalter', ziel: 'bremse' },
+      { text: 'Wechsle zu „Wie der DRV8833“ und lass den Motor rückwärts drehen.', modus: 'drv', ziel: 'rueck' },
+      { text: 'Mit IN1 und IN2: Lass den Motor frei auslaufen.', modus: 'drv', ziel: 'frei' },
+    ];
+    let nr = 0, gesehenAnders = false;
+
+    function ausDrv() {
+      // Wahrheitstabelle DRV8833: 1/0 vorwärts, 0/1 rückwärts, 1/1 bremsen (unten beide an), 0/0 Freilauf.
+      an.S1 = in1 === 1 && in2 === 0;
+      an.S4 = in1 === 1 && in2 === 0;
+      an.S3 = in1 === 0 && in2 === 1;
+      an.S2 = in1 === 0 && in2 === 1;
+      if (in1 === 1 && in2 === 1) { an.S2 = true; an.S4 = true; }
+    }
+
+    function auswerten(): { z: Zustand; pfad: string[] } {
+      const kl = an.S1 && an.S2, kr = an.S3 && an.S4;
+      if (kl || kr) return { z: 'kurz', pfad: [...(kl ? PFAD.kurzL : []), ...(kr ? PFAD.kurzR : [])] };
+      if (an.S1 && an.S4) return { z: 'vor', pfad: PFAD.vor };
+      if (an.S3 && an.S2) return { z: 'rueck', pfad: PFAD.rueck };
+      if (an.S2 && an.S4) return { z: 'bremse', pfad: PFAD.bremseU };
+      if (an.S1 && an.S3) return { z: 'bremse', pfad: PFAD.bremseO };
+      return { z: 'frei', pfad: [] };
+    }
+
+    const TEXT: Record<Zustand, [string, string, string, string]> = {
+      frei: ['Freilauf', 'keiner', '', 'Kein Weg ist geschlossen. Ein drehender Motor läuft von allein aus.'],
+      vor: ['Vorwärts', 'von A nach B', '↻ vorwärts', 'S1 und S4 sind zu: Plus über S1 zu A, durch den Motor zu B, über S4 nach GND.'],
+      rueck: ['Rückwärts', 'von B nach A', '↺ rückwärts', 'S3 und S2 sind zu: Der Strom läuft jetzt andersherum durch den Motor. Deshalb dreht er andersherum.'],
+      bremse: ['Bremsen', 'Motor kurzgeschlossen', 'bremst', 'Beide Motoranschlüsse hängen am selben Potenzial. Dreht der Motor noch, arbeitet er als Generator gegen den Kurzschluss und bremst sich selbst.'],
+      kurz: ['Kurzschluss', 'keiner, aber riesiger Strom durch eine Seite', '', 'Zwei Schalter auf derselben Seite verbinden Plus direkt mit GND. Fachwort: Shoot-through. Das zerstört Schalter oder Akku. Diese Kombination ist verboten.'],
+    };
+
+    function zeichnen() {
+      if (modus === 'drv') ausDrv();
+      const { z, pfad } = auswerten();
+      box.querySelectorAll<SVGElement>('[data-t]').forEach((l) => {
+        const drin = pfad.includes(l.dataset.t!);
+        l.classList.toggle('an', drin && z !== 'kurz' && z !== 'bremse');
+        l.classList.toggle('brems', drin && z === 'bremse');
+        l.classList.toggle('kurz', drin && z === 'kurz');
+      });
+      Object.keys(an).forEach((n) => {
+        box.querySelector(`[data-hb-schalter="${n}"]`)!.classList.toggle('zu', an[n]);
+        const b = box.querySelector<HTMLElement>(`[data-hb-taste="${n}"]`)!;
+        b.setAttribute('aria-pressed', String(an[n]));
+      });
+      box.querySelector<HTMLElement>('[data-hb-in="1"]')!.textContent = `IN1 = ${in1}`;
+      box.querySelector<HTMLElement>('[data-hb-in="2"]')!.textContent = `IN2 = ${in2}`;
+      box.querySelector<HTMLElement>('[data-hb-in="1"]')!.setAttribute('aria-pressed', String(in1 === 1));
+      box.querySelector<HTMLElement>('[data-hb-in="2"]')!.setAttribute('aria-pressed', String(in2 === 1));
+      const [name, richtung, dreh, erkl] = TEXT[z];
+      box.querySelector('[data-hb-zustand]')!.textContent = name;
+      box.querySelector('[data-hb-richtung]')!.textContent = richtung;
+      box.querySelector('[data-hb-dreh]')!.textContent = dreh;
+      box.querySelector<SVGElement>('[data-hb-motor]')!.classList.toggle('dreht', z === 'vor' || z === 'rueck');
+      box.querySelector<SVGElement>('[data-hb-blitz]')!.style.opacity = z === 'kurz' ? '1' : '0';
+      const e = box.querySelector<HTMLElement>('[data-hb-erkl]')!;
+      e.textContent = modus === 'drv' ? `IN1 = ${in1}, IN2 = ${in2}: ${erkl}` : erkl;
+      e.className = `hb-erkl ${z === 'kurz' ? 'fehler' : z === 'frei' ? '' : 'gut'}`;
+      if (z === 'kurz' && !s.bestanden()) s.melden('Kurzschluss: Auf einer Seite sind beide Schalter zu. Mach einen davon wieder auf.', 'fehler');
+
+      if (z !== 'frei') gesehenAnders = true;
+      const a = aufgaben[nr];
+      // Freilauf zählt erst, nachdem vorher etwas anderes eingestellt war.
+      if (a && a.modus === modus && a.ziel === z && (z !== 'frei' || gesehenAnders) && !s.gesperrt()) {
+        nr++;
+        if (nr >= aufgaben.length) s.bestehen('Trainer geschafft: Diagonal schalten dreht den Motor, unten beide zu bremst, eine Seite beide zu ist verboten.');
+        else s.melden('Richtig. Weiter mit der nächsten Aufgabe.', 'gut');
+      }
+      box.querySelector('[data-hb-aufgabe]')!.textContent = nr < aufgaben.length ? `Aufgabe ${nr + 1} von ${aufgaben.length}: ${aufgaben[nr].text}` : 'Geschafft. Probier ruhig weiter herum.';
+    }
+
+    box.querySelectorAll<HTMLButtonElement>('[data-hb-taste]').forEach((b) => b.addEventListener('click', () => { an[b.dataset.hbTaste!] = !an[b.dataset.hbTaste!]; zeichnen(); }));
+    box.querySelectorAll<HTMLButtonElement>('[data-hb-in]').forEach((b) => b.addEventListener('click', () => {
+      if (b.dataset.hbIn === '1') in1 = 1 - in1; else in2 = 1 - in2; zeichnen();
+    }));
+    box.querySelectorAll<HTMLInputElement>('[data-hb-modus]').forEach((r) => r.addEventListener('change', () => {
+      modus = r.value;
+      box.querySelector<HTMLElement>('[data-hb-teil="schalter"]')!.hidden = modus !== 'schalter';
+      box.querySelector<HTMLElement>('[data-hb-teil="drv"]')!.hidden = modus !== 'drv';
+      Object.keys(an).forEach((n) => (an[n] = false)); in1 = 0; in2 = 0; gesehenAnders = false;
+      zeichnen();
+    }));
+    box.querySelector('[data-hb-aus]')!.addEventListener('click', () => { Object.keys(an).forEach((n) => (an[n] = false)); in1 = 0; in2 = 0; zeichnen(); });
+    zeichnen();
+  });
+</script>
+
+<style>
+  .hb-aufgabe { font-weight: 700; }
+  .hb-erkl { margin: 0.8rem 0 0.5rem; padding: 0.6rem 0.8rem; border-radius: var(--radius-klein); background: rgba(255,255,255,0.04); }
+  .hb-erkl.gut { color: var(--gut); } .hb-erkl.fehler { color: var(--fehler); }
+  .hb-raster { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+  @media (max-width: 720px) { .hb-raster { grid-template-columns: 1fr; } }
+  .hb-svg { width: 100%; height: auto; background: var(--flaeche-leicht); border-radius: var(--radius-klein); }
+  .hb-txt { fill: var(--text); font-size: 13px; font-family: var(--schrift); }
+  .hb-txt.klein { font-size: 11px; fill: var(--leise); }
+  .hb-txt.fett { font-weight: 700; }
+  .mitte { text-anchor: middle; }
+  .hb-draht { stroke: var(--leise-dunkel); stroke-width: 3; fill: none; transition: stroke 0.2s; }
+  .hb-draht.an { stroke: var(--akzent); }
+  .hb-draht.brems { stroke: var(--akzent-hell); stroke-dasharray: 6 4; }
+  .hb-draht.kurz { stroke: var(--fehler); stroke-width: 5; }
+  .hb-sch { fill: var(--tief); stroke: var(--leise); stroke-width: 2; transition: fill 0.2s; }
+  [data-hb-schalter].zu .hb-sch { fill: var(--akzent); stroke: var(--akzent); }
+  [data-hb-schalter].zu .hb-txt { fill: var(--grund); }
+  .hb-motor { fill: var(--tief); stroke: var(--leise); stroke-width: 2.5; }
+  .hb-motor.dreht { stroke: var(--akzent); }
+  .hb-blitz { fill: var(--fehler); font-size: 14px; font-weight: 700; opacity: 0; transition: opacity 0.2s; }
+  .hb-modus { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.7rem; }
+  .hb-knoepfe { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.7rem; }
+  .hb-knoepfe [aria-pressed='true'] { background: var(--akzent); color: var(--grund); border-color: var(--akzent); }
+  .hb-werte { display: grid; grid-template-columns: 1fr auto; gap: 0.3rem 0.8rem; margin: 0 0 0.6rem; }
+  .hb-werte dd { margin: 0; font-weight: 700; text-align: right; }
+</style>

@@ -1,6 +1,5 @@
 ---
 import Basis from '../layouts/Basis.astro';
-import { ALLE_MISSIONEN } from '../data/kampagne';
 const dateien = import.meta.glob('../missionen/*.mdx', { eager: true }) as Record<string, { frontmatter: any }>;
 const abzeichen = Object.values(dateien).map((d) => d.frontmatter?.abzeichen).filter(Boolean) as string[];
 ---
@@ -33,13 +32,16 @@ const abzeichen = Object.values(dateien).map((d) => d.frontmatter?.abzeichen).fi
 </Basis>
 
 <script>
-  import { ALLE_MISSIONEN } from '../data/kampagne';
+  import { KAMPAGNEN, missionenVon } from '../data/kampagne';
   import { beiAenderung, exportCode, importCode, laden, zuruecksetzen } from '../scripts/engine';
   const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector<T>(s)!;
   function zeigen() {
     const z = laden();
     const n = Object.keys(z.missionen).length;
-    $('[data-fs-anzahl]').textContent = `${n} von ${ALLE_MISSIONEN.length} Missionen geschafft.`;
+    $('[data-fs-anzahl]').textContent = KAMPAGNEN.map((k) => {
+      const l = missionenVon(k).filter((m) => m.bereit);
+      return `Kampagne ${k.nr}: ${l.filter((m) => z.missionen[m.id]).length} von ${l.length} Missionen.`;
+    }).join(' ');
     $<HTMLTextAreaElement>('[data-fs-code]').value = exportCode();
     const ul = $('[data-fs-abzeichen]');
     const alle = JSON.parse(ul.dataset.alle!) as string[];
