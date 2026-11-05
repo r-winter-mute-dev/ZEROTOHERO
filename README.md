@@ -74,7 +74,7 @@ Der Weg dorthin beginnt mit einer einzelnen LED.
 
 ✅ spielbar · 🛠️ in Arbeit, auf der Karte schon sichtbar
 
-Neu kaufen musst du für Akt 0 und 1 nur ein 2WD-Fahrgestell mit zwei Getriebemotoren und ein DRV8833-Modul. ESP32-DevKit, Multimeter und später die Akku-Versorgung kommen aus Kampagne 1.
+Neu kaufen musst du für Akt 0 und 1 nur ein 2WD-Fahrgestell mit zwei Getriebemotoren und ein DRV8833-Modul. ESP32-DevKit, Multimeter und später die Akku-Versorgung kommen aus Kampagne 1. Am besten spielst du Kampagne 1 vorher komplett. Mission 0.1 von Kampagne 2 zeigt genau, welche Missionen aus Kampagne 1 du für welchen Akt brauchst.
 
 ## Was du brauchst
 

@@ -27,6 +27,7 @@ import Merke from '../components/Merke.astro';
 import Hinweis from '../components/Hinweis.astro';
 import Karte from '../components/Karte.astro';
 import Checkliste from '../components/Checkliste.astro';
+import { url as seitenUrl } from '../config';
 
 Bisher hatten Motoren und ESP32 je eine eigene Quelle: Batterien und USB. Ein Roboter, der frei fährt, hat nur einen Akku. Genau hier gehen die meisten Roboter kaputt oder starten ständig neu. **Deine Mission: Versorge Motoren und ESP32 aus dem 18650-Akku und beweise mit einem Belastungstest, dass es keine Neustarts gibt.**
 
@@ -42,6 +43,10 @@ Der ESP32 braucht stabile 3,3 V. Fällt seine Spannung zu tief, löst der Browno
 
 <Karte titel="Warum der Akku einbricht" nr={3}>
 Akku, Schutzschaltung, Schalter und Leitungen haben zusammen einen kleinen Innenwiderstand. Fließt ein großer Strom, fällt daran eine Spannung ab: ΔU = R × I. Bei 0,2 Ω und 2 A sind das 0,4 V, die an VM fehlen. Der Elko direkt am Treiber liefert die ersten Millisekunden der Stromspitze selbst und glättet so den Einbruch.
+</Karte>
+
+<Karte titel="Der ESP32 misst mit" nr={4}>
+Damit du den Einbruch sehen kannst, misst der ESP32 die Spannung an VM selbst, mit seinem Analog-Digital-Wandler (ADC). Den kennst du von der Akkuanzeige der Klingel (<a href={seitenUrl('mission/m-6-4')}>Kampagne 1, Mission 6.4</a>): Ein Pin misst eine Spannung und liefert eine Zahl. Der ADC misst nur Spannungen bis etwa 3 V, und mehr als 3,6 V verträgt der Pin laut Datenblatt nicht (<a href={seitenUrl('mission/m-2-db')}>Mission 2.9</a>). Deshalb halbiert ein Spannungsteiler (<a href={seitenUrl('mission/m-1-5')}>Mission 1.5</a>) die Akkuspannung vorher. `analogReadMilliVolts(34)` liefert dann die Spannung am Pin in Millivolt, mal 2 ergibt die Spannung an VM.
 </Karte>
 
 <Merke>Motoren direkt an den Akku, ESP32 über den Wandler. Der Elko sitzt direkt am Treiber. Alle Massen sind verbunden.</Merke>
