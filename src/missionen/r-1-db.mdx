@@ -1,0 +1,123 @@
+---
+id: r-1-db
+abzeichen: Datenblatt-Leser
+checks:
+  - id: finden
+  - id: aufbau
+  - id: lesen
+  - id: echt
+spick:
+  - t: "Finden"
+    v: "Herstellerseite > Suche „Typ datasheet pdf“"
+  - t: "Genauer Typ"
+    v: "Jeder Buchstabe zählt: DRV8833 ≠ DRV8833C"
+  - t: "Absolute Maximum"
+    v: "Nie erreichen, kein Betriebsbereich"
+  - t: "Recommended Operating"
+    v: "Hier wird gearbeitet"
+  - t: "Electrical Characteristics"
+    v: "Mit min/max rechnen, typ ist nur üblich"
+  - t: "Fußnoten"
+    v: "Immer lesen, sie ändern die Werte"
+---
+import Quiz from '../components/Quiz.astro';
+import Zahl from '../components/Zahl.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Karte from '../components/Karte.astro';
+
+„Laut Datenblatt“ steht in diesem Kurs ständig. Ein Datenblatt ist die Bedienungsanleitung eines Bauteils, geschrieben vom Hersteller. Es sagt dir, was das Teil kann, was es zerstört und wie man es anschließt. Wer Datenblätter lesen kann, ist nicht mehr auf Foren und Vermutungen angewiesen. **Deine Mission: Finde das Datenblatt des DRV8833 und lies die Werte ab, die du für deinen Roboter brauchst.**
+
+## Ein Datenblatt finden
+
+<Karte titel="Den genauen Typ kennen" nr={1}>
+Steht auf dem Chip ein Aufdruck, ist das der Anfang. Auf Modulen findest du den Typ meist auch in der Produktbeschreibung des Shops. Jeder Buchstabe zählt: Ein DRV8833C ist ein eigener Chip mit eigenem Datenblatt und anderen Werten als der DRV8833.
+</Karte>
+
+<Karte titel="Beim Hersteller suchen" nr={2}>
+Die beste Quelle ist der Hersteller selbst. Für den DRV8833 ist das Texas Instruments (ti.com): Typ ins Suchfeld, Produktseite öffnen, dort steht das Datenblatt als PDF. Eine Websuche nach „DRV8833 datasheet pdf“ führt meist auch dorthin. Achte darauf, dass die Datei vom Hersteller stammt und nicht von einer Seite, die nur Kopien sammelt.
+</Karte>
+
+<Karte titel="Chip oder Modul?" nr={3}>
+Du kaufst meist ein **Modul**: eine kleine Platine mit dem Chip, ein paar Bauteilen und Stiftleisten. Das Datenblatt beschreibt nur den **Chip**. Was das Modul zusätzlich tut, zum Beispiel einen Pin fest auf HIGH legen, steht höchstens beim Händler oder auf einem Schaltplan des Moduls. Manche Shops verlinken ein Datenblatt direkt auf der Produktseite.
+</Karte>
+
+<Karte titel="Nachbauten" nr={4}>
+Viele einfache Chips gibt es von mehreren Herstellern unter demselben Namen, etwa den Schutzchip DW01 oder den Regler AMS1117 aus Kampagne 1. Die Werte können sich unterscheiden. Dann nimmst du das Datenblatt des Herstellers, dessen Logo oder Kürzel auf dem Chip steht, und rechnest mit Reserve.
+</Karte>
+
+<Merke>Genauen Typ herausfinden, Datenblatt beim Hersteller holen. Das Datenblatt gilt für den Chip, nicht für das Modul.</Merke>
+
+<Quiz id="finden" titel="Kurzcheck: Finden" fragen={[
+  { frage: 'Auf deinem Modul sitzt ein Chip mit dem Aufdruck „DRV8833C“. Welches Datenblatt brauchst du?', richtig: 'Das vom DRV8833C', falsch: ['Das vom DRV8833, das C ist nur die Verpackung', 'Egal, alle Motortreiber sind gleich'], erklaerung: 'Ein angehängter Buchstabe kann einen anderen Chip bedeuten. Beim DRV8833C nennt TI zum Beispiel für das PWP-Gehäuse nur 0,7 A Dauerstrom statt 1,5 A beim DRV8833 im RTY-Gehäuse.' },
+  { frage: 'Das Datenblatt sagt, nSLEEP hat einen internen Pulldown. Auf deinem Modul dreht der Motor trotzdem, ohne dass du nSLEEP anschließt. Wie passt das zusammen?', richtig: 'Das Modul legt nSLEEP selbst über ein Bauteil auf HIGH. Das steht nicht im Datenblatt des Chips', falsch: ['Das Datenblatt ist falsch', 'Der Pulldown funktioniert nur bei 5 V'], erklaerung: 'Das Datenblatt beschreibt den Chip. Was der Modulhersteller drumherum baut, steht beim Modul.' },
+]} />
+
+## Wie ein Datenblatt aufgebaut ist
+
+Datenblätter großer Hersteller sind fast immer gleich gegliedert. Die Abschnitte heißen meist englisch, so auch beim DRV8833:
+
+| Abschnitt | Was drinsteht | Wofür du ihn brauchst |
+| --- | --- | --- |
+| Features, Description | Kurzfassung auf Seite 1 | Passt der Chip überhaupt? |
+| Pin Configuration and Functions | Welcher Pin was tut | Verdrahten |
+| Absolute Maximum Ratings | Grenzen, ab denen der Chip Schaden nehmen kann | Nie erreichen |
+| Recommended Operating Conditions | Bereich, in dem er wie beschrieben arbeitet | Hier planst du |
+| Electrical Characteristics | Gemessene Werte mit Prüfbedingungen | Rechnen |
+| Detailed Description | Funktionen, Wahrheitstabellen, Schutzschaltungen | Verstehen, programmieren |
+| Application and Implementation | Beispielschaltung mit Bauteilwerten | Nachbauen |
+| Layout | Wie die Leiterplatte aussehen soll | Eigene Platinen |
+
+<Karte titel="Absolute Maximum ist keine Grenze zum Ausreizen" nr={5}>
+Der wichtigste Unterschied im ganzen Datenblatt: **Absolute Maximum Ratings** sind Belastungsgrenzen. TI schreibt selbst dazu, dass der Chip bei diesen Werten nicht funktionieren muss und dass längere Belastung die Lebensdauer verkürzen kann. Gebaut wird im Bereich der **Recommended Operating Conditions**.
+</Karte>
+
+<Karte titel="Min, typ, max" nr={6}>
+In den Electrical Characteristics hat jeder Wert bis zu drei Spalten. **Typ** ist der übliche Wert, **min** und **max** sind die Grenzen, die jedes Exemplar einhält. Wer sicher planen will, rechnet mit dem ungünstigsten Wert, nicht mit typ. Daneben stehen die **Prüfbedingungen** (Test Conditions), zum Beispiel VM = 5 V. Bei anderen Bedingungen können die Werte anders sein.
+</Karte>
+
+<Karte titel="Fußnoten lesen" nr={7}>
+Kleine Ziffern hinter einem Wert verweisen auf Fußnoten. Die sind oft wichtig. Beim DRV8833 steht dort: Unter 5 V an VM steigt der Widerstand der Schalter, und der mögliche Ausgangsstrom sinkt. Dein Roboter läuft mit 3 bis 4,2 V, das betrifft dich also direkt.
+</Karte>
+
+<Merke>Absolute Maximum: nie erreichen. Recommended: hier arbeiten. Mit min oder max rechnen, Prüfbedingungen und Fußnoten lesen.</Merke>
+
+<Quiz id="aufbau" titel="Kurzcheck: Aufbau" fragen={[
+  { frage: 'In welchem Abschnitt findest du, welcher Pin des Chips welche Aufgabe hat?', richtig: 'Pin Configuration and Functions', falsch: ['Absolute Maximum Ratings', 'Layout'], erklaerung: 'Dort steht eine Zeichnung des Gehäuses mit Pinnummern und eine Tabelle mit Name und Aufgabe jedes Pins.' },
+  { frage: 'Ein Wert steht bei den Absolute Maximum Ratings. Was bedeutet das?', richtig: 'Darüber kann der Chip Schaden nehmen. Dass er bei diesem Wert funktioniert, ist nicht zugesagt', falsch: ['Bis zu diesem Wert arbeitet der Chip normal', 'Das ist der empfohlene Wert für beste Leistung'], erklaerung: 'Absolute Maximum Ratings sind Belastungsgrenzen, kein Betriebsbereich. Für den Betrieb gelten die Recommended Operating Conditions.' },
+]} />
+
+## Üben am DRV8833
+
+Hier ein paar Werte aus dem Datenblatt des DRV8833 (Texas Instruments, Revision SLVSAR1E):
+
+| Abschnitt | Größe | min | typ | max |
+| --- | --- | --- | --- | --- |
+| Absolute Maximum | VM (Versorgung) | −0,3 V | | 11,8 V |
+| Absolute Maximum | Digitale Eingänge | −0,5 V | | 7 V |
+| Recommended Operating | VM | 2,7 V | | 10,8 V |
+| Recommended Operating | Ausgangsstrom pro Brücke (RTY-Gehäuse), Fußnote: bei VM = 5 V | | | 1,5 A |
+| Electrical Characteristics | Stromaufnahme an VM im Betrieb, bei VM = 5 V | | 1,7 mA | 3 mA |
+| Electrical Characteristics | Stromaufnahme an VM im Schlaf, bei VM = 5 V | | 1,6 µA | 2,5 µA |
+
+<Quiz id="lesen" titel="Übung: Werte ablesen" fragen={[
+  { frage: 'Ein Freund will den DRV8833 an einem 11-V-Akku betreiben, „das Maximum ist ja 11,8 V“. Was sagst du?', richtig: 'Zu hoch: Der Betriebsbereich endet bei 10,8 V. 11,8 V ist nur die Belastungsgrenze', falsch: ['Passt, 11 V liegt unter 11,8 V', 'Passt nur, wenn die Motoren klein sind'], erklaerung: 'Der Unterschied zwischen Absolute Maximum und Recommended Operating ist genau dafür da. Ein voll geladener Akku liegt außerdem oft über seiner Nennspannung.' },
+  { frage: 'Du willst wissen, wie viel Strom der schlafende Treiber höchstens aus dem Akku zieht. Welchen Wert nimmst du?', richtig: '2,5 µA, den Maximalwert', falsch: ['1,6 µA, den typischen Wert', '1,7 mA'], erklaerung: 'Für eine sichere Abschätzung rechnest du mit dem ungünstigsten Wert. Typ heißt nur: So ist es meistens.' },
+  { frage: 'Dein Roboter läuft mit 3,7 V. Gelten die 1,5 A Ausgangsstrom für dich?', richtig: 'Nicht sicher: Die Fußnote sagt, unter 5 V an VM sinkt der mögliche Strom', falsch: ['Ja, 1,5 A gelten immer', 'Nein, unter 5 V arbeitet der Chip gar nicht'], erklaerung: 'Die 1,5 A gelten bei VM = 5 V. Bei 3,7 V ist der Widerstand der Schalter größer, der Chip wird bei gleichem Strom wärmer. Plane mit Reserve.' },
+  { frage: 'Der ESP32 gibt 3,3 V an AIN1. Ist das für den Eingang in Ordnung?', richtig: 'Ja, das liegt im empfohlenen Bereich der digitalen Eingänge (bis 5,75 V)', falsch: ['Nein, die Eingänge brauchen genau VM', 'Nur mit Spannungsteiler'], erklaerung: 'Laut Recommended Operating Conditions dürfen die digitalen Eingänge zwischen −0,3 und 5,75 V liegen. Die 3,3 V des ESP32 passen also ohne Anpassung.' },
+]} />
+
+## Selbst nachschlagen
+
+Öffne jetzt das echte Datenblatt: auf ti.com nach „DRV8833“ suchen, Produktseite öffnen, Datenblatt herunterladen. Such im Abschnitt **Detailed Description** nach der Tabelle, die xIN1 und xIN2 den Ausgängen zuordnet. Das ist die Wahrheitstabelle aus Mission 1.3. Und im Abschnitt **Pin Configuration and Functions** findest du, welchen Kondensator TI direkt an VM empfiehlt.
+
+<Zahl id="echt" titel="Nachgeschlagen: Kondensator an VM" frage="Welche Mindestkapazität empfiehlt TI für den Keramikkondensator an VM?" einheit="µF" min={10} max={10} hardware={false} hilfe={[
+  { unter: 10, text: 'Schau in der Pin-Tabelle in der Zeile VM, Spalte Beschreibung.' },
+  { ueber: 10, text: 'Gesucht ist der Keramikkondensator aus der Pin-Tabelle, nicht dein Elko.' },
+]} />
+
+<Hinweis titel="Und dein 1000-µF-Elko?">
+Die beiden ergänzen sich. Der kleine Keramikkondensator sitzt auf der Modulplatine meist schon direkt am Chip und fängt sehr schnelle Spitzen ab. Der große Elko liefert die langen Stromspitzen beim Anfahren der Motoren (Mission 2.2). Ob dein Modul den Keramikkondensator hat, siehst du nur am Modul selbst, nicht im Datenblatt.
+</Hinweis>
+
+<Merke>Datenblatt beim Hersteller holen, Abschnitt suchen, Wert mit Bedingungen und Fußnoten ablesen.</Merke>
