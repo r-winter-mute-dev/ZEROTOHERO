@@ -1,0 +1,79 @@
+---
+id: r-4-boss
+abzeichen: Regler-Doktor
+checks:
+  - id: boss
+spick:
+  - t: "Pendelt immer stärker"
+    v: "KP zu groß oder KD zu klein"
+  - t: "Fliegt aus der Kurve"
+    v: "KP zu klein oder zu schnell"
+  - t: "Ruhig, aber versetzt"
+    v: "Bleibende Abweichung: etwas KI"
+  - t: "Zittert, Motoren surren"
+    v: "KD zu groß"
+  - t: "Schießt nach Festhalten weit über"
+    v: "Windup: Integral begrenzen"
+---
+import Logdiagnose from '../components/Logdiagnose.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Jeder Reglerfehler hat ein typisches Gesicht. Wer die Bewegung des Roboters lesen kann, weiß, an welcher Zahl er drehen muss. **Dein Bosskampf: Sechs Linienfolger fahren falsch. Erkenne den Fehler an ihrem Verhalten und den Werten.**
+
+## Die Methode
+
+1. **Beobachten:** Wann tritt der Fehler auf? Auf der Geraden, in der Kurve, nach dem Start?
+2. **Form erkennen:** Pendelt er? Wird es schlimmer oder bleibt es gleich? Liegt er ruhig daneben?
+3. **Einen Wert ändern:** Mit der Tabelle aus Mission 4.4, nicht mehrere auf einmal.
+
+<Merke>Pendeln heißt meist zu viel P oder zu wenig D. Ruhig daneben heißt I. Zittern heißt zu viel D.</Merke>
+
+<Hinweis titel="Lesetipp">
+Die Fälle sind ausgedacht, aber typisch. Die Werte stammen aus dem Programm und aus der Beobachtung.
+</Hinweis>
+
+<Logdiagnose id="boss" titel="Bosskampf: Zittert auf der Linie" anzahl={5} faelle={[
+  {
+    symptom: 'Auf der Geraden pendelt der Roboter von Anfang an hin und her, die Schlenker werden immer größer, nach 4 Sekunden verliert er die Linie.',
+    log: 'FAHRT = 25, KP = 4.0, KI = 0, KD = 0\nGefahren: 4 s, Linie verloren: ja\nMit KP = 2.0: ruhig, 30 s',
+    richtig: 'KP ist zu groß. Die Korrektur kommt durch die Verzögerung zu spät und schaukelt sich auf.',
+    falsch: ['KI fehlt.', 'Die Sensoren sind falsch kalibriert.'],
+    erklaerung: 'Aufschaukeln von Anfang an, schon auf der Geraden: klassisch zu viel Verstärkung. Mit halbem KP fährt er ruhig, also liegt es nicht an den Sensoren.',
+  },
+  {
+    symptom: 'Auf der Geraden fährt der Roboter ruhig. In der engsten Kurve verliert er jedes Mal die Linie nach außen.',
+    log: 'FAHRT = 40, KP = 0.6, KI = 0, KD = 0\nGefahren: 7 s, Linie verloren: ja\nVerlust immer in derselben Kurve',
+    richtig: 'KP ist zu klein für diese Geschwindigkeit. Der Roboter lenkt zu schwach und kommt nicht um die Kurve.',
+    falsch: ['KD ist zu groß.', 'Das Band in der Kurve ist zu schmal.'],
+    erklaerung: 'Ruhig auf der Geraden, raus in der Kurve: zu wenig Verstärkung. Mehr KP oder langsamer fahren.',
+  },
+  {
+    symptom: 'Der Roboter fährt die ganze Runde ruhig, aber auf jeder Geraden ein Stück rechts neben der Linie. Der rechte Sensor sieht ständig etwas Schwarz.',
+    log: 'FAHRT = 30, KP = 1.5, KI = 0, KD = 0.04\nGefahren: 30 s, Linie verloren: nein, mittlerer Fehler: 210 Promille\nAufgebockt: rechtes Rad dreht bei gleichem PWM etwas langsamer',
+    richtig: 'Bleibende Abweichung durch den schwächeren rechten Motor. Ein kleiner I-Anteil gleicht sie aus.',
+    falsch: ['KP muss viel größer werden.', 'KD ist zu klein.'],
+    erklaerung: 'Ruhig, aber versetzt: Der P-Anteil lenkt nur, wenn eine Abweichung da ist. Der I-Anteil summiert sie auf und drückt sie weg.',
+  },
+  {
+    symptom: 'Nach einer Änderung zittert der Roboter auf der Linie, die Motoren surren hörbar, obwohl er die Runde schafft.',
+    log: 'Vorher: KD = 0.05, ruhig\nJetzt: KD = 0.5\nGefahren: 30 s, Linie verloren: nein, mittlerer Fehler: 95 Promille',
+    richtig: 'KD ist zu groß. Der D-Anteil verstärkt das schnelle Rauschen der Sensoren.',
+    falsch: ['KP ist zu klein.', 'Der Akku ist fast leer.'],
+    erklaerung: 'Zittern und Surren bei hohem KD ist typisch: Jede kleine Messschwankung erzeugt eine große Ableitung. Zurück auf einen kleineren Wert.',
+  },
+  {
+    symptom: 'Ein Kind hält den Roboter kurz neben der Linie fest. Als es loslässt, schießt er weit auf die andere Seite und braucht lange, bis er wieder ruhig fährt.',
+    log: 'KI = 2.0\nIm Programm geändert:\nintegral = integral + e * dt;   // Begrenzung entfernt\nWährend des Festhaltens: e = 1.0 für 3 s',
+    richtig: 'Windup: Ohne Begrenzung ist das Integral während des Festhaltens stark angewachsen und wirkt danach weiter.',
+    falsch: ['Der P-Anteil ist zu groß.', 'Die Kalibrierung ist durch das Festhalten verloren gegangen.'],
+    erklaerung: 'Drei Sekunden mit e = 1 ergeben ein Integral von 3 statt höchstens 1. Mit constrain(integral, -1, 1) wäre es begrenzt geblieben.',
+  },
+  {
+    symptom: 'Jemand hat zur Fehlersuche Ausgaben in die Regelschleife eingebaut. Seitdem fährt der Roboter mit denselben Werten deutlich unruhiger.',
+    log: 'In der Schleife neu:\nSerial.printf("e=%.2f u=%.2f\\n", e, u);\ndelay(20);\nGemessene Schleifenzeit: schwankt zwischen 10 und 35 ms',
+    richtig: 'Der feste Takt ist kaputt. I und D rechnen mit dt = 0,01 s, die echte Zeit ist aber länger und schwankt.',
+    falsch: ['Serial.printf verbraucht zu viel Strom.', 'Die Sensoren werden durch die Ausgabe gestört.'],
+    erklaerung: 'Ändert sich die Zeit zwischen zwei Schritten, stimmen Integral und Ableitung nicht mehr. Und jede Verzögerung macht den Regler träger. Ausgaben gehören nicht in die schnelle Regelschleife.',
+  },
+]} />

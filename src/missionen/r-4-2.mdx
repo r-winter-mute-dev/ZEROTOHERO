@@ -1,0 +1,44 @@
+---
+id: r-4-2
+checks:
+  - id: simulator
+  - id: verstehen
+spick:
+  - t: "P-Regler"
+    v: "u = K<sub>p</sub> × e"
+  - t: "K<sub>p</sub> zu klein"
+    v: "Lenkt zu schwach, fliegt aus der Kurve"
+  - t: "K<sub>p</sub> zu groß"
+    v: "Überschwingt, pendelt, schaukelt sich auf"
+  - t: "Grund fürs Pendeln"
+    v: "Verzögerung zwischen Messen und Wirkung"
+---
+import Quiz from '../components/Quiz.astro';
+import Regler from '../components/Regler.astro';
+import Merke from '../components/Merke.astro';
+import Karte from '../components/Karte.astro';
+
+Der Zweipunktregler lenkt immer voll. Besser wäre: wenig daneben, wenig lenken. Weit daneben, kräftig lenken. Genau das macht der **P-Regler**. P steht für proportional. **Deine Mission: Finde im Simulator die Verstärkung, mit der der Roboter ruhig der Linie folgt, und lerne, warum zu viel davon schadet.**
+
+## Proportional lenken
+
+<Karte titel="Die Formel" nr={1}>
+Der P-Regler rechnet: Stellgröße u = K<sub>p</sub> × e. Die Regelabweichung e kommt aus den beiden Sensoren: Sieht der linke mehr Linie als der rechte, ist e positiv, und der Roboter lenkt nach links. K<sub>p</sub> ist die **Verstärkung**, eine Zahl, die du einstellst.
+</Karte>
+
+<Karte titel="Zu wenig Verstärkung" nr={2}>
+Mit kleinem K<sub>p</sub> lenkt der Roboter sanft, aber zu schwach. Auf der Geraden geht das, in einer engen Kurve kommt er nicht schnell genug herum und verliert die Linie nach außen.
+</Karte>
+
+<Karte titel="Zu viel Verstärkung" nr={3}>
+Mit großem K<sub>p</sub> reagiert er heftig. Weil zwischen Messen und Wirkung Zeit vergeht (Motoren beschleunigen nicht sofort, Mission 1.2), ist er schon über die Linie hinaus, wenn das Gegenlenken wirkt. Er **überschwingt** und pendelt. Bei noch mehr Verstärkung oder höherer Geschwindigkeit schaukeln sich die Schlenker auf, bis er die Linie verliert.
+</Karte>
+
+<Merke>u = K<sub>p</sub> × e. Zu wenig: fliegt aus der Kurve. Zu viel: pendelt. Dazwischen liegt der gute Bereich.</Merke>
+
+<Regler id="simulator" titel="Simulator: P-Regler" stufe="p" />
+
+<Quiz id="verstehen" titel="Kurzcheck: P-Regler" fragen={[
+  { frage: 'Bei 50 cm/s pendelt der Roboter mit jedem Kp. Was ist der Grund?', richtig: 'Die Verzögerung bleibt gleich, aber er legt in dieser Zeit mehr Weg zurück. Die Korrektur kommt zu spät', falsch: ['Der Simulator rechnet bei hoher Geschwindigkeit falsch', 'Der P-Regler funktioniert nur bei geraden Strecken'], erklaerung: 'Doppelte Geschwindigkeit, doppelter Weg während der Verzögerung. Der P-Regler reagiert nur auf die Abweichung, nicht darauf, wie schnell sie sich ändert. Das kann erst der D-Anteil in Mission 4.3.' },
+  { frage: 'e = 0,4 und Kp = 2. Wie groß ist die Stellgröße?', richtig: '0,8', falsch: ['2,4', '0,2'], erklaerung: 'u = Kp × e = 2 × 0,4 = 0,8. Im Programm heißt das: Das äußere Rad fährt 80 % schneller, das innere 80 % langsamer als die Grundgeschwindigkeit.' },
+]} />
