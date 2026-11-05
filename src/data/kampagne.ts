@@ -197,11 +197,11 @@ export const FAHRROBOTER: Akt[] = [
     nr: 4, titel: 'Regeln', teil: 'regler', teilName: 'Regler',
     ziel: 'Der Roboter folgt einer Linie ruhig und schnell.',
     missionen: [
-      m('r-4-1', '4.1', 'Ein und aus', 'Mit einem Zweipunktregler der Linie folgen.', 'Regelkreis, Sollwert, Istwert', 'Simulator'),
-      m('r-4-2', '4.2', 'Der P-Regler', 'Proportional zur Abweichung lenken.', 'Regelabweichung, Verstärkung', 'Simulator'),
-      m('r-4-3', '4.3', 'PID', 'Integral und Differenzial verstehen.', 'Bleibende Abweichung, Dämpfung', 'Simulator'),
-      m('r-4-4', '4.4', 'Einstellen', 'Den Regler am echten Roboter einstellen.', 'Schrittweises Tuning, Messen statt Raten', 'Rundenzeit'),
-      m('r-4-boss', 'Boss 4', 'Zittert auf der Linie', 'Reglerfehler an Messkurven erkennen.', 'Schwingen, Überschwingen, zu träge', 'Fehlerszenarien', { boss: true }),
+      m('r-4-1', '4.1', 'Ein und aus', 'Mit einem Zweipunktregler der Linie folgen.', 'Regelkreis, Sollwert, Istwert', 'Simulator', { bereit: true }),
+      m('r-4-2', '4.2', 'Der P-Regler', 'Proportional zur Abweichung lenken.', 'Regelabweichung, Verstärkung', 'Simulator', { bereit: true }),
+      m('r-4-3', '4.3', 'PID', 'Integral und Differenzial verstehen.', 'Bleibende Abweichung, Dämpfung', 'Simulator', { bereit: true }),
+      m('r-4-4', '4.4', 'Einstellen', 'Den Regler am echten Roboter einstellen.', 'Schrittweises Tuning, fester Takt, Messen statt Raten', '20 Sekunden auf der Linie', { bereit: true }),
+      m('r-4-boss', 'Boss 4', 'Zittert auf der Linie', 'Reglerfehler an Messkurven erkennen.', 'Schwingen, Überschwingen, zu träge', 'Fehlerszenarien', { boss: true, bereit: true }),
     ],
   },
   {

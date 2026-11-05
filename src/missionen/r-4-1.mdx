@@ -1,0 +1,60 @@
+---
+id: r-4-1
+checks:
+  - id: begriffe
+  - id: simulator
+spick:
+  - t: "Sollwert"
+    v: "Wo der Roboter sein soll: mittig auf der Linie"
+  - t: "Istwert"
+    v: "Wo er gerade ist: das, was die Sensoren messen"
+  - t: "Regelabweichung"
+    v: "e = Soll − Ist"
+  - t: "Stellgröße"
+    v: "Was der Regler verändert: wie stark gelenkt wird"
+  - t: "Zweipunktregler"
+    v: "Nur zwei Zustände: voll links oder voll rechts"
+---
+import Quiz from '../components/Quiz.astro';
+import Regler from '../components/Regler.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Karte from '../components/Karte.astro';
+
+Dein Roboter sieht die Linie. Jetzt muss er ihr folgen: messen, entscheiden, lenken, wieder messen, viele Male pro Sekunde. Diese Schleife heißt **Regelkreis**. Sie steckt im Tempomat, im Kühlschrank, in der Heizung, im Gleichgewichtssinn deines Körpers und in jedem Roboterarm. **Deine Mission: Lerne die Begriffe des Regelkreises und probier den einfachsten Regler aus, den Zweipunktregler.**
+
+## Der Regelkreis
+
+<Karte titel="Soll und Ist" nr={1}>
+Der **Sollwert** ist das Ziel: Der Roboter soll genau mittig über der Linie fahren. Der **Istwert** ist das, was die Sensoren gerade messen: vielleicht etwas zu weit rechts. Die Differenz heißt **Regelabweichung** e. Ist sie null, ist alles gut.
+</Karte>
+
+<Karte titel="Der Regler und die Stellgröße" nr={2}>
+Der **Regler** ist ein Stück Programm. Er bekommt die Regelabweichung und berechnet daraus die **Stellgröße**: hier, wie stark und in welche Richtung gelenkt wird. Der Roboter lenkt, wie in Mission 2.4, mit unterschiedlich schnellen Rädern.
+</Karte>
+
+<Karte titel="Der Kreis schließt sich" nr={3}>
+Das Lenken verändert die Position. Die Sensoren messen die neue Position, der Regler rechnet neu. Ergebnis wirkt auf Ursache zurück, deshalb heißt es **Kreis** und das Prinzip **Rückkopplung**. Ein Programm, das einfach eine feste Strecke abfährt, wie die Figuren in Mission 2.4, ist dagegen eine **Steuerung**: Es merkt nicht, ob es danebenliegt.
+</Karte>
+
+<Merke>Messen, mit dem Ziel vergleichen, korrigieren, wieder messen. Regelabweichung e = Soll − Ist.</Merke>
+
+<Quiz id="begriffe" titel="Kurzcheck: Begriffe" fragen={[
+  { frage: 'Was ist beim Linienfolger die Stellgröße?', richtig: 'Wie stark der Roboter nach links oder rechts lenkt', falsch: ['Die Spannung an den Liniensensoren', 'Die Breite der Linie'], erklaerung: 'Die Stellgröße ist das, was der Regler verändern kann. Die Sensorspannung ist der gemessene Istwert.' },
+  { frage: 'Ein Tempomat hält 100 km/h. Bergauf wird das Auto langsamer, der Tempomat gibt mehr Gas. Was ist hier die Regelabweichung?', richtig: 'Der Unterschied zwischen 100 km/h und der gemessenen Geschwindigkeit', falsch: ['Die Steigung des Bergs', 'Wie stark das Gaspedal gedrückt wird'], erklaerung: 'Soll 100, Ist zum Beispiel 94: e = 6 km/h. Das Gaspedal ist die Stellgröße, der Berg eine Störung.' },
+  { frage: 'Dein Roboter fährt mit festen Zeiten ein Quadrat ab, ohne Sensoren. Ist das eine Regelung?', richtig: 'Nein, eine Steuerung: Er merkt nicht, wenn er abweicht', falsch: ['Ja, weil ein Programm läuft', 'Ja, weil sich die Räder drehen'], erklaerung: 'Zur Regelung gehört die Rückkopplung: messen und auf das Ergebnis reagieren.' },
+]} />
+
+## Der Zweipunktregler
+
+Der einfachste Regler kennt nur zwei Antworten: Linie links, also voll nach links lenken. Linie rechts, also voll nach rechts. Ein Bügeleisen arbeitet so: Heizung an, bis es warm genug ist, dann aus. Ein Zweipunktregler ist leicht zu verstehen und braucht keine Einstellung außer der Lenkstärke.
+
+Sein Nachteil: Er kennt kein „ein bisschen“. Auch bei der kleinsten Abweichung lenkt er voll. Der Roboter fährt deshalb im Zickzack. Je schneller er fährt, desto größer werden die Schlenker, weil er in der Zeit bis zur Gegenreaktion weiter vom Kurs abkommt.
+
+<Hinweis titel="So funktioniert der Simulator">
+Ein Modell eines Roboters fährt eine Strecke mit drei Kurven. Oben siehst du die Strecke (grau) und die gefahrene Bahn (lila), unten die Abweichung von der Linie über die Zeit. Der Simulator ist ein vereinfachtes Modell, die Zahlen gelten nicht für deinen echten Roboter. Das Verhalten ist aber dasselbe.
+</Hinweis>
+
+<Regler id="simulator" titel="Simulator: Zweipunktregler" stufe="zwei" />
+
+<Merke>Der Zweipunktregler lenkt immer voll. Er funktioniert langsam, wird aber bei hoher Geschwindigkeit unruhig.</Merke>

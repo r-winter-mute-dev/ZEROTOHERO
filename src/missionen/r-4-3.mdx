@@ -1,0 +1,65 @@
+---
+id: r-4-3
+abzeichen: Regelungstechniker
+checks:
+  - id: simulator
+  - id: verstehen
+spick:
+  - t: "PID"
+    v: "u = K<sub>p</sub>·e + K<sub>i</sub>·∫e + K<sub>d</sub>·de/dt"
+  - t: "P"
+    v: "Reagiert auf die Abweichung jetzt"
+  - t: "I"
+    v: "Summiert die Vergangenheit: gegen bleibende Abweichung"
+  - t: "D"
+    v: "Reagiert auf die Änderung: dämpft das Pendeln"
+  - t: "Windup"
+    v: "Integral begrenzen"
+---
+import Quiz from '../components/Quiz.astro';
+import Regler from '../components/Regler.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Karte from '../components/Karte.astro';
+
+Der P-Regler hat zwei Schwächen: Bei hoher Geschwindigkeit pendelt er, und eine kleine Abweichung bleibt manchmal einfach bestehen. Zwei weitere Bausteine beheben das. Zusammen heißen die drei **PID-Regler**. Er ist der meistgenutzte Regler der Technik, vom Quadrokopter bis zur Industrieanlage. **Deine Mission: Verstehe I und D und bring den simulierten Roboter mit 50 cm/s ruhig ins Ziel.**
+
+## Drei Blickrichtungen
+
+<Karte titel="P: die Gegenwart" nr={1}>
+Wie weit bin ich jetzt daneben? Der P-Anteil kennst du schon: K<sub>p</sub> × e.
+</Karte>
+
+<Karte titel="I: die Vergangenheit" nr={2}>
+Wie lange bin ich schon daneben? Der I-Anteil zählt die Abweichung über die Zeit zusammen, das **Integral**. Im Simulator ist der rechte Motor etwas schwächer, wie bei deinem echten Roboter (Mission 2.4). Der Roboter zieht deshalb ständig ein wenig nach rechts. Ein P-Regler gleicht das nur aus, wenn eine kleine Abweichung bestehen bleibt, denn ohne Abweichung lenkt er nicht. Diese **bleibende Abweichung** wächst im Integral immer weiter an, bis der I-Anteil sie wegdrückt.
+</Karte>
+
+<Karte titel="D: die Zukunft" nr={3}>
+Wie schnell ändert sich die Abweichung gerade? Der D-Anteil nutzt die **Ableitung**: Änderung der Abweichung pro Zeit. Läuft der Roboter schnell auf die Linie zu, ist die Abweichung zwar noch da, wird aber gleich null. Der D-Anteil lenkt dann schon dagegen, bevor er überschwingt. Er wirkt wie ein Stoßdämpfer.
+</Karte>
+
+<Karte titel="Zu viel ist auch hier schlecht" nr={4}>
+Zu viel I lässt den Roboter langsam, aber stark pendeln, weil das Integral nachläuft. Zu viel D macht ihn nervös: Das Rauschen der Sensoren ändert sich schnell und wird verstärkt. Und steht der Roboter lange neben der Linie, wächst das Integral riesig an und wirkt noch lange nach. Das heißt **Windup**. Deshalb wird das Integral im Programm begrenzt.
+</Karte>
+
+<Merke>P reagiert auf jetzt, I auf die Vergangenheit, D auf die Zukunft. Integral immer begrenzen.</Merke>
+
+```cpp
+// Ein PID-Schritt, alle 10 ms aufgerufen (dt = 0,01 s)
+integral = constrain(integral + e * dt, -1.0, 1.0);   // gegen Windup begrenzen
+float ableitung = (e - letzterFehler) / dt;
+float u = KP * e + KI * integral + KD * ableitung;
+letzterFehler = e;
+```
+
+<Hinweis titel="Warum der feste Takt wichtig ist">
+I und D rechnen mit dt, der Zeit zwischen zwei Schritten. Schwankt diese Zeit, zum Beispiel weil das Programm zwischendurch Text ausgibt, rechnen I und D falsch. Deshalb läuft der Regler im Programm aus Mission 4.4 in einem festen Takt von 10 ms.
+</Hinweis>
+
+<Regler id="simulator" titel="Simulator: PID-Regler" stufe="pid" />
+
+<Quiz id="verstehen" titel="Kurzcheck: PID" fragen={[
+  { frage: 'Der Roboter fährt auf der Geraden immer ein Stück links neben der Linie, ganz ruhig. Welcher Anteil hilft?', richtig: 'I: Er summiert die bleibende Abweichung auf, bis sie verschwindet', falsch: ['D: Er dämpft das Pendeln', 'Mehr Geschwindigkeit'], erklaerung: 'Ruhig, aber daneben ist eine bleibende Abweichung. Nur der I-Anteil wächst, solange sie besteht.' },
+  { frage: 'Nach dem Erhöhen von Kd zittert der Roboter, die Motoren surren. Warum?', richtig: 'Der D-Anteil verstärkt das schnelle Rauschen der Sensoren', falsch: ['Der D-Anteil macht den Roboter langsamer', 'Kd hat keinen Einfluss auf die Motoren'], erklaerung: 'Rauschen ändert sich sehr schnell, also ist seine Ableitung groß. Etwas weniger Kd oder mehr Mittelwertbildung beim Messen helfen.' },
+  { frage: 'Jemand hält den Roboter 5 Sekunden neben der Linie fest. Danach schießt er weit über die Linie hinaus. Was ist passiert?', richtig: 'Windup: Das Integral ist in der Zeit stark angewachsen und wirkt nach', falsch: ['Der P-Anteil ist zu klein', 'Die Sensoren sind kaputt'], erklaerung: 'Ohne Begrenzung wächst das Integral, solange die Abweichung besteht. Danach braucht es lange, bis es wieder abgebaut ist. Deshalb steht im Code constrain() um das Integral.' },
+]} />

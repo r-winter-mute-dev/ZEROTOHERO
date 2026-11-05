@@ -1,0 +1,84 @@
+---
+id: r-4-4
+abzeichen: Linienfolger
+checks:
+  - id: methode
+  - id: kp
+    hardware: true
+  - id: geraet
+    hardware: true
+spick:
+  - t: "Schritt 1"
+    v: "KI = KD = 0, langsam fahren, KP erhöhen bis es pendelt"
+  - t: "Schritt 2"
+    v: "KP etwas zurück, KD erhöhen bis es ruhig ist"
+  - t: "Schritt 3"
+    v: "Schneller fahren, Schritt 1 und 2 wiederholen"
+  - t: "Schritt 4"
+    v: "KI nur bei bleibender Abweichung, klein anfangen"
+  - t: "Regel"
+    v: "Immer nur einen Wert ändern, Ergebnis aufschreiben"
+---
+import Quiz from '../components/Quiz.astro';
+import Zahl from '../components/Zahl.astro';
+import Seriell from '../components/Seriell.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Checkliste from '../components/Checkliste.astro';
+
+Im Simulator war jede Fahrt in einer Sekunde erledigt. Am echten Roboter dauert jeder Versuch eine Minute: einstellen, hochladen, fahren, auslesen. Umso wichtiger ist eine Methode, statt wild an allen Zahlen gleichzeitig zu drehen. **Deine Mission: Stell den PID-Regler deines Roboters so ein, dass er 20 Sekunden lang einer Strecke mit Kurven folgt.**
+
+## Die Teststrecke
+
+<Checkliste id="strecke" punkte={[
+  'Große weiße Fläche, etwa 1 × 1 m: Karton, Tapetenrest oder ein heller, matter Boden.',
+  'Mit mattem schwarzem Isolierband einen geschlossenen Rundkurs kleben, zum Beispiel ein Oval.',
+  'Kurven nicht enger als etwa 15 cm Radius. Das Band in kurzen, leicht überlappenden Stücken legen.',
+  'Ein gerades Stück von mindestens 30 cm einplanen, dort stellst du den Roboter ab.',
+]} />
+
+## Die Methode
+
+Einstellen heißt auf Englisch tuning. Die folgende Reihenfolge ist eine verbreitete Faustregel aus der Praxis. Sie garantiert kein optimales Ergebnis, führt aber zuverlässig zu einem brauchbaren:
+
+1. **Nur P.** KI und KD auf 0, Grundgeschwindigkeit niedrig (25 %). KP in Schritten erhöhen, bis der Roboter auf der Geraden anfängt zu pendeln.
+2. **D dazu.** KP etwas zurücknehmen, etwa auf zwei Drittel. Dann KD in kleinen Schritten erhöhen, bis das Pendeln verschwindet. Werden die Motoren nervös, war es zu viel.
+3. **Schneller.** Grundgeschwindigkeit erhöhen und die Schritte 1 und 2 wiederholen.
+4. **I nur bei Bedarf.** Fährt der Roboter auf der Geraden ruhig, aber immer seitlich versetzt, KI sehr klein dazunehmen.
+
+Schreib jede Fahrt auf: Werte, was passiert ist. Ändere immer nur eine Zahl.
+
+<Merke>Erst P, dann D, dann schneller, I nur bei Bedarf. Immer nur einen Wert ändern und aufschreiben.</Merke>
+
+<Quiz id="methode" titel="Kurzcheck: Methode" fragen={[
+  { frage: 'Du änderst KP und KD gleichzeitig, und der Roboter fährt besser. Was weißt du jetzt?', richtig: 'Nicht, welcher der beiden Werte geholfen hat', falsch: ['Dass beide Änderungen nötig waren', 'Dass du jetzt die besten Werte hast'], erklaerung: 'Vielleicht hat eine Änderung geholfen und die andere geschadet. Nur wer einen Wert nach dem anderen ändert, lernt dabei etwas über seinen Roboter.' },
+  { frage: 'Der Roboter pendelt auf der Geraden immer stärker. Was tust du zuerst?', richtig: 'KP verringern oder KD erhöhen', falsch: ['KI erhöhen', 'Schneller fahren'], erklaerung: 'Aufschaukeln heißt: zu viel Verstärkung für die Verzögerung. Weniger P oder mehr Dämpfung durch D helfen. Mehr I oder mehr Tempo machen es schlimmer.' },
+]} />
+
+## Das Programm
+
+`firmware/roboter-akt-4-regeln/r-4-4-linienfolger/` enthält alles aus Akt 2 bis 4: Prozent statt PWM, Selbstkalibrierung, PID im festen 10-ms-Takt, Integral begrenzt. Oben stehen die Werte, die du einstellst: `FAHRT`, `KP`, `KI`, `KD`.
+
+So läuft eine Fahrt:
+
+1. Roboter auf das gerade Stück stellen, die Linie **zwischen** den beiden Sensoren. Akku EIN.
+2. Nach 3 Sekunden dreht er sich etwas nach links und rechts. Dabei kalibriert er beide Sensoren.
+3. Nach 2 Sekunden Pause folgt er der Linie, höchstens 30 Sekunden lang.
+4. Verliert er die Linie länger als eine Sekunde, hält er sofort an.
+
+Danach wie gewohnt: Akku AUS, 3V3-Kabel ab, über USB auslesen. Die Zeile enthält die gefahrenen Sekunden, ob er die Linie verloren hat (1) oder nicht (0), und den mittleren Fehler in Promille.
+
+<Hinweis art="sicherheit">
+Der Roboter fährt jetzt selbstständig. Hand in der Nähe des Schalters, nichts Zerbrechliches in der Nähe der Strecke.
+</Hinweis>
+
+<Zahl id="kp" titel="Dein Ergebnis: KP" frage="Mit welchem KP fährt dein Roboter am Ende?" einheit="" min={0.2} max={8} vorlaeufig hilfe={[
+  { unter: 0.2, text: 'Sehr wenig. Lenkt der Roboter damit in den Kurven überhaupt genug?' },
+  { ueber: 8, text: 'Sehr viel. Größer als 1 kann die Stellgröße im Programm ohnehin nicht werden, also lenkt er dann fast immer voll.' },
+]} />
+
+<Seriell id="geraet" titel="Gerätenachweis: 20 Sekunden auf der Linie" muster="^KW-CHECK:r-4-4:[0-9A-F]{12}:(2[0-9]|30):0:[0-9]{1,4}$" hinweis="Bestanden ist eine Fahrt mit mindestens 20 Sekunden und ohne Linienverlust (die 0 an vorletzter Stelle). Steht dort eine 1, hat er die Linie verloren: zurück zur Methode." />
+
+<Hinweis titel="Weiter optimieren">
+Der mittlere Fehler in der letzten Zahl ist dein Maß für Ruhe. Schaffst du die 30 Sekunden mit höherer Geschwindigkeit und kleinerem Fehler?
+</Hinweis>

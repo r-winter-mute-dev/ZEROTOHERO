@@ -91,4 +91,8 @@ export const TEILE_ROBOTER: Record<number, Teil[]> = {
     { teil: 'Schwarzes Isolierband, weißer Karton', zweck: 'Teststrecke für die Liniensensoren', produkt: 'Kein fester Link: mattes schwarzes Isolierband (etwa 15–19 mm breit), weißer Karton oder Papier', hinweis: 'Manches glänzende Band reflektiert Infrarot fast wie Weiß. Probier in Mission 3.1 aus, ob dein Band genug Unterschied bringt.' },
     { teil: 'Maßband und Stoppuhr', zweck: 'Geschwindigkeit messen (Mission 3.4)', produkt: 'Kein neuer Kauf: Zollstock oder Maßband, Stoppuhr im Handy' },
   ],
+  4: [
+    { teil: 'Große weiße Fläche', zweck: 'Teststrecke mit Kurven (Mission 4.4)', produkt: 'Kein fester Link: weißer Karton, Tapetenreste oder Packpapier, etwa 1 × 1 m', hinweis: 'Ein heller, matter Fußboden geht auch, wenn du das Band später wieder ablösen darfst. Vorher an einer kleinen Stelle testen.' },
+    { teil: 'Schwarzes Isolierband', zweck: 'Die Linie', produkt: 'Kein neuer Kauf: das matte Band aus Akt 3', hinweis: 'Kurven nicht enger als etwa 15 cm Radius kleben. Dafür das Band in kurzen Stücken leicht überlappend legen.' },
+  ],
 };

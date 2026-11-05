@@ -1,0 +1,181 @@
+---
+// Regler-Trainer: Ein simulierter Linienfolger fährt eine Strecke mit drei Kurven.
+// stufe: 'zwei' (Zweipunktregler), 'p' (P-Regler), 'pid' (PID-Regler). Modell in src/scripts/linie.ts.
+import Station from './Station.astro';
+interface Props { id: string; titel: string; stufe: 'zwei' | 'p' | 'pid'; }
+const { id, titel, stufe } = Astro.props;
+const zeige = (r: string) => (stufe === 'zwei' ? r === 'U' : stufe === 'p' ? r === 'kp' : ['kp', 'ki', 'kd'].includes(r));
+---
+<Station id={id} titel={titel} art="Simulator">
+  <div class="rg" data-kw-regler data-stufe={stufe}>
+    <p class="rg-aufgabe" data-rg-aufgabe aria-live="polite"></p>
+    <div class="rg-raster">
+      <div>
+        <svg class="rg-karte" data-rg-karte role="img" aria-label="Draufsicht der Strecke mit der gefahrenen Bahn">
+          <path class="rg-strecke" data-rg-strecke d="" />
+          <path class="rg-bahn" data-rg-bahn d="" />
+          <circle class="rg-start" data-rg-start r="5" />
+          <circle class="rg-robo" data-rg-robo r="7" />
+        </svg>
+        <svg viewBox="0 0 300 90" class="rg-kurve" role="img" aria-label="Abweichung von der Linie über die Zeit">
+          <line x1="0" x2="300" y1="45" y2="45" class="rg-null" />
+          <text x="3" y="11" class="rg-txt">links</text><text x="3" y="86" class="rg-txt">rechts</text>
+          <text x="248" y="11" class="rg-txt">Abweichung</text>
+          <path class="rg-verlauf" data-rg-verlauf d="" />
+        </svg>
+      </div>
+      <div class="rg-regler">
+        <label class="rg-schieber"><span>Geschwindigkeit: <strong data-rg-w="v">20 cm/s</strong></span>
+          <input type="range" min="10" max="60" step="5" value="20" data-rg="v" aria-label="Geschwindigkeit in cm/s" /></label>
+        {zeige('U') && <label class="rg-schieber"><span>Lenkstärke: <strong data-rg-w="U">0,3</strong></span>
+          <input type="range" min="0.1" max="1" step="0.1" value="0.3" data-rg="U" aria-label="Lenkstärke" /></label>}
+        {zeige('kp') && <label class="rg-schieber"><span>K<sub>p</sub> (proportional): <strong data-rg-w="kp">1</strong></span>
+          <input type="range" min="0" max="8" step="0.5" value="1" data-rg="kp" aria-label="Kp" /></label>}
+        {zeige('ki') && <label class="rg-schieber"><span>K<sub>i</sub> (integral): <strong data-rg-w="ki">0</strong></span>
+          <input type="range" min="0" max="8" step="0.5" value="0" data-rg="ki" aria-label="Ki" /></label>}
+        {zeige('kd') && <label class="rg-schieber"><span>K<sub>d</sub> (differenzial): <strong data-rg-w="kd">0</strong></span>
+          <input type="range" min="0" max="0.3" step="0.01" value="0" data-rg="kd" aria-label="Kd" /></label>}
+        <button type="button" class="knopf klein" data-rg-los>Losfahren</button>
+        <dl class="rg-werte">
+          <dt>Ergebnis</dt><dd data-rg-erg>–</dd>
+          <dt>Mittlere Abweichung</dt><dd data-rg-rms>–</dd>
+          <dt>Größte Abweichung</dt><dd data-rg-max>–</dd>
+          <dt>Zeit</dt><dd data-rg-zeit>–</dd>
+        </dl>
+      </div>
+    </div>
+    <p class="rg-erkl" data-rg-erkl aria-live="polite"></p>
+    <p class="leise klein">Modell: zwei analoge Sensoren 6 cm vor der Achse, 2,8 cm auseinander, Motoren reagieren mit etwa 0,1 s Verzögerung, der rechte Motor ist 6 % schwächer, Regeltakt 20 ms. Weicht der Roboter mehr als 4,5 cm ab, hat er die Linie verloren.</p>
+  </div>
+</Station>
+
+<script>
+  import { fmt, station } from '../scripts/station';
+  import { simuliere, streckenPunkte, type Ergebnis } from '../scripts/linie';
+
+  const PUNKTE = streckenPunkte();
+  const xs = PUNKTE.map((p) => p[0]), ys = PUNKTE.map((p) => p[1]);
+  const RAND = 60;
+  const minX = Math.min(...xs) - RAND, maxX = Math.max(...xs) + RAND, minY = Math.min(...ys) - RAND, maxY = Math.max(...ys) + RAND;
+  const sx = (x: number) => x - minX, sy = (y: number) => maxY - y;
+  const welt = (s: number, quer: number): [number, number] => {
+    const p = PUNKTE[Math.max(0, Math.min(PUNKTE.length - 1, Math.round(s / 5)))];
+    // quer > 0 heißt: Roboter rechts der Linie
+    return [p[0] + quer * Math.sin(p[2]), p[1] - quer * Math.cos(p[2])];
+  };
+
+  interface Aufgabe { text: string; pruef: (e: Ergebnis, w: Record<string, number>) => boolean; }
+  const AUFGABEN: Record<string, Aufgabe[]> = {
+    zwei: [
+      { text: 'Bring den Roboter bei 20 cm/s ins Ziel. Probier verschiedene Lenkstärken.', pruef: (e, w) => e.fertig && w.v <= 25 },
+      { text: 'Stell 40 cm/s ein und fahr noch einmal. Was passiert?', pruef: (_e, w) => w.v >= 40 },
+    ],
+    p: [
+      { text: 'Bring den Roboter bei 30 cm/s ins Ziel, mit einer mittleren Abweichung unter 2,5 mm.', pruef: (e, w) => e.fertig && w.v >= 30 && e.rms < 2.5 },
+      { text: 'Versuch dasselbe bei 50 cm/s. Findest du ein K_p, das ruhig fährt?', pruef: (_e, w) => w.v >= 50 },
+    ],
+    pid: [
+      { text: 'Bei 20 cm/s: K_p = 1, K_d = 0. Erhöhe K_i, bis die mittlere Abweichung unter 2,0 mm liegt.', pruef: (e, w) => e.fertig && w.v <= 25 && w.kp <= 1.5 && w.kd === 0 && w.ki > 0 && e.rms < 2 },
+      { text: 'Jetzt schnell: Bring den Roboter mit mindestens 50 cm/s ins Ziel, mittlere Abweichung unter 2,5 mm.', pruef: (e, w) => e.fertig && w.v >= 50 && e.rms < 2.5 },
+    ],
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-kw-regler]').forEach((box) => {
+    const s = station(box.closest('[data-kw-check]') as HTMLElement);
+    const stufe = box.dataset.stufe as 'zwei' | 'p' | 'pid';
+    const aufgaben = AUFGABEN[stufe];
+    let nr = 0;
+    const karte = box.querySelector<SVGSVGElement>('[data-rg-karte]')!;
+    karte.setAttribute('viewBox', `0 0 ${(maxX - minX).toFixed(0)} ${(maxY - minY).toFixed(0)}`);
+    box.querySelector('[data-rg-strecke]')!.setAttribute('d', 'M' + PUNKTE.map((p) => `${sx(p[0]).toFixed(1)} ${sy(p[1]).toFixed(1)}`).join(' L'));
+    const st = box.querySelector<SVGCircleElement>('[data-rg-start]')!;
+    st.setAttribute('cx', String(sx(PUNKTE[0][0]))); st.setAttribute('cy', String(sy(PUNKTE[0][1])));
+
+    const werte = () => {
+      const w: Record<string, number> = {};
+      box.querySelectorAll<HTMLInputElement>('[data-rg]').forEach((i) => (w[i.dataset.rg!] = Number(i.value)));
+      return w;
+    };
+    const anzeigen = () => {
+      const w = werte();
+      Object.entries(w).forEach(([k, v]) => {
+        const el = box.querySelector(`[data-rg-w="${k}"]`);
+        if (el) el.textContent = k === 'v' ? `${v} cm/s` : fmt(v, k === 'kd' ? 2 : 1);
+      });
+    };
+    const aufgabeZeigen = () => {
+      box.querySelector('[data-rg-aufgabe]')!.textContent = nr < aufgaben.length ? `Aufgabe ${nr + 1} von ${aufgaben.length}: ${aufgaben[nr].text.replace(/K_([pid])/g, 'K$1')}` : 'Geschafft. Probier ruhig weiter herum.';
+    };
+
+    let lauf = 0;
+    function fahren() {
+      const w = werte();
+      const e = simuliere({ modus: stufe, v: w.v * 10, U: w.U, kp: w.kp, ki: w.ki, kd: w.kd });
+      const id = ++lauf;
+      const bahn = box.querySelector<SVGPathElement>('[data-rg-bahn]')!;
+      const robo = box.querySelector<SVGCircleElement>('[data-rg-robo]')!;
+      const verlauf = box.querySelector<SVGPathElement>('[data-rg-verlauf]')!;
+      const tMax = Math.max(e.t, 1);
+      const pts = e.bahn.map(([ss, q]) => welt(ss, q));
+      const kurve = e.bahn.map(([, q, t]) => [(t / tMax) * 300, 45 - Math.max(-44, Math.min(44, -q))] as [number, number]);
+      const dauer = 1600, start = performance.now();
+      const schritt = (jetzt: number) => {
+        if (id !== lauf) return;
+        const k = Math.min(1, (jetzt - start) / dauer), n = Math.max(1, Math.round(k * pts.length));
+        bahn.setAttribute('d', 'M' + pts.slice(0, n).map(([x, y]) => `${sx(x).toFixed(1)} ${sy(y).toFixed(1)}`).join(' L'));
+        verlauf.setAttribute('d', 'M' + kurve.slice(0, n).map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' L'));
+        const [rx, ry] = pts[n - 1];
+        robo.setAttribute('cx', sx(rx).toFixed(1)); robo.setAttribute('cy', sy(ry).toFixed(1));
+        if (k < 1) requestAnimationFrame(schritt); else fertig(e, w);
+      };
+      requestAnimationFrame(schritt);
+    }
+
+    function fertig(e: Ergebnis, w: Record<string, number>) {
+      box.querySelector('[data-rg-erg]')!.textContent = e.fertig ? 'im Ziel' : 'Linie verloren';
+      box.querySelector('[data-rg-rms]')!.textContent = `${fmt(e.rms, 1)} mm`;
+      box.querySelector('[data-rg-max]')!.textContent = `${fmt(e.maxY, 1)} mm`;
+      box.querySelector('[data-rg-zeit]')!.textContent = `${fmt(e.t, 1)} s`;
+      const erkl = box.querySelector<HTMLElement>('[data-rg-erkl]')!;
+      let text: string;
+      if (!e.fertig) text = `Der Roboter hat nach ${fmt(e.s / 10, 0)} cm die Linie verloren. Meist in einer Kurve: Er lenkt zu spät, zu schwach oder schaukelt sich auf.`;
+      else if (e.rms < 1.5) text = 'Sehr ruhig gefahren: Die Abweichung bleibt die ganze Zeit klein.';
+      else if (e.rms < 4) text = 'Im Ziel, mit kleinen Schlenkern. Schau dir die Kurve unten an: Wo wird es unruhig?';
+      else text = 'Im Ziel, aber mit großen Schlenkern. Die Kurve unten zeigt, wie stark der Roboter pendelt.';
+      erkl.textContent = text;
+      erkl.className = `rg-erkl ${e.fertig ? (e.rms < 4 ? 'gut' : 'warnung') : 'fehler'}`;
+      const a = aufgaben[nr];
+      if (a && a.pruef(e, w) && !s.gesperrt()) {
+        nr++;
+        if (nr >= aufgaben.length) s.bestehen('Simulator geschafft.');
+        else s.melden('Aufgabe gelöst. Weiter mit der nächsten.', 'gut');
+      }
+      aufgabeZeigen();
+    }
+
+    box.querySelectorAll<HTMLInputElement>('[data-rg]').forEach((i) => i.addEventListener('input', anzeigen));
+    box.querySelector('[data-rg-los]')!.addEventListener('click', fahren);
+    anzeigen(); aufgabeZeigen();
+  });
+</script>
+
+<style>
+  .rg-aufgabe { font-weight: 700; }
+  .rg-raster { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+  @media (max-width: 720px) { .rg-raster { grid-template-columns: 1fr; } }
+  .rg-karte, .rg-kurve { width: 100%; height: auto; background: var(--flaeche-leicht); border-radius: var(--radius-klein); display: block; }
+  .rg-kurve { margin-top: 0.5rem; }
+  .rg-strecke { fill: none; stroke: var(--leise-dunkel); stroke-width: 19; stroke-linecap: round; stroke-linejoin: round; }
+  .rg-bahn { fill: none; stroke: var(--akzent); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+  .rg-start { fill: var(--leise); }
+  .rg-robo { fill: var(--akzent-hell); }
+  .rg-null { stroke: var(--leise-dunkel); stroke-dasharray: 3 3; }
+  .rg-verlauf { fill: none; stroke: var(--akzent); stroke-width: 1.5; }
+  .rg-txt { fill: var(--leise); font-size: 8px; font-family: var(--schrift); }
+  .rg-schieber { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.4rem; }
+  .rg-schieber input { width: 100%; accent-color: var(--akzent); min-height: 2.75rem; }
+  .rg-werte { display: grid; grid-template-columns: 1fr auto; gap: 0.3rem 0.8rem; margin: 0.8rem 0 0; }
+  .rg-werte dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+  .rg-erkl { margin: 0.8rem 0 0.5rem; padding: 0.6rem 0.8rem; border-radius: var(--radius-klein); background: rgba(255,255,255,0.04); }
+  .rg-erkl.gut { color: var(--gut); } .rg-erkl.warnung { color: var(--warnung); } .rg-erkl.fehler { color: var(--fehler); }
+</style>
