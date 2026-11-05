@@ -1,9 +1,7 @@
 ---
 id: r-1-db
-abzeichen: Datenblatt-Leser
 checks:
   - id: finden
-  - id: aufbau
   - id: lesen
   - id: echt
 spick:
@@ -25,66 +23,29 @@ import Zahl from '../components/Zahl.astro';
 import Merke from '../components/Merke.astro';
 import Hinweis from '../components/Hinweis.astro';
 import Karte from '../components/Karte.astro';
+import { url as seitenUrl } from '../config';
 
-„Laut Datenblatt“ steht in diesem Kurs ständig. Ein Datenblatt ist die Bedienungsanleitung eines Bauteils, geschrieben vom Hersteller. Es sagt dir, was das Teil kann, was es zerstört und wie man es anschließt. Wer Datenblätter lesen kann, ist nicht mehr auf Foren und Vermutungen angewiesen. **Deine Mission: Finde das Datenblatt des DRV8833 und lies die Werte ab, die du für deinen Roboter brauchst.**
+Bevor du den Motortreiber an den ESP32 anschließt, schaust du in sein Datenblatt. Dort steht, welche Spannung er verträgt, welche Signale er erwartet und wie viel Strom er wirklich schafft. **Deine Mission: Finde das Datenblatt des DRV8833 und lies die Werte ab, die dein Roboter braucht.**
 
-## Ein Datenblatt finden
+<Hinweis titel="Kurz wiederholt">
+Wie man Datenblätter findet und liest, steht ausführlich in Kampagne 1, <a href={seitenUrl('mission/m-2-db')}>Mission 2.9 „Das Datenblatt“</a>. Das Wichtigste: Datenblatt beim Hersteller holen. Absolute Maximum heißt nie erreichen, Recommended Operating heißt hier arbeiten. Mit min oder max rechnen, Bedingungen und Fußnoten mitlesen.
+</Hinweis>
+
+## Chip oder Modul, und welcher Chip genau?
 
 <Karte titel="Den genauen Typ kennen" nr={1}>
-Steht auf dem Chip ein Aufdruck, ist das der Anfang. Auf Modulen findest du den Typ meist auch in der Produktbeschreibung des Shops. Jeder Buchstabe zählt: Ein DRV8833C ist ein eigener Chip mit eigenem Datenblatt und anderen Werten als der DRV8833.
+Der Hersteller des DRV8833 ist Texas Instruments (ti.com). Typ ins Suchfeld, Produktseite öffnen, dort liegt das Datenblatt als PDF. Jeder Buchstabe zählt: Ein DRV8833C ist ein eigener Chip mit eigenem Datenblatt und anderen Werten. Lies den Aufdruck auf dem Chip deines Moduls, notfalls mit Lupe oder Handykamera.
 </Karte>
 
-<Karte titel="Beim Hersteller suchen" nr={2}>
-Die beste Quelle ist der Hersteller selbst. Für den DRV8833 ist das Texas Instruments (ti.com): Typ ins Suchfeld, Produktseite öffnen, dort steht das Datenblatt als PDF. Eine Websuche nach „DRV8833 datasheet pdf“ führt meist auch dorthin. Achte darauf, dass die Datei vom Hersteller stammt und nicht von einer Seite, die nur Kopien sammelt.
+<Karte titel="Das Modul ist mehr als der Chip" nr={2}>
+Du kaufst ein **Modul**: eine kleine Platine mit dem Chip, ein paar Bauteilen und Stiftleisten. Das Datenblatt beschreibt nur den Chip. Was der Modulhersteller dazubaut, zum Beispiel einen Widerstand, der nSLEEP auf HIGH legt, steht höchstens beim Händler oder auf einem Schaltplan des Moduls.
 </Karte>
 
-<Karte titel="Chip oder Modul?" nr={3}>
-Du kaufst meist ein **Modul**: eine kleine Platine mit dem Chip, ein paar Bauteilen und Stiftleisten. Das Datenblatt beschreibt nur den **Chip**. Was das Modul zusätzlich tut, zum Beispiel einen Pin fest auf HIGH legen, steht höchstens beim Händler oder auf einem Schaltplan des Moduls. Manche Shops verlinken ein Datenblatt direkt auf der Produktseite.
-</Karte>
+<Merke>Das Datenblatt gilt für den Chip. Was das Modul zusätzlich tut, steht beim Modul.</Merke>
 
-<Karte titel="Nachbauten" nr={4}>
-Viele einfache Chips gibt es von mehreren Herstellern unter demselben Namen, etwa den Schutzchip DW01 oder den Regler AMS1117 aus Kampagne 1. Die Werte können sich unterscheiden. Dann nimmst du das Datenblatt des Herstellers, dessen Logo oder Kürzel auf dem Chip steht, und rechnest mit Reserve.
-</Karte>
-
-<Merke>Genauen Typ herausfinden, Datenblatt beim Hersteller holen. Das Datenblatt gilt für den Chip, nicht für das Modul.</Merke>
-
-<Quiz id="finden" titel="Kurzcheck: Finden" fragen={[
+<Quiz id="finden" titel="Kurzcheck: Welcher Chip, welches Datenblatt?" fragen={[
   { frage: 'Auf deinem Modul sitzt ein Chip mit dem Aufdruck „DRV8833C“. Welches Datenblatt brauchst du?', richtig: 'Das vom DRV8833C', falsch: ['Das vom DRV8833, das C ist nur die Verpackung', 'Egal, alle Motortreiber sind gleich'], erklaerung: 'Ein angehängter Buchstabe kann einen anderen Chip bedeuten. Beim DRV8833C nennt TI zum Beispiel für das PWP-Gehäuse nur 0,7 A Dauerstrom statt 1,5 A beim DRV8833 im RTY-Gehäuse.' },
   { frage: 'Das Datenblatt sagt, nSLEEP hat einen internen Pulldown. Auf deinem Modul dreht der Motor trotzdem, ohne dass du nSLEEP anschließt. Wie passt das zusammen?', richtig: 'Das Modul legt nSLEEP selbst über ein Bauteil auf HIGH. Das steht nicht im Datenblatt des Chips', falsch: ['Das Datenblatt ist falsch', 'Der Pulldown funktioniert nur bei 5 V'], erklaerung: 'Das Datenblatt beschreibt den Chip. Was der Modulhersteller drumherum baut, steht beim Modul.' },
-]} />
-
-## Wie ein Datenblatt aufgebaut ist
-
-Datenblätter großer Hersteller sind fast immer gleich gegliedert. Die Abschnitte heißen meist englisch, so auch beim DRV8833:
-
-| Abschnitt | Was drinsteht | Wofür du ihn brauchst |
-| --- | --- | --- |
-| Features, Description | Kurzfassung auf Seite 1 | Passt der Chip überhaupt? |
-| Pin Configuration and Functions | Welcher Pin was tut | Verdrahten |
-| Absolute Maximum Ratings | Grenzen, ab denen der Chip Schaden nehmen kann | Nie erreichen |
-| Recommended Operating Conditions | Bereich, in dem er wie beschrieben arbeitet | Hier planst du |
-| Electrical Characteristics | Gemessene Werte mit Prüfbedingungen | Rechnen |
-| Detailed Description | Funktionen, Wahrheitstabellen, Schutzschaltungen | Verstehen, programmieren |
-| Application and Implementation | Beispielschaltung mit Bauteilwerten | Nachbauen |
-| Layout | Wie die Leiterplatte aussehen soll | Eigene Platinen |
-
-<Karte titel="Absolute Maximum ist keine Grenze zum Ausreizen" nr={5}>
-Der wichtigste Unterschied im ganzen Datenblatt: **Absolute Maximum Ratings** sind Belastungsgrenzen. TI schreibt selbst dazu, dass der Chip bei diesen Werten nicht funktionieren muss und dass längere Belastung die Lebensdauer verkürzen kann. Gebaut wird im Bereich der **Recommended Operating Conditions**.
-</Karte>
-
-<Karte titel="Min, typ, max" nr={6}>
-In den Electrical Characteristics hat jeder Wert bis zu drei Spalten. **Typ** ist der übliche Wert, **min** und **max** sind die Grenzen, die jedes Exemplar einhält. Wer sicher planen will, rechnet mit dem ungünstigsten Wert, nicht mit typ. Daneben stehen die **Prüfbedingungen** (Test Conditions), zum Beispiel VM = 5 V. Bei anderen Bedingungen können die Werte anders sein.
-</Karte>
-
-<Karte titel="Fußnoten lesen" nr={7}>
-Kleine Ziffern hinter einem Wert verweisen auf Fußnoten. Die sind oft wichtig. Beim DRV8833 steht dort: Unter 5 V an VM steigt der Widerstand der Schalter, und der mögliche Ausgangsstrom sinkt. Dein Roboter läuft mit 3 bis 4,2 V, das betrifft dich also direkt.
-</Karte>
-
-<Merke>Absolute Maximum: nie erreichen. Recommended: hier arbeiten. Mit min oder max rechnen, Prüfbedingungen und Fußnoten lesen.</Merke>
-
-<Quiz id="aufbau" titel="Kurzcheck: Aufbau" fragen={[
-  { frage: 'In welchem Abschnitt findest du, welcher Pin des Chips welche Aufgabe hat?', richtig: 'Pin Configuration and Functions', falsch: ['Absolute Maximum Ratings', 'Layout'], erklaerung: 'Dort steht eine Zeichnung des Gehäuses mit Pinnummern und eine Tabelle mit Name und Aufgabe jedes Pins.' },
-  { frage: 'Ein Wert steht bei den Absolute Maximum Ratings. Was bedeutet das?', richtig: 'Darüber kann der Chip Schaden nehmen. Dass er bei diesem Wert funktioniert, ist nicht zugesagt', falsch: ['Bis zu diesem Wert arbeitet der Chip normal', 'Das ist der empfohlene Wert für beste Leistung'], erklaerung: 'Absolute Maximum Ratings sind Belastungsgrenzen, kein Betriebsbereich. Für den Betrieb gelten die Recommended Operating Conditions.' },
 ]} />
 
 ## Üben am DRV8833

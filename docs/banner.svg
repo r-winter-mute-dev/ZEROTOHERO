@@ -16,7 +16,7 @@
   <path d="M1200 70 H990 L950 110 H860" fill="none" stroke="#2a2a2a" stroke-width="4"/>
   <circle cx="860" cy="110" r="7" fill="none" stroke="#cba6f7" stroke-width="3"/>
   <!-- Logo: ovale Null -->
-  <ellipse cx="220" cy="170" rx="58" ry="82" fill="none" stroke="#cba6f7" stroke-width="18"/>
+  <g transform="translate(206 168) scale(0.4) translate(-768 -472)"><path d="M690 640 A172 179 0 1 1 846 640" fill="none" stroke="#cba6f7" stroke-width="40" stroke-linecap="round"/><path d="M768 357 C736 380 719 418 719 460 L721 504 Q723 518 737 518 L799 518 Q813 518 815 504 L817 460 C817 418 800 380 768 357 Z M768 404 A19 19 0 1 0 768 442 A19 19 0 1 0 768 404 Z" fill="#ececec" fill-rule="evenodd"/><path d="M706 462 L714 512 C703 518 692 527 685 534 Q676 538 676 525 L676 505 C676 485 690 468 706 462 Z" fill="#ececec"/><path d="M830 462 L822 512 C833 518 844 527 851 534 Q860 538 860 525 L860 505 C860 485 846 468 830 462 Z" fill="#ececec"/><path d="M768 556 V674 M730 588 V620 M806 588 V620" stroke="#cba6f7" stroke-linecap="round" stroke-width="22" fill="none"/></g>
   <text x="318" y="198" font-family="Atkinson Hyperlegible, Segoe UI, Helvetica, Arial, sans-serif" font-size="92" font-weight="700" fill="#e6e6e6">to Hero</text>
   <text x="322" y="252" font-family="Atkinson Hyperlegible, Segoe UI, Helvetica, Arial, sans-serif" font-size="30" fill="#a0a0a0">Dein Einstieg in ein digitales Zeitalter</text>
   <!-- kleine LED -->
