@@ -30,9 +30,9 @@ const { id, titel, frage, einheit, min, max, hilfe = [], hardware = true, vorlae
       e.preventDefault();
       const w = zahl(form.querySelector('input')!.value);
       if (Number.isNaN(w)) return s.melden('Bitte eine Zahl eingeben, zum Beispiel 1,85.', 'warnung');
-      if (w >= min && w <= max) return s.bestehen(`${mit(w)} liegt im erwarteten Bereich (${fmt(min)}–${mit(max)}).`);
+      if (w >= min && w <= max) return s.bestehen(min === max ? `Richtig: ${mit(w)}.` : `${mit(w)} liegt im erwarteten Bereich (${fmt(min)}–${mit(max)}).`);
       const h = hilfe.find((x) => (x.unter !== undefined && w < x.unter) || (x.ueber !== undefined && w > x.ueber));
-      s.fehl(`${mit(w)} liegt außerhalb von ${fmt(min)}–${mit(max)}. ${h?.text ?? 'Prüfe Aufbau und Messbereich und miss noch einmal.'}`);
+      s.fehl(`${min === max ? `${mit(w)} stimmt nicht.` : `${mit(w)} liegt außerhalb von ${fmt(min)}–${mit(max)}.`} ${h?.text ?? 'Prüfe Aufbau und Messbereich und miss noch einmal.'}`);
     });
   });
 </script>
