@@ -2,9 +2,11 @@
 import Basis from '../layouts/Basis.astro';
 import TeileListe from '../components/TeileListe.astro';
 ---
-<Basis titel="Einkaufsliste" beschreibung="Alle Bauteile für die smarte Türklingel, sortiert nach Akt">
+<Basis titel="Einkaufsliste" beschreibung="Alle Bauteile für die Türklingel und den Fahrroboter, sortiert nach Akt">
   <section class="huelle text seite">
     <h1>Einkaufsliste</h1>
+    <p class="leise">Springe zu: <a href="#k1">Kampagne 1: Türklingel</a> · <a href="#k2">Kampagne 2: Fahrroboter</a></p>
+    <h2 id="k1">Kampagne 1: Die smarte Türklingel</h2>
     <p>
       Du musst nicht alles auf einmal kaufen. Die Teile sind nach Akten sortiert: Für Akt 0 und 1 reicht ein kleines
       Einsteigerset, der Mikrocontroller kommt erst in Akt 2 dazu. Die Links führen zu <a href="https://www.roboter-bausatz.de" rel="nofollow noopener" target="_blank">Roboter-Bausatz.de</a>.
@@ -16,6 +18,14 @@ import TeileListe from '../components/TeileListe.astro';
     </p>
     <TeileListe akte={[0, 1, 2, 4, 5, 6, 7, 8]} />
     <p class="leise">Akt 3 braucht keine neuen Teile: Dort kommen WLAN und Software, das ESP32 hast du schon. In Akt 6 nutzt du nur Teile, die du schon hast.</p>
+
+    <h2 id="k2">Kampagne 2: Der Fahrroboter</h2>
+    <p>
+      Der Roboter nutzt viel aus Kampagne 1: ESP32-DevKit, Messwerkzeug und später die Akku-Versorgung. Neu sind vor allem
+      das Fahrgestell mit den Motoren und der Motortreiber. Die Teile für die Akte 3 bis 6 (Liniensensoren, Ultraschall)
+      folgen, sobald diese Akte geschrieben sind.
+    </p>
+    <TeileListe kampagne="roboter" akte={[0, 1, 2]} />
   </section>
 </Basis>
 

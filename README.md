@@ -58,6 +58,24 @@ Der Weg dorthin beginnt mit einer einzelnen LED.
 
 ✅ spielbar
 
+## Kampagne 2: Der Fahrroboter
+
+> Ein Roboter auf zwei Rädern mit **ESP32** und Motortreiber **DRV8833**: Er folgt einer Linie, hält vor Hindernissen und lässt sich per Handy steuern. Hier lernst du Motoren, Sensoren und Regelung.
+
+| Akt | Teil | Du lernst | Stand |
+| :---: | --- | --- | :---: |
+| 0 | Werkbank | Ziel, Sicherheit mit bewegten Teilen | ✅ |
+| 1 | Motor | Gleichstrommotor, Anlaufstrom, H-Brücke, DRV8833 und PWM am ESP32 | ✅ |
+| 2 | Fahrwerk | Chassis, eine Versorgung für alles, Anfahrrampen, Lenken | 🛠️ |
+| 3 | Augen | Infrarot-Liniensensoren, Ultraschall, Bremsweg | 🛠️ |
+| 4 | Regler | Zweipunktregler, P, PID, Einstellen | 🛠️ |
+| 5 | Tacho | Encoder, Geschwindigkeit, Odometrie | 🛠️ |
+| 6 | Funk | Webserver, Fernsteuerung, Notaus, Parcours | 🛠️ |
+
+✅ spielbar · 🛠️ in Arbeit, auf der Karte schon sichtbar
+
+Neu kaufen musst du für Akt 0 und 1 nur ein 2WD-Fahrgestell mit zwei Getriebemotoren und ein DRV8833-Modul. ESP32-DevKit, Multimeter und später die Akku-Versorgung kommen aus Kampagne 1.
+
 ## Was du brauchst
 
 | Ab Akt | Teile |
@@ -79,7 +97,8 @@ Am meisten hilft gerade:
 - [ ] **Testen mit echter Hardware.** Einige Messbereiche sind vorläufig und brauchen Werte von echten Aufbauten.
 - [ ] **Feedback zu Akt 2 bis 8.** Die Sketches sind syntaktisch geprüft, aber noch nicht auf jedem Board getestet.
 - [ ] **Feedback von Einsteigern.** Wo bist du hängen geblieben?
-- [ ] **Ideen für die nächste Kampagne.** Was soll nach der Klingel kommen?
+- [ ] **Feedback zu Kampagne 2.** Vor allem: Welche DRV8833-Module und Fahrgestelle habt ihr, und wie sind ihre Pins beschriftet?
+- [ ] **Ideen für die Kampagnen danach.** Geplant sind Wetterstation, Roboterarm und ein lernender Roboterarm.
 
 ## Entstehung
 

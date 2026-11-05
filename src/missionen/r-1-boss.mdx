@@ -1,0 +1,87 @@
+---
+id: r-1-boss
+abzeichen: Motor-Doktor
+checks:
+  - id: boss
+spick:
+  - t: "Dreht gar nicht"
+    v: "VM messen, nSLEEP messen, GND gemeinsam?"
+  - t: "ESP32 startet neu"
+    v: "Motor an eigener Quelle, nicht an 3V3"
+  - t: "Falsche Richtung"
+    v: "Motorkabel tauschen oder Vorzeichen im Code"
+  - t: "Brummt nur"
+    v: "PWM unter Anlaufwert oder blockiert"
+  - t: "DRV8833"
+    v: "VM 2,7–10,8 V, 1,5 A pro Kanal"
+---
+import Logdiagnose from '../components/Logdiagnose.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Motoren machen Ärger auf eine besondere Art: Manchmal tut sich gar nichts, manchmal startet der ESP32 neu, manchmal dreht das Rad in die falsche Richtung. Raten hilft nicht, messen schon. **Dein Bosskampf: Sechs Aufbauten verhalten sich falsch. Lies die Messwerte und finde die Ursache.**
+
+## Die Methode
+
+1. **Von der Quelle zum Motor:** Liegt an VM gegen GND die erwartete Spannung?
+2. **Ist der Treiber wach?** nSLEEP gegen GND messen. Erwartet: etwa 3,3 V.
+3. **Kommen die Signale an?** AIN1 und AIN2 gegen GND des Treibers messen, nicht gegen irgendeinen Minuspol.
+4. **Kommt etwas heraus?** Zwischen AOUT1 und AOUT2 messen, während der Motor laufen sollte.
+
+<Merke>Erst Versorgung, dann Schlaf-Pin, dann Signale, dann Ausgang. Immer gegen GND des Treibers messen.</Merke>
+
+<Hinweis titel="Lesetipp">
+Die Fälle sind ausgedacht, aber typisch. Die Grenzwerte des DRV8833 stammen aus seinem Datenblatt.
+</Hinweis>
+
+<Logdiagnose id="boss" titel="Bosskampf: Der Motor macht Ärger" anzahl={5} faelle={[
+  {
+    symptom: 'Der serielle Monitor zeigt brav „Vorwärts“, „Rückwärts“, „Rampe“. Der Motor bewegt sich nie.',
+    log: 'VM gegen GND: 3,05 V\nAIN1 gegen GND bei „Vorwärts“: 3,2 V\nAIN2 gegen GND: 0,0 V\nEEP-Pin des Moduls: nicht angeschlossen, 0,0 V\nAOUT1 gegen AOUT2: 0,0 V',
+    richtig: 'Der Treiber schläft: nSLEEP (EEP) liegt auf LOW. Er muss an GPIO 27 oder auf HIGH.',
+    falsch: ['Die Batterien sind leer.', 'Der Motor ist kaputt.'],
+    erklaerung: 'Versorgung und Signale stimmen, aber am Ausgang kommt nichts an. Laut Datenblatt hält ein interner Pulldown nSLEEP auf LOW, solange niemand ihn hochzieht.',
+  },
+  {
+    symptom: 'Jedes Mal, wenn der Motor anläuft, startet der ESP32 neu. Der Monitor zeigt immer wieder den Programmstart.',
+    log: 'Mission 1.4: Motor am DRV8833. Räder in der Luft?\nVorwärts, volle Kraft (IN1 = PWM 255, IN2 = 0)\nBrownout detector was triggered\n(Neustart)\nMission 1.4: Motor am DRV8833. Räder in der Luft?\nVerdrahtung: VM des Moduls am 3V3-Pin des ESP32',
+    richtig: 'Der Motor hängt an der 3,3-V-Versorgung des ESP32. Sein Anlaufstrom lässt die Spannung einbrechen.',
+    falsch: ['Der Code hat einen Fehler in der Rampe.', 'Die PWM-Frequenz ist zu hoch.'],
+    erklaerung: '„Brownout“ heißt Unterspannung. Der Anlaufstrom zieht die 3,3 V des ESP32 nach unten, der Schutz löst einen Neustart aus. VM gehört an eine eigene Quelle, die Massen werden verbunden.',
+  },
+  {
+    symptom: 'Der Motor läuft, aber genau falsch: Bei „Vorwärts“ dreht das Rad nach hinten, bei „Rückwärts“ nach vorn.',
+    log: 'Vorwärts: Rad dreht nach hinten\nRückwärts: Rad dreht nach vorn\nBremsen: hält an\nFreilauf: rollt aus',
+    richtig: 'Die Motorkabel an AOUT1 und AOUT2 sind andersherum angeschlossen. Kabel tauschen oder im Code das Vorzeichen umdrehen.',
+    falsch: ['Der DRV8833 ist defekt.', 'AIN1 und AIN2 sind falsch herum programmiert, das muss man neu löten.'],
+    erklaerung: 'Alles funktioniert, nur die Richtung stimmt nicht. „Vorwärts“ ist ein Name für eine Stromrichtung. Welche Richtung das am Rad ergibt, hängt vom Anschluss ab.',
+  },
+  {
+    symptom: 'Der Motor zuckt zufällig, manchmal läuft er kurz, manchmal gar nicht. Wackeln am Steckbrett ändert nichts.',
+    log: 'VM gegen Minus der Batterien: 3,0 V\nAIN1 gegen GND des ESP32: 3,3 V\nAIN1 gegen GND des Treibers: schwankt, 0,4 bis 2,1 V\nDurchgangsprüfer GND ESP32 – GND Treiber: kein Piepen',
+    richtig: 'Die Massen von ESP32 und Treiber sind nicht verbunden. Das Signal hat für den Treiber keinen festen Bezug.',
+    falsch: ['Der Motor braucht mehr Strom.', 'Die PWM-Frequenz stört den Treiber.'],
+    erklaerung: 'Gegen GND des ESP32 sieht das Signal gut aus, gegen GND des Treibers schwankt es. Eine Leitung von GND zu GND löst das.',
+  },
+  {
+    symptom: 'Bei voller Kraft dreht der Motor gut. Bei langsamer Fahrt mit motor(40) brummt er nur und bleibt stehen.',
+    log: 'motor(255): dreht\nmotor(120): dreht langsam\nmotor(40): brummt, steht\nAnlaufwert aus der Rampe: etwa 85',
+    richtig: 'PWM 40 liegt unter dem Anlaufwert. Die Kraft reicht nicht, um Reibung und Getriebe zu überwinden.',
+    falsch: ['Der Treiber kann keine kleinen PWM-Werte.', 'Der Motor ist durchgebrannt.'],
+    erklaerung: 'Unter dem Anlaufwert fließt Strom, aber das Drehmoment reicht nicht. Der Strom wird nur zu Wärme, deshalb das Brummen. Kleine Werte unter etwa 85 lohnen sich bei diesem Motor nicht.',
+  },
+  {
+    symptom: 'Mit frischen Batterien lief alles. Nach einem langen Testabend dreht der Motor nicht mehr, der ESP32 am USB läuft aber weiter.',
+    log: 'VM gegen GND, ohne Last: 2,55 V\nnSLEEP: 3,3 V\nAIN1 bei „Vorwärts“: 3,2 V\nAOUT1 gegen AOUT2: 0,0 V',
+    richtig: 'Die Batterien sind zu leer. Unter etwa 2,6 V schaltet der Unterspannungsschutz des DRV8833 die Ausgänge ab.',
+    falsch: ['nSLEEP ist kaputt.', 'Der ESP32 sendet keine Signale mehr.'],
+    erklaerung: 'Signale und Schlaf-Pin stimmen, nur VM ist zu niedrig. Laut Datenblatt braucht der DRV8833 mindestens 2,7 V an VM. Zwei leere AA-Zellen liegen darunter.',
+  },
+  {
+    symptom: 'Ein Rad wurde mit der Hand festgehalten. Danach läuft der Motor nur noch in kurzen Stößen: an, aus, an, aus. Der Treiber ist warm.',
+    log: 'Rad blockiert bei motor(255) für etwa 5 s\nDanach: Motor läuft stoßweise\nTreiberchip: deutlich warm\nNach 1 Minute Pause: alles normal',
+    richtig: 'Der Blockierstrom hat die Überstrom- oder Übertemperatur-Abschaltung des DRV8833 ausgelöst.',
+    falsch: ['Der Code springt zufällig zwischen Schritten.', 'Die Batterien laden sich auf.'],
+    erklaerung: 'Steht der Motor, gilt I = U / R (Mission 1.2). Die Schutzschaltung schaltet ab, lässt den Chip abkühlen und versucht es erneut. Nach der Pause ist alles wieder normal. Gut, dass der Treiber das kann, aber blockieren ist kein Betriebszustand.',
+  },
+]} />

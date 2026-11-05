@@ -1,0 +1,90 @@
+---
+id: r-1-1
+checks:
+  - id: aufbau
+  - id: leerlauf
+    hardware: true
+  - id: umpolen
+spick:
+  - t: "Kraft auf Draht"
+    v: "Strom im Magnetfeld → Kraft"
+  - t: "Kommutator"
+    v: "Polt die Spule jede halbe Umdrehung um"
+  - t: "Getriebe"
+    v: "Langsamer, dafür mehr Kraft"
+  - t: "Strom messen"
+    v: "In Reihe, 10-A-Buchse"
+  - t: "Umpolen"
+    v: "Andere Polung = andere Drehrichtung"
+---
+import Quiz from '../components/Quiz.astro';
+import Zahl from '../components/Zahl.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Karte from '../components/Karte.astro';
+import Checkliste from '../components/Checkliste.astro';
+
+Jeder Roboter, jede Drohne und jeder Akkuschrauber hat ihn: einen Elektromotor. Er macht aus Strom Bewegung. **Deine Mission: Bring einen Getriebemotor direkt an zwei AA-Batterien zum Laufen, miss seinen Strom und dreh ihn andersherum.**
+
+## Wie ein Motor dreht
+
+<Karte titel="Strom im Magnetfeld" nr={1}>
+Fließt Strom durch einen Draht, der in einem Magnetfeld liegt, wird der Draht zur Seite gedrückt. Wie stark, hängt von der Stromstärke und vom Magnetfeld ab. Wickelt man den Draht zu einer Spule, addieren sich die Kräfte vieler Windungen.
+</Karte>
+
+<Karte titel="Die Spule dreht sich" nr={2}>
+Im Motor sitzt eine drehbare Spule zwischen zwei Dauermagneten. Auf die eine Seite der Spule wirkt die Kraft nach oben, auf die gegenüberliegende nach unten. Das ergibt ein Drehmoment, die Spule dreht sich.
+</Karte>
+
+<Karte titel="Der Kommutator" nr={3}>
+Nach einer halben Umdrehung würde die Kraft die Spule zurückdrehen. Deshalb sitzt auf der Achse ein geteilter Ring, der **Kommutator**. Zwei Kohle- oder Metallbürsten schleifen darauf. Jede halbe Umdrehung polt der Kommutator den Strom in der Spule um, und die Spule dreht weiter in dieselbe Richtung.
+</Karte>
+
+<Karte titel="Das Getriebe" nr={4}>
+Der kleine Motor dreht sehr schnell, hat aber wenig Kraft. Ein Getriebe aus Zahnrädern macht die Drehung langsamer und die Kraft im selben Verhältnis größer. Darum heißt er Getriebemotor.
+</Karte>
+
+<Merke>Strom im Magnetfeld erzeugt eine Kraft. Der Kommutator polt jede halbe Umdrehung um, das Getriebe tauscht Drehzahl gegen Kraft.</Merke>
+
+<Quiz id="aufbau" titel="Kurzcheck: Im Motor" fragen={[
+  { frage: 'Was würde passieren, wenn der Motor keinen Kommutator hätte?', richtig: 'Die Spule würde sich nur bis zu einer halben Umdrehung drehen und dann hin und her pendeln oder stehen bleiben', falsch: ['Der Motor würde schneller drehen', 'Nichts, der Kommutator ist nur zur Kühlung'], erklaerung: 'Ohne Umpolen dreht die Kraft die Spule nach einer halben Umdrehung wieder zurück.' },
+  { frage: 'Wozu dient das Getriebe am Motor deines Roboters?', richtig: 'Es macht die Drehung langsamer und dafür kräftiger', falsch: ['Es macht den Motor schneller', 'Es kehrt die Drehrichtung um'], erklaerung: 'Ein Rad am Roboter braucht wenig Drehzahl, aber genug Kraft, um das Gewicht anzufahren.' },
+]} />
+
+## Aufbau: Motor an zwei AA-Batterien
+
+<Hinweis art="sicherheit">
+Motor festhalten oder auf den Tisch legen, sodass er nicht wegrollt. Finger weg von der drehenden Achse. Brummt er nur, ohne zu drehen: sofort Schalter aus.
+</Hinweis>
+
+Hat dein Motor noch keine Kabel, löte zwei Litzen an die beiden Lötfahnen (Kampagne 1, Mission 5.3). Die Polung ist noch egal.
+
+<Checkliste id="aufbau-liste" punkte={[
+  'Batteriehalter 2 × AA mit Schalter, Schalter auf AUS.',
+  'Rotes Kabel vom Batteriehalter an einen Motoranschluss.',
+  'Das Multimeter in Reihe einbauen: Schwarzes Batteriekabel an COM, rote Messleitung in die 10-A-Buchse, deren Spitze an den zweiten Motoranschluss.',
+  'Drehschalter auf den A-Bereich (Gleichstrom, oft „A⎓“ oder „10A“).',
+  'Schalter EIN. Der Motor dreht. Den Wert ablesen, wenn er ruhig läuft.',
+  'Schalter AUS.',
+]} />
+
+<Hinweis titel="Warum die 10-A-Buchse?">
+Beim Anlaufen zieht der Motor kurz viel mehr Strom als im Lauf. Die mA-Buchse ist oft nur mit 200 mA oder 400 mA abgesichert, diese Spitze kann ihre Sicherung auslösen. In der 10-A-Buchse ist die Anzeige gröber, dafür passiert nichts.
+</Hinweis>
+
+<Zahl id="leerlauf" titel="Messwert: Leerlaufstrom" frage="Welchen Strom zieht dein Motor, wenn er frei dreht?" einheit="mA" min={20} max={600} vorlaeufig hilfe={[
+  { unter: 20, text: 'Sehr wenig. Steht das Multimeter auf A und steckt die rote Leitung in der 10-A-Buchse? Zeigt es „0.12“, sind das 0,12 A = 120 mA.' },
+  { ueber: 600, text: 'Sehr viel für einen frei drehenden Motor. Dreht er wirklich frei, oder klemmt das Getriebe? Sind die Batterien eingelegt, nicht eine Powerbank?' },
+]} />
+
+Dieser Wert heißt **Leerlaufstrom**: Der Motor dreht, ohne etwas anzutreiben. Er braucht nur Strom für die Reibung in Lagern und Getriebe. Schreib ihn dir auf, in Mission 1.2 vergleichst du ihn mit dem Strom, wenn der Motor steht.
+
+## Andersherum
+
+Schalter AUS. Tausche die beiden Kabel am Motor. Schalter EIN.
+
+<Quiz id="umpolen" titel="Beobachtung: Umpolen" fragen={[
+  { frage: 'Was passiert, wenn du die beiden Kabel am Motor tauschst?', richtig: 'Der Motor dreht andersherum', falsch: ['Er dreht gar nicht mehr', 'Er dreht genauso, nur langsamer'], erklaerung: 'Der Strom fließt jetzt andersherum durch die Spule, also wirkt die Kraft in die andere Richtung. Ein Roboter, der rückwärts fahren soll, muss also die Polung am Motor umkehren können. Wie das ohne Umstecken geht, zeigt Mission 1.3.' },
+]} />
+
+<Merke>Polung tauschen heißt Drehrichtung tauschen. Der Strom im freien Lauf heißt Leerlaufstrom.</Merke>

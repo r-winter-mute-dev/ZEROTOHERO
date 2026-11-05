@@ -29,7 +29,7 @@ import { SEITE, url } from '../config';
     <div class="text">
       <h2>Willkommen bei {SEITE.name}</h2>
       <p>{SEITE.mission}</p>
-      <p>Die erste Kampagne ist die smarte Türklingel. Sie bringt dir die Grundlagen der Elektronik bei, vom ersten Stromkreis bis zum vernetzten Gerät. Weitere Kampagnen bauen darauf auf.</p>
+      <p>Die erste Kampagne ist die smarte Türklingel. Sie bringt dir die Grundlagen der Elektronik bei, vom ersten Stromkreis bis zum vernetzten Gerät. Die zweite Kampagne baut darauf auf: ein Fahrroboter, der sich bewegt, seine Umgebung misst und darauf reagiert.</p>
       <p>Willkommen und viel Spaß beim Lernen.</p>
     </div>
   </section>
@@ -42,13 +42,27 @@ import { SEITE, url } from '../config';
         oder einem echten Messwert. Ohne Hardware kommst du im Simulator weiter, das Teil leuchtet dann grau statt farbig.
       </p>
     </div>
-    <KampagnenKarte />
+    <KampagnenKarte kampagne="klingel" />
+  </section>
+
+  <section class="huelle karte-bereich" id="kampagne-2">
+    <div class="text">
+      <h2>Kampagne 2: Der Fahrroboter</h2>
+      <p class="leise">
+        Sieben Akte: Motoren, H-Brücke, Sensoren, Regelung und Fernsteuerung. Am Ende folgt dein Roboter einer Linie,
+        hält vor Hindernissen und fährt per Handy. Akt 0 und Akt 1 sind spielbar, die übrigen Akte entstehen gerade.
+      </p>
+      <p class="leise klein">
+        Du kannst sofort einsteigen. Hilfreich ist Kampagne 1 bis Akt 2 (ESP32 programmieren); für die Akku-Versorgung ab Akt 2 brauchst du Akt 5.
+      </p>
+    </div>
+    <KampagnenKarte kampagne="roboter" />
   </section>
 </Basis>
 
 <script>
   import { aktuelleMission, beiAenderung, laden, level, xpGesamt } from '../scripts/engine';
-  import { ALLE_MISSIONEN, LEVEL } from '../data/kampagne';
+  import { KAMPAGNEN, LEVEL, missionenVon } from '../data/kampagne';
   import { url } from '../config';
   function zeigen() {
     const z = laden();
@@ -59,13 +73,22 @@ import { SEITE, url } from '../config';
     const vorher = LEVEL[l.nr - 1].ab;
     const anteil = l.naechstesAb ? (xp - vorher) / (l.naechstesAb - vorher) : 1;
     (document.querySelector('[data-kw-balken]') as HTMLElement).style.width = `${Math.round(anteil * 100)}%`;
-    const m = aktuelleMission();
     const weiter = document.querySelector<HTMLAnchorElement>('[data-kw-weiter]')!;
     if (Object.keys(z.missionen).length > 0) {
-      const alle = ALLE_MISSIONEN.every((x) => z.missionen[x.id]);
-      weiter.textContent = alle ? 'Kurs geschafft: Fortschritt ansehen' : `Weiter mit ${m.nr}: ${m.titel}`;
-      weiter.href = alle ? url('fortschritt') : url(`mission/${m.id}`);
-      document.querySelector('[data-kw-weiter-info]')!.textContent = alle ? `Alle ${ALLE_MISSIONEN.length} Missionen geschafft. Deine Klingel hängt.` : `${Object.keys(z.missionen).length} Missionen geschafft.`;
+      const k1 = missionenVon(KAMPAGNEN[0]);
+      const k1fertig = k1.every((x) => z.missionen[x.id]);
+      // Weiter in der Kampagne, in der zuletzt etwas geschafft wurde. Ist sie fertig, in der anderen.
+      const zuletzt = Object.entries(z.missionen).sort((a, b) => (b[1].am ?? '').localeCompare(a[1].am ?? ''))[0]?.[0] ?? '';
+      const offen = (kid: string) => { const m = aktuelleMission(kid); return m.bereit && !z.missionen[m.id] ? m : undefined; };
+      const reihe = zuletzt.startsWith('r-') ? ['roboter', 'klingel'] : ['klingel', 'roboter'];
+      const kid = reihe.find((k) => offen(k));
+      const m = kid ? offen(kid)! : undefined;
+      const knr = KAMPAGNEN.find((k) => k.id === kid)?.nr;
+      weiter.textContent = m ? `Weiter mit ${knr === 1 ? '' : `Kampagne ${knr}, `}${m.nr}: ${m.titel}` : 'Fortschritt ansehen';
+      weiter.href = m ? url(`mission/${m.id}`) : url('fortschritt');
+      document.querySelector('[data-kw-weiter-info]')!.textContent = k1fertig
+        ? `Kampagne 1 geschafft: alle ${k1.length} Missionen. Deine Klingel hängt.`
+        : `${Object.keys(z.missionen).length} Missionen geschafft.`;
     }
   }
   zeigen();

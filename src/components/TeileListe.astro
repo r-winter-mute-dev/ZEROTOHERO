@@ -1,17 +1,19 @@
 ---
 // Zeigt die Einkaufsliste für einen oder mehrere Akte.
-import { TEILE } from '../data/teile';
-import { KAMPAGNE } from '../data/kampagne';
-interface Props { akte: number[]; titel?: boolean; }
-const { akte, titel = true } = Astro.props;
+import { TEILE, TEILE_ROBOTER } from '../data/teile';
+import { KAMPAGNEN } from '../data/kampagne';
+interface Props { akte: number[]; titel?: boolean; kampagne?: string; }
+const { akte, titel = true, kampagne = 'klingel' } = Astro.props;
+const LISTE = kampagne === 'roboter' ? TEILE_ROBOTER : TEILE;
+const AKTE = KAMPAGNEN.find((k) => k.id === kampagne)!.akte;
 ---
-{akte.filter((a) => TEILE[a]).map((a) => (
+{akte.filter((a) => LISTE[a]).map((a) => (
   <section class="teile">
-    {titel && <h3>Akt {a}: {KAMPAGNE[a].titel}</h3>}
+    {titel && <h3>Akt {a}: {AKTE[a].titel}</h3>}
     <table>
       <thead><tr><th>Teil</th><th>Wofür</th><th>Bei Roboter-Bausatz.de</th></tr></thead>
       <tbody>
-        {TEILE[a].map((t) => (
+        {LISTE[a].map((t) => (
           <tr>
             <td><strong>{t.teil}</strong>{t.optional && <span class="opt"> (optional)</span>}</td>
             <td>{t.zweck}</td>

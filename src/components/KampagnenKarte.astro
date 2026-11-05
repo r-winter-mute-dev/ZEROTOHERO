@@ -1,11 +1,14 @@
 ---
 // Die Kampagne als Leiterbahn: jeder Akt ein Lötpad, jede Mission ein kleines Pad.
-import { KAMPAGNE } from '../data/kampagne';
+import { KAMPAGNEN } from '../data/kampagne';
 import { url } from '../config';
+interface Props { kampagne?: string; }
+const kid = Astro.props.kampagne ?? 'klingel';
+const k = KAMPAGNEN.find((x) => x.id === kid)!;
 ---
-<ol class="bahn" data-kw-karte>
-  {KAMPAGNE.map((a) => (
-    <li class="akt" data-akt={a.nr}>
+<ol class="bahn" data-kw-karte={kid}>
+  {k.akte.map((a) => (
+    <li class="akt" data-akt={`${kid}-${a.nr}`}>
       <span class="pad" aria-hidden="true"></span>
       <details data-akt-details>
         <summary>
@@ -32,13 +35,17 @@ import { url } from '../config';
 </ol>
 
 <script>
-  import { KAMPAGNE } from '../data/kampagne';
+  import { KAMPAGNEN } from '../data/kampagne';
   import { aktuelleMission, beiAenderung, istFreigeschaltet, laden } from '../scripts/engine';
   function zeigen(erstes = false) {
     const z = laden();
-    const aktuell = aktuelleMission();
-    KAMPAGNE.forEach((a) => {
-      const li = document.querySelector<HTMLElement>(`[data-akt="${a.nr}"]`)!;
+    KAMPAGNEN.forEach((k) => {
+    const karte = document.querySelector<HTMLElement>(`[data-kw-karte="${k.id}"]`);
+    if (!karte) return;
+    const a0 = aktuelleMission(k.id);
+    const aktuell = a0.bereit ? a0 : { id: '' };
+    k.akte.forEach((a) => {
+      const li = karte.querySelector<HTMLElement>(`[data-akt="${k.id}-${a.nr}"]`)!;
       const fertig = a.missionen.filter((m) => z.missionen[m.id]).length;
       li.querySelector('[data-akt-stand]')!.textContent = `${fertig} von ${a.missionen.length}`;
       li.classList.toggle('fertig', fertig === a.missionen.length);
@@ -54,6 +61,7 @@ import { url } from '../config';
         const s = e.querySelector('[data-mstatus]')!;
         s.textContent = st === 'real' ? 'geschafft' : st === 'simuliert' ? 'simuliert' : m.id === aktuell.id ? 'jetzt dran' : !m.bereit ? 'in Arbeit' : '';
       });
+    });
     });
   }
   zeigen(true);

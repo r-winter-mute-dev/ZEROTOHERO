@@ -23,15 +23,16 @@ const { id, titel, frage, einheit, min, max, hilfe = [], hardware = true, vorlae
   import { fmt, station, zahl } from '../scripts/station';
   document.querySelectorAll<HTMLFormElement>('[data-kw-zahl]').forEach((form) => {
     const s = station(form.closest('[data-kw-check]') as HTMLElement);
-    const min = Number(form.dataset.min), max = Number(form.dataset.max), einheit = form.dataset.einheit;
+    const min = Number(form.dataset.min), max = Number(form.dataset.max), einheit = form.dataset.einheit ?? '';
+    const mit = (x: number) => (einheit ? `${fmt(x)} ${einheit}` : fmt(x));
     const hilfe = JSON.parse(form.dataset.hilfe!) as { unter?: number; ueber?: number; text: string }[];
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const w = zahl(form.querySelector('input')!.value);
       if (Number.isNaN(w)) return s.melden('Bitte eine Zahl eingeben, zum Beispiel 1,85.', 'warnung');
-      if (w >= min && w <= max) return s.bestehen(`${fmt(w)} ${einheit} liegt im erwarteten Bereich (${fmt(min)}–${fmt(max)} ${einheit}).`);
+      if (w >= min && w <= max) return s.bestehen(`${mit(w)} liegt im erwarteten Bereich (${fmt(min)}–${mit(max)}).`);
       const h = hilfe.find((x) => (x.unter !== undefined && w < x.unter) || (x.ueber !== undefined && w > x.ueber));
-      s.fehl(`${fmt(w)} ${einheit} liegt außerhalb von ${fmt(min)}–${fmt(max)} ${einheit}. ${h?.text ?? 'Prüfe Aufbau und Messbereich und miss noch einmal.'}`);
+      s.fehl(`${mit(w)} liegt außerhalb von ${fmt(min)}–${mit(max)}. ${h?.text ?? 'Prüfe Aufbau und Messbereich und miss noch einmal.'}`);
     });
   });
 </script>

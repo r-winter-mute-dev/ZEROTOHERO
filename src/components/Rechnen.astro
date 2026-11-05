@@ -88,6 +88,18 @@ const { id, titel = 'Rechenaufgaben', typ, anzahl = 3 } = Astro.props;
       return { text: `Durch einen Widerstand von ${ohm(r)} fließen ${i} mA.`, frage: 'Leistung P =', einheit: 'mW', loesung: p,
         weg: `P = I² × R = (${fmt(i / 1000, 3)} A)² × ${fmt(r)} Ω = ${fmt(p / 1000, 4)} W = ${fmt(p, 1)} mW.` };
     },
+    blockier() {
+      const u = pick([3, 4.5, 5, 6]), r = pick([2, 2.5, 3, 4, 5, 6]);
+      const i = (u / r) * 1000;
+      return { text: `Ein Getriebemotor hat einen Wicklungswiderstand von ${fmt(r)} Ω. Er hängt an ${fmt(u)} V und wird festgehalten, sodass er sich nicht drehen kann.`, frage: 'Blockierstrom I =', einheit: 'mA', loesung: i,
+        weg: `Steht der Motor, erzeugt er keine Gegenspannung. Dann bremst nur der Wicklungswiderstand: I = U / R = ${fmt(u)} V / ${fmt(r)} Ω = ${fmt(i / 1000, 3)} A = ${fmt(i)} mA. ${i > 1500 ? 'Das liegt über den 1,5 A Dauerstrom, die der DRV8833 laut Datenblatt pro Kanal schafft. Seine Schutzschaltung würde abschalten.' : 'Das schafft der DRV8833 laut Datenblatt noch (1,5 A Dauerstrom pro Kanal), aber Motor und Akku werden warm.'}` };
+    },
+    pwm() {
+      const u = pick([3, 3.7, 4.2, 6]), w = pick([64, 100, 128, 160, 192, 230]);
+      const um = (w / 255) * u;
+      return { text: `Der ESP32 steuert einen Motortreiber mit 8-Bit-PWM (Werte 0 bis 255). Die Motorspannung ist ${fmt(u)} V, der PWM-Wert ist ${w}.`, frage: 'Mittlere Spannung am Motor ≈', einheit: 'V', loesung: um,
+        weg: `Tastgrad = ${w} / 255 = ${fmt((w / 255) * 100, 1)} %. Mittlere Spannung = Tastgrad × U = ${fmt(w / 255, 3)} × ${fmt(u)} V = ${fmt(um, 2)} V. Der Motor ist träge und „sieht“ ungefähr diesen Mittelwert. Spannungsverluste im Treiber lassen wir hier weg.` };
+    },
     laufzeit() {
       const kap = pick([1000, 2000, 2500, 2900, 3400]), i = pick([50, 80, 120, 180, 250]);
       const h = kap / i;

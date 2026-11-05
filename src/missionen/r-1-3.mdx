@@ -1,0 +1,73 @@
+---
+id: r-1-3
+checks:
+  - id: trainer
+  - id: verboten
+spick:
+  - t: "Vorwärts"
+    v: "S1 + S4 (diagonal)"
+  - t: "Rückwärts"
+    v: "S3 + S2 (andere Diagonale)"
+  - t: "Bremsen"
+    v: "S2 + S4 (beide unten)"
+  - t: "Freilauf"
+    v: "Alle offen"
+  - t: "Verboten"
+    v: "S1 + S2 oder S3 + S4: Kurzschluss"
+---
+import Quiz from '../components/Quiz.astro';
+import HBruecke from '../components/HBruecke.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Karte from '../components/Karte.astro';
+
+In Mission 1.1 hast du die Kabel getauscht, damit der Motor andersherum dreht. Ein Roboter kann keine Kabel umstecken. Er braucht eine Schaltung, die die Polung elektrisch umkehrt. **Deine Mission: Verstehe die H-Brücke, die Schaltung in jedem Motortreiber.**
+
+## Vier Schalter und ein Motor
+
+<Karte titel="Die Form eines H" nr={1}>
+Der Motor sitzt in der Mitte, wie der Querstrich im Buchstaben H. Links und rechts davon geht je ein Zweig von Plus nach GND. In jedem Zweig sitzen zwei Schalter: einer oben zwischen Plus und dem Motor, einer unten zwischen Motor und GND. Zusammen sind es vier: S1 und S2 links, S3 und S4 rechts.
+</Karte>
+
+<Karte titel="Über Kreuz schalten" nr={2}>
+Schließt du S1 (links oben) und S4 (rechts unten), fließt der Strom von Plus durch den Motor von links nach rechts nach GND. Schließt du stattdessen S3 und S2, fließt er von rechts nach links. Gleicher Motor, gleiche Batterie, andere Richtung.
+</Karte>
+
+<Karte titel="Die verbotene Kombination" nr={3}>
+Sind beide Schalter einer Seite gleichzeitig zu, zum Beispiel S1 und S2, verbinden sie Plus direkt mit GND. Kein Motor dazwischen, nichts bremst den Strom. Das heißt **Shoot-through** und zerstört die Schalter oder lässt die Schutzschaltung auslösen.
+</Karte>
+
+<Karte titel="Bremsen und Freilauf" nr={4}>
+Sind beide unteren Schalter zu, hängen beide Motoranschlüsse an GND. Ein drehender Motor arbeitet dann als Generator in einen Kurzschluss und bremst sich schnell ab. Sind alle Schalter offen, ist der Motor von allem getrennt und rollt aus. Das heißt **Freilauf**.
+</Karte>
+
+<Merke>Diagonal schalten dreht den Motor. Beide unten bremst. Alle offen ist Freilauf. Beide auf einer Seite ist verboten.</Merke>
+
+## Trainer
+
+In echten Treibern sind die Schalter Transistoren, meist MOSFETs (Kampagne 1, Akt 7). Im Trainer sind es einfache Tasten. Im zweiten Teil steuerst du dieselbe Brücke so wie beim DRV8833: mit nur zwei Eingängen.
+
+<HBruecke id="trainer" titel="Trainer: Die H-Brücke" />
+
+## Warum zwei Eingänge reichen
+
+Der DRV8833 hat pro Motor nur zwei Eingänge, IN1 und IN2. Seine Logik übersetzt sie in die vier Schalter. Laut Wahrheitstabelle im Datenblatt:
+
+| IN1 | IN2 | Motor |
+| --- | --- | --- |
+| 0 | 0 | Freilauf |
+| 1 | 0 | vorwärts |
+| 0 | 1 | rückwärts |
+| 1 | 1 | bremsen |
+
+Mit zwei Eingängen gibt es vier Kombinationen, und keine davon ist der Kurzschluss. Dein Programm kann die verbotene Stellung gar nicht erzeugen. Das ist ein großer Vorteil eines fertigen Treibers gegenüber vier einzeln gesteuerten Transistoren.
+
+<Hinweis titel="Was „vorwärts“ heißt">
+„Vorwärts“ ist nur ein Name für eine Stromrichtung. Ob der Roboter dabei nach vorn fährt, hängt davon ab, wie herum der Motor angeschlossen und eingebaut ist. Das prüfst du in Akt 2 und tauschst notfalls zwei Kabel.
+</Hinweis>
+
+<Quiz id="verboten" titel="Kurzcheck: H-Brücke" fragen={[
+  { frage: 'Welche Schalter müssen zu sein, damit der Strom von rechts nach links durch den Motor fließt?', richtig: 'S3 (rechts oben) und S2 (links unten)', falsch: ['S1 und S4', 'S3 und S4'], erklaerung: 'Plus kommt rechts oben herein, fließt durch den Motor nach links und links unten nach GND.' },
+  { frage: 'Ein selbst gebauter Treiber mit vier Transistoren wird beim Umschalten der Richtung kurz sehr heiß. Was ist die wahrscheinlichste Ursache?', richtig: 'Beim Umschalten sind kurz beide Transistoren einer Seite gleichzeitig leitend', falsch: ['Der Motor dreht beim Umschalten zu langsam', 'Die Batterie ist zu voll'], erklaerung: 'Transistoren schalten nicht unendlich schnell. Wer gleichzeitig einen aus- und den anderen einschaltet, erzeugt für einen Moment Shoot-through. Treiber-ICs warten deshalb eine kurze Totzeit ab.' },
+  { frage: 'IN1 = 1 und IN2 = 1. Was macht ein drehender Motor am DRV8833?', richtig: 'Er bremst', falsch: ['Er dreht doppelt so schnell', 'Der Treiber schließt Plus und GND kurz'], erklaerung: 'Laut Wahrheitstabelle bedeutet 1/1 Bremsen: Beide Motoranschlüsse werden verbunden. Einen Kurzschluss der Versorgung kann man mit diesen Eingängen nicht erzeugen.' },
+]} />

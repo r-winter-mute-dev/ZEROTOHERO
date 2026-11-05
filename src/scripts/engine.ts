@@ -1,6 +1,6 @@
 // Spiel-Engine: Fortschritt, Erfahrungspunkte, Freischaltung, Export/Import.
 // Alles bleibt im Browser (localStorage). Kein Server, keine Cookies.
-import { ALLE_MISSIONEN, KAMPAGNE, LEVEL, vorherige, type TeilKey } from '../data/kampagne';
+import { KAMPAGNEN, LEVEL, missionenVon, vorherige, type TeilKey } from '../data/kampagne';
 
 const KEY = 'klingelwerk:v1';
 
@@ -138,7 +138,7 @@ export function level(xp: number) {
 export type TeilZustand = 'gesperrt' | 'aktiv' | 'simuliert' | 'real';
 
 export function teilZustand(teil: TeilKey, z = laden()): { zustand: TeilZustand; fertig: number; gesamt: number } {
-  const akt = KAMPAGNE.find((a) => a.teil === teil)!;
+  const akt = KAMPAGNEN.flatMap((k) => k.akte).find((a) => a.teil === teil)!;
   const gesamt = akt.missionen.length;
   const erledigt = akt.missionen.filter((x) => z.missionen[x.id]);
   const fertig = erledigt.length;
@@ -149,8 +149,10 @@ export function teilZustand(teil: TeilKey, z = laden()): { zustand: TeilZustand;
   return { zustand: fertig > 0 || offen ? 'aktiv' : 'gesperrt', fertig, gesamt };
 }
 
-export function aktuelleMission() {
-  return ALLE_MISSIONEN.find((x) => !istFertig(x.id)) ?? ALLE_MISSIONEN[ALLE_MISSIONEN.length - 1];
+// Erste offene Mission einer Kampagne (Standard: Kampagne 1).
+export function aktuelleMission(kampagneId = 'klingel') {
+  const liste = missionenVon(KAMPAGNEN.find((k) => k.id === kampagneId) ?? KAMPAGNEN[0]);
+  return liste.find((x) => !istFertig(x.id)) ?? liste[liste.length - 1];
 }
 
 // ---------- Export / Import ----------

@@ -66,3 +66,20 @@ export const TEILE: Record<number, Teil[]> = {
     { teil: 'Klare Scheibe für die Kamera', zweck: 'Kamerafenster', produkt: 'Kein fester Link: Acrylglas oder Polycarbonat, 1–2 mm, plus Silikon oder Heißkleber', hinweis: 'Reste aus dem Baumarkt reichen. Die Scheibe muss sauber und kratzfrei sein, sonst wird das Foto milchig.' },
   ],
 };
+
+// ---------- Kampagne 2: Fahrroboter ----------
+// Vieles kennst du aus Kampagne 1. "Kein neuer Kauf" heißt: Das Teil liegt schon bei dir.
+export const TEILE_ROBOTER: Record<number, Teil[]> = {
+  0: [
+    { teil: 'Werkzeug aus Kampagne 1', zweck: 'Steckbrett, Steckbrücken, Multimeter', produkt: 'Kein neuer Kauf: aus Kampagne 1, Akt 0' },
+    { teil: 'ESP32-DevKit', zweck: 'Das Gehirn des Roboters', produkt: 'Kein neuer Kauf: dein Board aus Kampagne 1, Akt 2', hinweis: 'Falls du es nicht hast: ESP32 NodeMcu Entwicklungsboard ESP-WROOM-32 bei Roboter-Bausatz.de.' },
+  ],
+  1: [
+    { teil: 'Fahrgestell mit zwei Getriebemotoren', zweck: 'Die Motoren für Akt 1, das Chassis für Akt 2', produkt: '2WD Smart Car Chassis Plattform (Artikel RBS11612)', url: `${RB}/p/2wd-smart-car-chassis-plattform-fuer-arduino-roboter`, hinweis: 'Laut Shop mit zwei Getriebemotoren, Rädern, Stützrad und Encoderscheiben. Prüfe die Nennspannung der Motoren auf der Produktseite. Bausätze dieser Art sind für etwa 3 bis 6 V gedacht. Die Motoren haben oft noch keine Kabel: Dann lötest du zwei Litzen an (Kampagne 1, Mission 5.3).' },
+    { teil: 'Motortreiber DRV8833', zweck: 'H-Brücke für zwei Motoren', produkt: '2-Kanal DRV8833 DC-Motor-Treiber-Modul 3–10 V, 1,5 A (Artikel RBS12954)', url: `${RB}/p/2-kanal-drv8833-dc-motor-treiber-modul-3v-10v-1.5a-h-bruecke`, hinweis: 'Alternative im Shop: DRV8833-Modul als TB6612-Ersatz (RBS15374). Der DRV8833 arbeitet laut Datenblatt ab 2,7 V und passt damit zu einer einzelnen Li-Ion-Zelle.' },
+    { teil: 'Batteriehalter 2 × AA mit Schalter', zweck: 'Getrennte Motorversorgung in Akt 1', produkt: 'Kein neuer Kauf: aus Kampagne 1, Akt 1', hinweis: 'Zwei frische AA-Batterien. In Akt 2 wechselst du auf den 18650-Akku.' },
+  ],
+  2: [
+    { teil: 'Akku, Lademodul, Buck-Boost 3,3 V, Elko 1000 µF', zweck: 'Eine Versorgung für Motoren und ESP32', produkt: 'Kein neuer Kauf: aus Kampagne 1, Akt 5', hinweis: 'Achtung: Den Akku dann nicht in der Klingel und im Roboter gleichzeitig verwenden. Ein zweiter Satz ist bequemer.' },
+  ],
+};
