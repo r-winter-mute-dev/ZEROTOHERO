@@ -12,13 +12,14 @@ Ein Ordner pro Akt, darin ein Arduino-Sketch pro Mission. Jeder Sketch ist für 
 | `akt-7-schalter/` | 7 | 1 Sketch: Klingel v4, schaltet sich über das Schaltmodul (OFF an GPIO 13) selbst aus |
 | `akt-8-gehaeuse/` | 8 | 1 Sketch: die fertige Klingel, wie v4 mit WLAN-Signalstärke unter dem Foto |
 | `roboter-akt-1-motor/` | K2, 1 | 1 Sketch: ein Motor am DRV8833, vorwärts, rückwärts, bremsen, Rampe |
+| `roboter-akt-3-sehen/` | K2, 3 | 4 Sketches: Reflexsensor lesen, zwei Liniensensoren kalibrieren (mit Hysterese), Ultraschall, vor der Wand anhalten |
 | `roboter-akt-2-fahren/` | K2, 2 | 3 Sketches: Belastungstest mit Einbruch- und Neustartzähler, Sprung gegen Rampe, vier Fahrfiguren. Ergebnisse liegen im Flash (Preferences) und werden über USB ausgelesen |
 
 **Pins ESP32-CAM (Akt 4):** Blitz-LED an GPIO 4 (über Transistor), rote LED an GPIO 33 (LOW = an), Kamerapins laut AI-Thinker-Schaltplan. Als Klingelknopf dient in Akt 4 die Reset-Taste.
 
 **Pins ab Akt 6:** Klingelknopf zwischen GPIO 13 und GND (Aufwachen per ext0, interner Pull-up), Spannungsteiler 10 kΩ / 10 kΩ von OUT+ des Lademoduls an GPIO 14 (ADC2, nur vor dem WLAN messbar). Keine SD-Karte einstecken.
 
-**Pins Kampagne 2 (Fahrroboter, ESP32-DevKit):** DRV8833 AIN1 an GPIO 25, AIN2 an GPIO 26 (links), BIN1 an GPIO 32, BIN2 an GPIO 33 (rechts), nSLEEP an GPIO 27. Ab Akt 2: Teiler 10 kΩ / 10 kΩ von VM an GPIO 34 (ADC1), ESP32 über Buck-Boost 3,3 V am 3V3-Pin. Motorversorgung VM getrennt vom ESP32 (in Akt 1: 2 × AA), gemeinsame Masse. PWM 20 kHz, 8 Bit.
+**Pins Kampagne 2 (Fahrroboter, ESP32-DevKit):** DRV8833 AIN1 an GPIO 25, AIN2 an GPIO 26 (links), BIN1 an GPIO 32, BIN2 an GPIO 33 (rechts), nSLEEP an GPIO 27. Ab Akt 2: Teiler 10 kΩ / 10 kΩ von VM an GPIO 34 (ADC1), ESP32 über Buck-Boost 3,3 V am 3V3-Pin. Ab Akt 3: Liniensensoren AO links an GPIO 36 (VP), rechts an GPIO 39 (VN); Ultraschall (HC-SR04P, 3,3 V) Trig an GPIO 18, Echo an GPIO 19. Motorversorgung VM getrennt vom ESP32 (in Akt 1: 2 × AA), gemeinsame Masse. PWM 20 kHz, 8 Bit.
 
 **Pins in Akt 2:** LED intern an GPIO 2 (nicht jedes Board hat eine), externe LED an GPIO 23, Taster an GPIO 4 gegen GND mit internem Pull-up.
 

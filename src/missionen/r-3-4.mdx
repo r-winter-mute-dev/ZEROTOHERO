@@ -1,0 +1,81 @@
+---
+id: r-3-4
+abzeichen: Bremsmeister
+checks:
+  - id: tempo
+    hardware: true
+  - id: rechnen
+  - id: geraet
+    hardware: true
+  - id: reserve
+spick:
+  - t: "Geschwindigkeit"
+    v: "v = Strecke / Zeit"
+  - t: "Anhalteweg"
+    v: "v × Reaktionszeit + Bremsweg"
+  - t: "Reaktionszeit"
+    v: "Messung + Programmschleife, hier etwa 70 ms"
+  - t: "Haltabstand"
+    v: "Anhalteweg + Reserve"
+  - t: "Kein Echo"
+    v: "Zählt nicht als „nah“"
+---
+import Quiz from '../components/Quiz.astro';
+import Zahl from '../components/Zahl.astro';
+import Rechnen from '../components/Rechnen.astro';
+import Seriell from '../components/Seriell.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Karte from '../components/Karte.astro';
+
+Sehen allein reicht nicht. Zwischen „Wand erkannt“ und „Roboter steht“ vergeht Zeit, und in dieser Zeit fährt er weiter. Beim Auto heißt das Anhalteweg, und jede Fahrschule rechnet ihn. **Deine Mission: Miss die Geschwindigkeit deines Roboters, berechne seinen Anhalteweg und lass ihn rechtzeitig vor einer Wand stehen bleiben.**
+
+## Wie schnell ist er?
+
+Die Encoder, mit denen der Roboter seine Geschwindigkeit selbst misst, kommen erst in Akt 5. Bis dahin misst du von außen: Strecke durch Zeit.
+
+Lade das Programm `firmware/roboter-akt-3-sehen/r-3-4-anhalten/` mit `NUR_FAHREN = true`. Trag oben deinen Anlaufwert ein. Leg ein Maßband auf den Boden, setz den Roboter an den Anfang, Akku EIN. Nach 5 Sekunden fährt er genau 3 Sekunden mit 40 % und bremst. Miss, wie weit er gekommen ist, und teile durch 3.
+
+<Zahl id="tempo" titel="Messwert: Geschwindigkeit bei 40 %" frage="Wie schnell fährt dein Roboter bei 40 %?" einheit="cm/s" min={5} max={150} vorlaeufig hilfe={[
+  { unter: 5, text: 'Sehr langsam. Hast du durch 3 Sekunden geteilt? Fährt er auf Teppich? Stimmt der Anlaufwert?' },
+  { ueber: 150, text: 'Sehr schnell für einen kleinen Getriebemotor. Hast du in Zentimetern gemessen und durch 3 geteilt?' },
+]} />
+
+<Hinweis titel="Genauer messen">
+Die ersten Zentimeter fährt er an, die letzten bremst er. Deshalb ist der Wert etwas kleiner als die echte Reisegeschwindigkeit. Für den Anhalteweg ist das kein Problem, du rechnest ohnehin mit Reserve.
+</Hinweis>
+
+## Der Anhalteweg
+
+<Karte titel="Reaktionszeit" nr={1}>
+Das Programm misst den Abstand, wartet 30 ms und misst wieder. Eine Messung dauert bei 20 cm etwa 1 ms für das Echo, dazu die Pause. Im ungünstigsten Fall taucht die Wand direkt nach einer Messung auf und wird erst in der übernächsten erkannt. Rechne mit etwa 70 ms, in denen der Roboter ungebremst weiterfährt.
+</Karte>
+
+<Karte titel="Bremsweg" nr={2}>
+Nach dem Bremsbefehl stehen die Motoren nicht sofort. Der Roboter rollt noch ein Stück, je nach Gewicht, Boden und Geschwindigkeit ein paar Zentimeter.
+</Karte>
+
+<Karte titel="Zusammen" nr={3}>
+Anhalteweg = Geschwindigkeit × Reaktionszeit + Bremsweg. Der Haltabstand im Programm muss mindestens so groß sein, plus eine Reserve für Messfehler. Weil der Sensor ab etwa 2 bis 3 cm misst, soll der Roboter außerdem nie näher als das an die Wand kommen.
+</Karte>
+
+<Merke>Anhalteweg = Geschwindigkeit × Reaktionszeit + Bremsweg. Haltabstand = Anhalteweg + Reserve.</Merke>
+
+<Rechnen id="rechnen" typ="anhalten" titel="Rechenaufgaben: Anhalteweg" />
+
+Rechne jetzt mit deiner Geschwindigkeit, 70 ms Reaktionszeit und 3 cm Bremsweg als erste Schätzung. Runde auf ganze Zentimeter auf und leg 5 cm Reserve drauf. Das ist dein `HALT_CM`.
+
+## Die Fahrprobe
+
+<Hinweis art="sicherheit">
+Nur feste, glatte Hindernisse: ein Karton, ein dickes Buch, eine Tür. Nie auf Menschen, Tiere oder Glas zufahren lassen. Hand am Schalter.
+</Hinweis>
+
+Trag `HALT_CM` ein, setz `NUR_FAHREN = false` und lade das Programm erneut hoch. Stell den Roboter gut einen Meter vor die Wand, Akku EIN. Nach 5 Sekunden fährt er los, bremst, sobald der Abstand unter `HALT_CM` fällt, und misst danach, wie weit er tatsächlich vor der Wand steht. Danach Akku AUS, 3V3-Kabel ab, über USB auslesen. Die Zeile enthält deinen Haltabstand in cm und den gemessenen Endabstand in mm.
+
+<Seriell id="geraet" titel="Gerätenachweis: Vor der Wand gehalten" muster="^KW-CHECK:r-3-4:[0-9A-F]{12}:[0-9]{1,3}:[0-9]{2,4}$" hinweis="Steht dort als Endabstand -1, kam nach dem Halt kein Echo. Meist steht der Roboter dann zu nah an der Wand oder schräg davor." />
+
+<Quiz id="reserve" titel="Auswerten" fragen={[
+  { frage: 'HALT_CM war 20. Der Roboter steht danach 14 cm vor der Wand. Was sagt dir das?', richtig: 'Der echte Anhalteweg war etwa 6 cm. Die 20 cm Haltabstand reichen mit Reserve', falsch: ['Der Sensor misst 6 cm falsch', 'Der Roboter ist zu langsam'], erklaerung: '20 cm minus 14 cm: So weit ist er nach dem Erkennen noch gefahren. Mit dieser Messung kannst du deinen geschätzten Bremsweg prüfen.' },
+  { frage: 'Bei doppelter Geschwindigkeit: Was passiert mit dem Anteil des Anhaltewegs, der während der Reaktionszeit zurückgelegt wird?', richtig: 'Er verdoppelt sich', falsch: ['Er bleibt gleich', 'Er halbiert sich'], erklaerung: 'Strecke = Geschwindigkeit × Zeit. Die Reaktionszeit bleibt gleich, also wächst dieser Teil mit der Geschwindigkeit. Der Bremsweg wächst sogar stärker, weil mehr Bewegungsenergie abgebaut werden muss.' },
+]} />
