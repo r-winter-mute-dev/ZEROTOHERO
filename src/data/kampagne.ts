@@ -173,11 +173,11 @@ export const FAHRROBOTER: Akt[] = [
     nr: 2, titel: 'Fahren', teil: 'fahrwerk', teilName: 'Fahrwerk',
     ziel: 'Der Roboter fährt geradeaus und um die Kurve.',
     missionen: [
-      m('r-2-1', '2.1', 'Das Fahrgestell', 'Chassis, Motoren und Räder zusammenbauen.', 'Mechanik, Kabelführung', 'Bestätigen'),
-      m('r-2-2', '2.2', 'Eine Versorgung für alles', 'Motoren und ESP32 aus einem Akku versorgen, ohne Neustarts.', 'Stromspitzen, Puffer, gemeinsame Masse', 'Belastungstest'),
-      m('r-2-3', '2.3', 'Sanft anfahren', 'Mit einer Rampe anfahren und bremsen.', 'PWM-Frequenz, Rampen, Trägheit', 'Gerätenachweis'),
-      m('r-2-4', '2.4', 'Lenken', 'Mit zwei unterschiedlich schnellen Rädern Kurven fahren.', 'Differenzialantrieb, Kurvenradius', 'Rechenaufgaben und Fahrprobe'),
-      m('r-2-boss', 'Boss 2', 'Fährt im Kreis', 'Fehler in Antrieb und Versorgung finden.', 'Ungleiche Motoren, Brownout, Verdrahtung', 'Fehlerszenarien', { boss: true }),
+      m('r-2-1', '2.1', 'Das Fahrgestell', 'Chassis, Motoren und Räder zusammenbauen.', 'Mechanik, Kabelführung', 'Bestätigen', { bereit: true }),
+      m('r-2-2', '2.2', 'Eine Versorgung für alles', 'Motoren und ESP32 aus einem Akku versorgen, ohne Neustarts.', 'Stromspitzen, Puffer, gemeinsame Masse', 'Belastungstest', { bereit: true }),
+      m('r-2-3', '2.3', 'Sanft anfahren', 'Mit einer Rampe anfahren und bremsen.', 'Rampen, Anlaufwert, Prozent statt PWM', 'Gerätenachweis', { bereit: true }),
+      m('r-2-4', '2.4', 'Lenken', 'Mit zwei unterschiedlich schnellen Rädern Kurven fahren.', 'Differenzialantrieb, Kurvenradius', 'Rechenaufgaben und Fahrprobe', { bereit: true }),
+      m('r-2-boss', 'Boss 2', 'Fährt im Kreis', 'Fehler in Antrieb und Versorgung finden.', 'Ungleiche Motoren, Brownout, Verdrahtung', 'Fehlerszenarien', { boss: true, bereit: true }),
     ],
   },
   {
