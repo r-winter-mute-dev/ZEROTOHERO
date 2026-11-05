@@ -1,62 +1,67 @@
 ---
 import Basis from '../layouts/Basis.astro';
 import Klingel from '../components/Klingel.astro';
-import KampagnenKarte from '../components/KampagnenKarte.astro';
+import Roboter from '../components/Roboter.astro';
+import { KAMPAGNEN, GEPLANT } from '../data/kampagne';
 import { SEITE, url } from '../config';
 ---
 <Basis>
   <section class="huelle held">
     <div class="held-text">
-      <h1>Bau eine Türklingel, die dir ein Foto aufs Handy schickt.</h1>
-      <p class="einstieg">
-        Du fängst bei null an: Was ist Spannung, wie leuchtet eine LED? Mission für Mission baust du ein Teil
-        der Klingel und lernst genau die Elektronik, die du dafür brauchst. Am Ende wacht ein ESP32-CAM auf Knopfdruck
-        auf, macht ein Foto und schickt es an Telegram oder Discord.
+      <h1>Von der blinkenden LED zum lernenden Roboterarm.</h1>
+      <p class="einstieg">{SEITE.mission}</p>
+      <p class="einstieg leise-text">
+        Jede Kampagne baut ein echtes Gerät. Mission für Mission lernst du genau die Elektronik, die du für das nächste
+        Teil brauchst. Kostenlos, ohne Anmeldung, auch ohne Hardware im Simulator.
       </p>
       <div class="weiter">
         <a class="knopf" href={url('mission/m-0-1')} data-kw-weiter>Erste Mission starten</a>
-        <span class="leise" data-kw-weiter-info>Kostenlos, ohne Anmeldung.</span>
+        <span class="leise" data-kw-weiter-info>Am besten mit Kampagne 1.</span>
       </div>
       <div class="rangleiste" aria-label="Dein Rang">
         <div class="rang-zeile"><b data-kw-level>Lehrling</b><span class="leise" data-kw-naechster></span></div>
         <div class="balken"><span data-kw-balken></span></div>
       </div>
     </div>
-    <Klingel />
+  </section>
+
+  <section class="huelle kampagnen" aria-labelledby="k-titel">
+    <h2 id="k-titel">Die Kampagnen</h2>
+    <p class="leise">Jedes Teil im Plan füllt sich, wenn du den passenden Akt abschließt.</p>
+    <div class="raster">
+      {KAMPAGNEN.map((k) => (
+        <a class="kk" href={url(`kampagne/${k.id}`)} data-kk={k.id}>
+          <div class="kk-bild">{k.id === 'klingel' ? <Klingel legende={false} /> : <Roboter legende={false} />}</div>
+          <div class="kk-text">
+            <p class="kk-nr">Kampagne {k.nr}</p>
+            <h3>{k.titel}</h3>
+            <p class="kk-kurz">{k.kurz}</p>
+            <p class="leise klein" data-kk-stand></p>
+            <div class="balken klein-balken"><span data-kk-balken></span></div>
+            <span class="knopf zweit klein kk-knopf" data-kk-knopf>Kampagne ansehen</span>
+          </div>
+        </a>
+      ))}
+    </div>
+
+    <h3 class="geplant-titel">Danach geplant</h3>
+    <ul class="geplant">
+      {GEPLANT.map((g) => (
+        <li>
+          <span class="kk-nr">Kampagne {g.nr}</span>
+          <strong>{g.titel}</strong>
+          <span class="leise klein">{g.kurz}</span>
+        </li>
+      ))}
+    </ul>
   </section>
 
   <section class="huelle willkommen">
     <div class="text">
       <h2>Willkommen bei {SEITE.name}</h2>
-      <p>{SEITE.mission}</p>
-      <p>Die erste Kampagne ist die smarte Türklingel. Sie bringt dir die Grundlagen der Elektronik bei, vom ersten Stromkreis bis zum vernetzten Gerät. Die zweite Kampagne baut darauf auf: ein Fahrroboter, der sich bewegt, seine Umgebung misst und darauf reagiert.</p>
+      <p>Die erste Kampagne, die smarte Türklingel, bringt dir die Grundlagen der Elektronik bei, vom ersten Stromkreis bis zum vernetzten Gerät. Die zweite baut darauf auf: ein Fahrroboter, der sich bewegt, seine Umgebung misst und darauf reagiert. Jede weitere Kampagne führt ein Stück näher an Maschinen, die selbst lernen.</p>
       <p>Willkommen und viel Spaß beim Lernen.</p>
     </div>
-  </section>
-
-  <section class="huelle karte-bereich">
-    <div class="text">
-      <h2>Kampagne 1: Die smarte Türklingel</h2>
-      <p class="leise">
-        Neun Akte, jeder baut ein Teil der Klingel. Jede Mission endet mit einer Prüfung: einem Quiz, einer Rechnung
-        oder einem echten Messwert. Ohne Hardware kommst du im Simulator weiter, das Teil leuchtet dann grau statt farbig.
-      </p>
-    </div>
-    <KampagnenKarte kampagne="klingel" />
-  </section>
-
-  <section class="huelle karte-bereich" id="kampagne-2">
-    <div class="text">
-      <h2>Kampagne 2: Der Fahrroboter</h2>
-      <p class="leise">
-        Sieben Akte: Motoren, H-Brücke, Sensoren, Regelung und Fernsteuerung. Am Ende folgt dein Roboter einer Linie,
-        hält vor Hindernissen und fährt per Handy. Akt 0 und Akt 1 sind spielbar, die übrigen Akte entstehen gerade.
-      </p>
-      <p class="leise klein">
-        Du kannst sofort einsteigen. Hilfreich ist Kampagne 1 bis Akt 2 (ESP32 programmieren); für die Akku-Versorgung ab Akt 2 brauchst du Akt 5.
-      </p>
-    </div>
-    <KampagnenKarte kampagne="roboter" />
   </section>
 </Basis>
 
@@ -87,25 +92,49 @@ import { SEITE, url } from '../config';
       weiter.textContent = m ? `Weiter mit ${knr === 1 ? '' : `Kampagne ${knr}, `}${m.nr}: ${m.titel}` : 'Fortschritt ansehen';
       weiter.href = m ? url(`mission/${m.id}`) : url('fortschritt');
       document.querySelector('[data-kw-weiter-info]')!.textContent = k1fertig
-        ? `Kampagne 1 geschafft: alle ${k1.length} Missionen. Deine Klingel hängt.`
+        ? `Kampagne 1 geschafft. Deine Klingel hängt.`
         : `${Object.keys(z.missionen).length} Missionen geschafft.`;
     }
+    // Kampagnenkarten: Stand und Balken
+    KAMPAGNEN.forEach((k) => {
+      const el = document.querySelector<HTMLElement>(`[data-kk="${k.id}"]`);
+      if (!el) return;
+      const l = missionenVon(k).filter((m) => m.bereit);
+      const n = l.filter((m) => z.missionen[m.id]).length;
+      el.querySelector('[data-kk-stand]')!.textContent = n === 0 ? `${l.length} Missionen spielbar` : `${n} von ${l.length} Missionen geschafft`;
+      (el.querySelector('[data-kk-balken]') as HTMLElement).style.width = `${Math.round((n / Math.max(1, l.length)) * 100)}%`;
+      const m = aktuelleMission(k.id);
+      el.querySelector('[data-kk-knopf]')!.textContent = n === 0 ? 'Kampagne ansehen' : m.bereit && !z.missionen[m.id] ? `Weiter mit ${m.nr}` : 'Kampagne ansehen';
+    });
   }
   zeigen();
   beiAenderung(zeigen);
 </script>
 
 <style>
-  .held { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 3rem; align-items: center; padding-top: 3rem; padding-bottom: 2rem; }
-  @media (max-width: 860px) { .held { grid-template-columns: 1fr; gap: 2rem; padding-top: 2rem; } }
-  .held h1 { max-width: 15ch; }
-  .einstieg { font-size: 1.15rem; max-width: 36rem; }
+  .held { padding-top: 3rem; padding-bottom: 1.5rem; }
+  .held h1 { max-width: 20ch; }
+  .einstieg { font-size: 1.15rem; max-width: 40rem; }
+  .leise-text { color: var(--leise); }
   .weiter { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1.6rem 0 2rem; }
   .rangleiste { max-width: 24rem; }
   .rang-zeile { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 0.4rem; font-size: 0.95rem; }
   .balken { height: 8px; background: var(--tief); border-radius: 4px; overflow: hidden; border: 1px solid var(--flaeche); }
   .balken span { display: block; height: 100%; width: 0; background: var(--akzent); transition: width 0.6s; }
-  .karte-bereich > :global(*) { max-width: 52rem; }
-  .willkommen { padding-top: 1rem; }
+  .klein-balken { height: 6px; margin: 0.3rem 0 1rem; }
+  .kampagnen { padding-top: 1rem; }
+  .raster { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: 1.4rem; margin-top: 1.2rem; }
+  .kk { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 1.2rem; align-items: center; padding: 1.2rem; border-radius: var(--radius); background: var(--flaeche-leicht); border: 1px solid var(--flaeche); color: var(--text); text-decoration: none; transition: border-color 0.2s, transform 0.2s; }
+  .kk:hover, .kk:focus-visible { border-color: var(--akzent); }
+  @media (max-width: 520px) { .kk { grid-template-columns: 1fr; } .kk-bild :global(svg) { max-width: 14rem; } }
+  .kk-bild :global(svg) { max-width: 15rem; }
+  .kk h3 { margin: 0.1rem 0 0.4rem; font-size: 1.3rem; }
+  .kk-nr { color: var(--akzent-hell); font-weight: 700; font-size: 0.9rem; margin: 0; }
+  .kk-kurz { margin: 0 0 0.6rem; }
+  .kk-knopf { pointer-events: none; }
+  .geplant-titel { margin-top: 2.2rem; }
+  .geplant { list-style: none; padding: 0; margin: 0.6rem 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: 0.9rem; }
+  .geplant li { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.9rem 1rem; border-radius: var(--radius); border: 2px dashed var(--flaeche); }
+  .willkommen { padding-top: 1.5rem; }
   .willkommen h2 { margin-top: 1rem; }
 </style>

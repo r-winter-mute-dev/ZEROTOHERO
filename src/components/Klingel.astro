@@ -2,6 +2,8 @@
 // Die Türklingel als Bestückungsplan. Jedes Teil gehört zu einem Akt und hat vier Zustände:
 // gesperrt (gestrichelt), aktiv (Akzentumriss), simuliert (grau gefüllt), real (Akzent gefüllt).
 import { KAMPAGNE } from '../data/kampagne';
+interface Props { legende?: boolean; }
+const { legende = true } = Astro.props;
 const akt = (teil: string) => KAMPAGNE.find((a) => a.teil === teil)!;
 const L = (teil: string, x: number, y: number, anchor = 'start') => ({ teil, x, y, anchor, a: akt(teil) });
 const LABELS = [
@@ -68,12 +70,14 @@ const LABELS = [
       </text>
     ))}
   </svg>
-  <figcaption class="legende">
-    <span><i class="l gesperrt"></i>gesperrt</span>
-    <span><i class="l aktiv"></i>in Arbeit</span>
-    <span><i class="l simuliert"></i>im Simulator</span>
-    <span><i class="l real"></i>echt gebaut</span>
-  </figcaption>
+  {legende && (
+    <figcaption class="legende">
+      <span><i class="l gesperrt"></i>gesperrt</span>
+      <span><i class="l aktiv"></i>in Arbeit</span>
+      <span><i class="l simuliert"></i>im Simulator</span>
+      <span><i class="l real"></i>echt gebaut</span>
+    </figcaption>
+  )}
 </figure>
 
 <script>
@@ -81,10 +85,11 @@ const LABELS = [
   import { beiAenderung, laden, teilZustand } from '../scripts/engine';
   function zeigen(erstes = false) {
     const z = laden();
+    document.querySelectorAll<HTMLElement>('[data-kw-klingel]').forEach((fig) => {
     let reihe = 0;
     KAMPAGNE.forEach((a) => {
       const t = teilZustand(a.teil, z);
-      const g = document.querySelector<SVGGElement>(`[data-teil="${a.teil}"]`);
+      const g = fig.querySelector<SVGGElement>(`[data-teil="${a.teil}"]`);
       if (!g) return;
       g.classList.remove('gesperrt', 'aktiv', 'simuliert', 'real');
       g.classList.add(t.zustand);
@@ -92,10 +97,11 @@ const LABELS = [
         g.style.setProperty('--verz', `${reihe++ * 140}ms`);
         g.classList.add('auftritt');
       }
-      const stand = document.querySelector(`[data-stand="${a.teil}"]`);
+      const stand = fig.querySelector(`[data-stand="${a.teil}"]`);
       if (stand) stand.textContent = t.zustand === 'real' ? ' fertig' : t.zustand === 'simuliert' ? ' simuliert' : t.fertig > 0 ? ` ${t.fertig}/${t.gesamt}` : '';
-      const label = document.querySelector(`[data-label="${a.teil}"]`);
+      const label = fig.querySelector(`[data-label="${a.teil}"]`);
       label?.classList.toggle('an', t.zustand !== 'gesperrt');
+    });
     });
   }
   zeigen(true);

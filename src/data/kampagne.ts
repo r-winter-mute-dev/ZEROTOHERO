@@ -230,13 +230,28 @@ export interface Kampagne {
   titel: string;
   kurz: string;
   voraussetzung?: string;
+  ueberschrift: string;   // große Überschrift auf der Kampagnenseite
+  einstieg: string;       // ein Absatz darunter
   akte: Akt[];
 }
 
 export const KAMPAGNEN: Kampagne[] = [
-  { id: 'klingel', nr: 1, titel: 'Die smarte Türklingel', kurz: 'Vom ersten Stromkreis bis zur Akku-Klingel, die ein Foto schickt.', akte: KAMPAGNE },
+  { id: 'klingel', nr: 1, titel: 'Die smarte Türklingel', kurz: 'Vom ersten Stromkreis bis zur Akku-Klingel, die ein Foto schickt.',
+    ueberschrift: 'Bau eine Türklingel, die dir ein Foto aufs Handy schickt.',
+    einstieg: 'Du fängst bei null an: Was ist Spannung, wie leuchtet eine LED? Mission für Mission baust du ein Teil der Klingel und lernst genau die Elektronik, die du dafür brauchst. Am Ende wacht ein ESP32-CAM auf Knopfdruck auf, macht ein Foto und schickt es an Telegram oder Discord.',
+    akte: KAMPAGNE },
   { id: 'roboter', nr: 2, titel: 'Der Fahrroboter', kurz: 'Motoren, Sensoren und Regelung: ein Roboter, der einer Linie folgt und per Handy fährt.',
-    voraussetzung: 'Kampagne 1 bis einschließlich Akt 2 (ESP32 programmieren) und Akt 5 (Akku und Wandler), oder gleichwertiges Vorwissen.', akte: FAHRROBOTER },
+    voraussetzung: 'Kampagne 1 bis einschließlich Akt 2 (ESP32 programmieren) und Akt 5 (Akku und Wandler), oder gleichwertiges Vorwissen.',
+    ueberschrift: 'Bau einen Roboter, der selbst seinen Weg findet.',
+    einstieg: 'Motoren, Sensoren und Regelung: Du lässt zwei Räder drehen, gibst dem Roboter Augen für Linie und Hindernis und bringst ihm bei, ruhig zu fahren statt zu zappeln. Am Ende folgt er einer Linie, hält vor der Wand und fährt per Handy.',
+    akte: FAHRROBOTER },
+];
+
+// Kampagnen, die geplant, aber noch nicht begonnen sind. Erscheinen auf der Startseite als Vorschau.
+export const GEPLANT = [
+  { nr: 3, titel: 'Die Wetterstation', kurz: 'Sensoren, Messfehler und Daten über Wochen: eine Station, die misst, speichert und Diagramme zeigt.' },
+  { nr: 4, titel: 'Der Roboterarm', kurz: 'Servos, Gelenke und Koordinaten: ein Arm, der Gegenstände greift und ablegt.' },
+  { nr: 5, titel: 'Der lernende Arm', kurz: 'Der Arm lernt aus Versuchen: Grundlagen des maschinellen Lernens am eigenen Gerät.' },
 ];
 
 export const ALLE_MISSIONEN: Mission[] = KAMPAGNEN.flatMap((k) => k.akte.flatMap((a) => a.missionen));
