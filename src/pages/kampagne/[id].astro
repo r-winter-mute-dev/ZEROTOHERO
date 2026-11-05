@@ -1,0 +1,76 @@
+---
+import Basis from '../../layouts/Basis.astro';
+import Klingel from '../../components/Klingel.astro';
+import Roboter from '../../components/Roboter.astro';
+import KampagnenKarte from '../../components/KampagnenKarte.astro';
+import { KAMPAGNEN, missionenVon } from '../../data/kampagne';
+import { url } from '../../config';
+
+export function getStaticPaths() {
+  return KAMPAGNEN.map((k) => ({ params: { id: k.id } }));
+}
+const { id } = Astro.params as { id: string };
+const k = KAMPAGNEN.find((x) => x.id === id)!;
+const liste = missionenVon(k);
+const bereit = liste.filter((m) => m.bereit).length;
+const akteBereit = k.akte.filter((a) => a.missionen.every((m) => m.bereit)).length;
+---
+<Basis titel={`Kampagne ${k.nr}: ${k.titel}`} beschreibung={k.kurz}>
+  <section class="huelle held" data-kw-kampagne={k.id}>
+    <div class="held-text">
+      <p class="leise klein"><a href={url('')}>Alle Kampagnen</a> / Kampagne {k.nr}</p>
+      <h1>{k.ueberschrift}</h1>
+      <p class="einstieg">{k.einstieg}</p>
+      <div class="weiter">
+        <a class="knopf" href={url(`mission/${liste[0].id}`)} data-kk-weiter>Erste Mission starten</a>
+        <span class="leise" data-kk-info>{bereit} Missionen spielbar.</span>
+      </div>
+      {k.voraussetzung && <p class="leise klein vor">Hilfreiches Vorwissen: {k.voraussetzung}</p>}
+    </div>
+    {k.id === 'klingel' ? <Klingel /> : <Roboter />}
+  </section>
+
+  <section class="huelle karte-bereich">
+    <div class="text">
+      <h2>Kampagne {k.nr}: {k.titel}</h2>
+      <p class="leise">
+        {k.akte.length} Akte, jeder baut ein Teil. Jede Mission endet mit einer Prüfung: einem Quiz, einer Rechnung oder einem
+        echten Messwert. Ohne Hardware kommst du im Simulator weiter, das Teil leuchtet dann grau statt farbig.
+        {akteBereit < k.akte.length && ` Spielbar sind ${akteBereit} von ${k.akte.length} Akten, die übrigen entstehen gerade.`}
+      </p>
+    </div>
+    <KampagnenKarte kampagne={k.id} />
+  </section>
+</Basis>
+
+<script>
+  import { aktuelleMission, beiAenderung, laden } from '../../scripts/engine';
+  import { KAMPAGNEN, missionenVon } from '../../data/kampagne';
+  import { url } from '../../config';
+  const kid = document.querySelector<HTMLElement>('[data-kw-kampagne]')!.dataset.kwKampagne!;
+  function zeigen() {
+    const z = laden();
+    const k = KAMPAGNEN.find((x) => x.id === kid)!;
+    const liste = missionenVon(k);
+    const fertig = liste.filter((m) => z.missionen[m.id]).length;
+    if (fertig === 0) return;
+    const m = aktuelleMission(kid);
+    const a = document.querySelector<HTMLAnchorElement>('[data-kk-weiter]')!;
+    const offen = m.bereit && !z.missionen[m.id];
+    a.textContent = offen ? `Weiter mit ${m.nr}: ${m.titel}` : 'Fortschritt ansehen';
+    a.href = offen ? url(`mission/${m.id}`) : url('fortschritt');
+    document.querySelector('[data-kk-info]')!.textContent = `${fertig} von ${liste.filter((x) => x.bereit).length} spielbaren Missionen geschafft.`;
+  }
+  zeigen();
+  beiAenderung(zeigen);
+</script>
+
+<style>
+  .held { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 3rem; align-items: center; padding-top: 2.5rem; padding-bottom: 2rem; }
+  @media (max-width: 860px) { .held { grid-template-columns: 1fr; gap: 2rem; padding-top: 1.5rem; } }
+  .held h1 { max-width: 16ch; }
+  .einstieg { font-size: 1.15rem; max-width: 36rem; }
+  .weiter { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1.6rem 0 1rem; }
+  .vor { max-width: 34rem; }
+  .karte-bereich > :global(*) { max-width: 52rem; }
+</style>

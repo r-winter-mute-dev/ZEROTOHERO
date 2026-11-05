@@ -100,6 +100,18 @@ const { id, titel = 'Rechenaufgaben', typ, anzahl = 3 } = Astro.props;
       return { text: `Der ESP32 steuert einen Motortreiber mit 8-Bit-PWM (Werte 0 bis 255). Die Motorspannung ist ${fmt(u)} V, der PWM-Wert ist ${w}.`, frage: 'Mittlere Spannung am Motor ≈', einheit: 'V', loesung: um,
         weg: `Tastgrad = ${w} / 255 = ${fmt((w / 255) * 100, 1)} %. Mittlere Spannung = Tastgrad × U = ${fmt(w / 255, 3)} × ${fmt(u)} V = ${fmt(um, 2)} V. Der Motor ist träge und „sieht“ ungefähr diesen Mittelwert. Spannungsverluste im Treiber lassen wir hier weg.` };
     },
+    einbruch() {
+      const r = pick([0.1, 0.15, 0.2, 0.25, 0.3]), i = pick([0.8, 1, 1.5, 2, 2.5]), u = pick([3.7, 3.9, 4.1]);
+      const du = r * i * 1000;
+      return { text: `Akku, Schutzschaltung und Leitungen haben zusammen ${fmt(r)} Ω Innenwiderstand. Ohne Last zeigt der Akku ${fmt(u)} V. Beide Motoren fahren gleichzeitig an und ziehen zusammen ${fmt(i)} A.`, frage: 'Spannungseinbruch ΔU =', einheit: 'mV', loesung: du,
+        weg: `ΔU = R × I = ${fmt(r)} Ω × ${fmt(i)} A = ${fmt(du / 1000, 3)} V = ${fmt(du)} mV. An VM liegen in diesem Moment nur noch ${fmt(u - du / 1000, 2)} V.${u - du / 1000 < 2.7 ? ' Das ist unter 2,7 V: Der DRV8833 schaltet ab.' : ''}` };
+    },
+    kurve() {
+      const b = pick([12, 13, 14, 15, 16]), vl = pick([0, 5, 10, 15, 20]), vr = vl + pick([5, 10, 15, 20]);
+      const r = (b / 2) * (vr + vl) / (vr - vl);
+      return { text: `Ein Roboter hat eine Spurbreite von ${b} cm (Abstand der Räder). Das linke Rad fährt ${vl} cm/s, das rechte ${vr} cm/s.`, frage: 'Kurvenradius bis zur Robotermitte R =', einheit: 'cm', loesung: r,
+        weg: `R = b/2 × (v_r + v_l) / (v_r − v_l) = ${fmt(b / 2)} cm × (${vr} + ${vl}) / (${vr} − ${vl}) = ${fmt(b / 2)} × ${vr + vl} / ${vr - vl} = ${fmt(r, 1)} cm. ${vl === 0 ? 'Steht ein Rad, ist der Radius genau die halbe Spurbreite: Der Roboter dreht um dieses Rad.' : 'Je ähnlicher die Geschwindigkeiten, desto größer der Radius.'}` };
+    },
     laufzeit() {
       const kap = pick([1000, 2000, 2500, 2900, 3400]), i = pick([50, 80, 120, 180, 250]);
       const h = kap / i;
