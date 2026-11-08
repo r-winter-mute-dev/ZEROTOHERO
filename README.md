@@ -69,7 +69,7 @@ Der Weg dorthin beginnt mit einer einzelnen LED.
 | 2 | Fahrwerk | Chassis, eine Versorgung für alles, Belastungstest, Anfahrrampen, Lenken | ✅ |
 | 3 | Augen | Infrarot-Reflexsensor, Kalibrieren und Hysterese, Ultraschall, Anhalteweg | ✅ |
 | 4 | Regler | Regelkreis, Zweipunktregler, P, PID mit Simulator, Einstellen am echten Roboter | ✅ |
-| 5 | Tacho | Encoder, Geschwindigkeit, Odometrie | 🛠️ |
+| 5 | Tacho | Encoder und Interrupts, Geschwindigkeit, Odometrie, Drehzahlregelung | ✅ |
 | 6 | Funk | Webserver, Fernsteuerung, Notaus, Parcours | 🛠️ |
 
 ✅ spielbar · 🛠️ in Arbeit, auf der Karte schon sichtbar

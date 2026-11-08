@@ -208,10 +208,10 @@ export const FAHRROBOTER: Akt[] = [
     nr: 5, titel: 'Messen', teil: 'tacho', teilName: 'Tacho (Encoder)',
     ziel: 'Der Roboter weiß, wie schnell und wie weit er fährt.',
     missionen: [
-      m('r-5-1', '5.1', 'Der Encoder', 'Radumdrehungen mit einer Gabellichtschranke zählen.', 'Gabellichtschranke, Interrupts, Prellen', 'Gerätenachweis'),
-      m('r-5-2', '5.2', 'Geschwindigkeit', 'Aus Impulsen die Geschwindigkeit berechnen.', 'Impulse pro Umdrehung, Radumfang', 'Rechenaufgaben und Messwert'),
-      m('r-5-3', '5.3', 'Wo bin ich?', 'Strecke und Drehwinkel aus den Rädern berechnen.', 'Odometrie, Schlupf', 'Fahrprobe'),
-      m('r-5-4', '5.4', 'Gleich schnell', 'Beide Räder auf dieselbe Drehzahl regeln.', 'Drehzahlregelung, zwei Regelkreise', 'Geradeausfahrt'),
+      m('r-5-1', '5.1', 'Der Encoder', 'Radumdrehungen mit einer Gabellichtschranke zählen.', 'Gabellichtschranke, Interrupts, Prellen', 'Gerätenachweis', { bereit: true }),
+      m('r-5-2', '5.2', 'Geschwindigkeit', 'Aus Impulsen die Geschwindigkeit berechnen.', 'Impulse pro Umdrehung, Radumfang', 'Rechenaufgaben und Messwert', { bereit: true }),
+      m('r-5-3', '5.3', 'Wo bin ich?', 'Strecke und Drehwinkel aus den Rädern berechnen.', 'Odometrie, Schlupf', 'Fahrprobe', { bereit: true }),
+      m('r-5-4', '5.4', 'Gleich schnell', 'Beide Räder auf dieselbe Drehzahl regeln.', 'Drehzahlregelung, zwei Regelkreise', 'Geradeausfahrt', { bereit: true }),
     ],
   },
   {

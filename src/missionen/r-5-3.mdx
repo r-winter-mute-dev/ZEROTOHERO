@@ -1,0 +1,75 @@
+---
+id: r-5-3
+abzeichen: Navigator
+checks:
+  - id: rechnen
+  - id: geraet
+    hardware: true
+  - id: echt
+    hardware: true
+  - id: schlupf
+spick:
+  - t: "Strecke der Mitte"
+    v: "(s<sub>l</sub> + s<sub>r</sub>) / 2"
+  - t: "Drehwinkel"
+    v: "(s<sub>r</sub> − s<sub>l</sub>) / b, in Radiant"
+  - t: "Radiant → Grad"
+    v: "× 180 / π"
+  - t: "90° auf der Stelle"
+    v: "Jedes Rad fährt π × b / 4"
+  - t: "Schlupf"
+    v: "Rad dreht, Roboter fährt nicht ganz so weit"
+---
+import Quiz from '../components/Quiz.astro';
+import Zahl from '../components/Zahl.astro';
+import Rechnen from '../components/Rechnen.astro';
+import Seriell from '../components/Seriell.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Karte from '../components/Karte.astro';
+
+Seeleute haben jahrhundertelang ohne Satelliten navigiert: Sie wussten, wie schnell und in welche Richtung sie wie lange gefahren waren, und rechneten daraus ihre Position. Das heißt Koppelnavigation. Dein Roboter kann das auch, mit seinen Encodern. **Deine Mission: Lass den Roboter nach Encoder genau 1 m fahren und sich um 90° drehen, und prüf mit dem Maßband, wie genau das ist.**
+
+## Odometrie
+
+<Karte titel="Die Mitte des Roboters" nr={1}>
+Wenn das linke Rad s<sub>l</sub> und das rechte s<sub>r</sub> zurückgelegt hat, ist die Mitte des Roboters den Mittelwert gefahren: (s<sub>l</sub> + s<sub>r</sub>) / 2. Das gilt auch in Kurven.
+</Karte>
+
+<Karte titel="Der Drehwinkel" nr={2}>
+Fährt das rechte Rad weiter als das linke, hat sich der Roboter nach links gedreht. Der Winkel ist (s<sub>r</sub> − s<sub>l</sub>) / b, mit der Spurbreite b aus Mission 2.4. Das Ergebnis ist in Radiant. Mal 180 / π ergibt Grad.
+</Karte>
+
+<Karte titel="Aus vielen kleinen Schritten" nr={3}>
+Rechnet der Roboter das viele Male pro Sekunde und addiert die kleinen Stücke, kennt er jederzeit seine Position und Richtung relativ zum Start. Das heißt **Odometrie**. Staubsaugerroboter nutzen sie, um zu wissen, wo sie schon waren.
+</Karte>
+
+<Karte titel="Die Fehler summieren sich" nr={4}>
+Jede kleine Ungenauigkeit addiert sich mit: ein Rad, das kurz durchdreht (**Schlupf**), ein Raddurchmesser, der einen Millimeter falsch eingetragen ist, ein Impuls zu viel. Ein Winkelfehler ist besonders tückisch, weil der Roboter danach in die falsche Richtung weiterfährt und der Abstand zum wahren Ort immer weiter wächst. Odometrie ist deshalb kurzfristig gut, langfristig braucht ein Roboter etwas, das er wiedererkennt: eine Linie, eine Wand, eine Markierung.
+</Karte>
+
+<Merke>Strecke = Mittelwert der Räder. Drehung = Unterschied der Räder geteilt durch die Spurbreite. Fehler summieren sich.</Merke>
+
+<Rechnen id="rechnen" typ="drehung" titel="Rechenaufgaben: Drehwinkel" />
+
+## Fahrprobe
+
+Trag in `firmware/roboter-akt-5-messen/r-5-3-odometrie/` deine Werte ein: Anlaufwert, Impulse pro Umdrehung, Raddurchmesser, Spurbreite. Leg ein Maßband auf den Boden und markier den Start mit Klebeband, vorn an der Achse. Akku EIN, nach 5 Sekunden fährt der Roboter laut Encoder 100 cm geradeaus, bremst und dreht sich auf der Stelle um 90° nach links.
+
+Miss nach: Wie weit ist die Achse wirklich vom Start entfernt? Dreht er wirklich 90°? Danach über USB auslesen. Die Zeile enthält, was der Roboter selbst glaubt: Strecke in mm und Winkel in Grad.
+
+<Seriell id="geraet" titel="Gerätenachweis: Odometrie gefahren" muster="^KW-CHECK:r-5-3:[0-9A-F]{12}:[0-9]{3,5}:[0-9]{1,3}$" hinweis="Die Strecke ist meist etwas mehr als 1000 mm, weil der Roboter beim Bremsen noch ein paar Impulse weiterrollt." />
+
+<Zahl id="echt" titel="Messwert: Wirklich gefahren" frage="Wie weit ist dein Roboter laut Maßband wirklich gefahren?" einheit="cm" min={85} max={115} vorlaeufig hilfe={[
+  { unter: 85, text: 'Deutlich weniger als 1 m. Drehen die Räder durch (Teppich, glatte Fliesen)? Ist der Raddurchmesser im Programm zu groß eingetragen?' },
+  { ueber: 115, text: 'Deutlich mehr als 1 m. Ist der Raddurchmesser zu klein eingetragen? Zählt ein Encoder zu wenig Impulse?' },
+]} />
+
+<Quiz id="schlupf" titel="Auswerten" fragen={[
+  { frage: 'Der Roboter glaubt 1012 mm, gemessen sind 97 cm. Woran kann das liegen?', richtig: 'Schlupf beim Anfahren oder ein etwas zu groß eingetragener Raddurchmesser', falsch: ['Der Encoder zählt rückwärts', 'Das Maßband ist zu kurz'], erklaerung: 'Glaubt er mehr, als er gefahren ist, haben sich die Räder weiter gedreht als der Roboter gefahren ist: Schlupf. Oder jeder Impuls wird zu groß gerechnet. Den Durchmesser kannst du mit dieser Messung sogar korrigieren.' },
+  { frage: 'Statt 90° hat er sich nur um 80° gedreht. Was wäre die Folge, wenn er danach 2 m weiterfährt?', richtig: 'Er landet ein gutes Stück neben dem Ziel, und der Abstand wächst mit jeder weiteren Strecke', falsch: ['Nichts, 10° sind unwichtig', 'Er landet genau 10 cm daneben'], erklaerung: '10° Fehler bei 2 m Fahrt ergeben etwa 2 m × sin(10°) ≈ 35 cm seitlich. Winkelfehler wirken sich auf alles aus, was danach kommt.' },
+]} />
+
+<Hinweis titel="Kalibrieren statt hoffen">
+Rechne aus deiner Messung einen besseren Raddurchmesser aus: eingetragener Durchmesser × gemessene Strecke / geglaubte Strecke. Trag ihn ein und fahr noch einmal. So kalibrieren auch echte Roboter ihre Odometrie.
+</Hinweis>

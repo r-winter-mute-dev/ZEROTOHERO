@@ -1,0 +1,67 @@
+---
+id: r-5-4
+abzeichen: Gleichlauf
+checks:
+  - id: zwei
+  - id: geraet
+    hardware: true
+  - id: abweichung
+    hardware: true
+spick:
+  - t: "Pro Rad ein Regler"
+    v: "Soll: cm/s, Ist: aus dem Encoder, Stellgröße: Prozent"
+  - t: "PI statt P"
+    v: "I gleicht den schwächeren Motor dauerhaft aus"
+  - t: "Takt"
+    v: "100 ms, damit genug Impulse zusammenkommen"
+  - t: "Vergleich"
+    v: "REGELN = false: wie in Mission 2.4"
+---
+import Quiz from '../components/Quiz.astro';
+import Zahl from '../components/Zahl.astro';
+import Seriell from '../components/Seriell.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Karte from '../components/Karte.astro';
+
+In Mission 2.4 bekam jeder Motor denselben PWM-Wert, und der Roboter fuhr trotzdem einen Bogen. Jetzt kann er messen, wie schnell jedes Rad dreht. Damit kann er nachregeln. **Deine Mission: Regle beide Räder auf dieselbe Geschwindigkeit und vergleiche die Geradeausfahrt mit und ohne Regelung.**
+
+## Zwei Regelkreise
+
+<Karte titel="Für jedes Rad einer" nr={1}>
+Jedes Rad bekommt einen eigenen Regler. Der Sollwert ist eine Geschwindigkeit in cm/s, zum Beispiel 20 cm/s für beide. Der Istwert kommt aus dem Encoder, die Stellgröße sind die Prozent für den Motor. Der schwächere Motor bekommt dann automatisch etwas mehr.
+</Karte>
+
+<Karte titel="Warum PI" nr={2}>
+Ein reiner P-Regler würde nur nachregeln, solange das Rad zu langsam ist. Ein dauerhaft schwächerer Motor braucht aber dauerhaft mehr Prozent. Genau dafür ist der I-Anteil da (Mission 4.3): Er merkt sich, wie viel mehr nötig ist. Einen D-Anteil braucht es hier nicht, die Geschwindigkeit ändert sich langsam genug.
+</Karte>
+
+<Karte titel="Der langsame Takt" nr={3}>
+Der Linienfolger regelte alle 10 ms. Hier rechnet der Regler nur alle 100 ms, weil der Encoder bei 20 cm/s in 10 ms höchstens einen Impuls zählen würde. Zu wenige Impulse ergeben eine sehr grobe Geschwindigkeit (Mission 5.2). Ein langsamer Regler ist hier genauer als ein schneller.
+</Karte>
+
+<Merke>Pro Rad ein PI-Regler auf cm/s. Gleiche Sollgeschwindigkeit heißt dann wirklich gleiche Geschwindigkeit.</Merke>
+
+<Quiz id="zwei" titel="Kurzcheck: Gleichlauf" fragen={[
+  { frage: 'Der rechte Motor ist 8 % schwächer. Was macht der PI-Regler des rechten Rads auf Dauer?', richtig: 'Er gibt ihm dauerhaft etwas mehr Prozent als dem linken', falsch: ['Er bremst das linke Rad', 'Nichts, der Unterschied bleibt'], erklaerung: 'Der I-Anteil wächst, bis das rechte Rad die Sollgeschwindigkeit erreicht. Dann bleibt er dort stehen und liefert die nötigen Extra-Prozent.' },
+  { frage: 'Beide Räder drehen jetzt laut Encoder genau gleich schnell. Kann der Roboter trotzdem einen leichten Bogen fahren?', richtig: 'Ja, wenn die Räder unterschiedlich groß sind oder eines durchrutscht', falsch: ['Nein, das ist unmöglich', 'Nur, wenn der Akku leer ist'], erklaerung: 'Der Encoder misst die Drehung der Achse, nicht die Strecke auf dem Boden. Ein halber Millimeter Unterschied im Raddurchmesser macht sich auf 2 m bemerkbar.' },
+]} />
+
+## Vergleich: ungeregelt und geregelt
+
+Trag in `firmware/roboter-akt-5-messen/r-5-4-gleich-schnell/` deine Werte ein. Klebeband-Marke am Start, ein gerader Strich von 2 m auf dem Boden als Bezug (Maßband oder Klebeband).
+
+1. `REGELN = false`: Der Roboter fährt 2 m mit festen 30 % auf beiden Seiten. Miss, wie weit er am Ende seitlich neben dem Strich steht.
+2. `REGELN = true`: Dieselbe Fahrt mit Regelung auf 20 cm/s. Wieder messen.
+
+Nach jeder Fahrt kannst du über USB auslesen: ob geregelt wurde (1) oder nicht (0) und die mittleren Geschwindigkeiten links und rechts in Zehntel cm/s. Für den Nachweis zählt die geregelte Fahrt.
+
+<Seriell id="geraet" titel="Gerätenachweis: Geregelt gefahren" muster="^KW-CHECK:r-5-4:[0-9A-F]{12}:1:[0-9]{2,4}:[0-9]{2,4}$" hinweis="Die 1 an dritter Stelle zeigt, dass die Fahrt geregelt war. Steht dort 0, war REGELN noch auf false." />
+
+<Zahl id="abweichung" titel="Messwert: Seitliche Abweichung nach 2 m (geregelt)" frage="Wie weit steht der Roboter nach 2 m geregelter Fahrt seitlich neben dem Strich?" einheit="cm" min={0} max={40} vorlaeufig hilfe={[
+  { ueber: 40, text: 'Sehr viel, auch mit Regelung. Stimmen die Encoder-Werte links und rechts in der Ausgabe? Läuft ein Rad schief oder schleift?' },
+]} />
+
+<Hinweis titel="Was du gerade gebaut hast">
+Ein Linienfolger braucht eine Linie. Mit geregelten Rädern und Odometrie kann der Roboter jetzt auch ohne Linie ziemlich gerade fahren und Strecken abmessen. Im letzten Akt kommt das zusammen: Du steuerst ihn vom Handy aus, und er hält dabei seine Spur.
+</Hinweis>

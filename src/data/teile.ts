@@ -95,4 +95,9 @@ export const TEILE_ROBOTER: Record<number, Teil[]> = {
     { teil: 'Große weiße Fläche', zweck: 'Teststrecke mit Kurven (Mission 4.4)', produkt: 'Kein fester Link: weißer Karton, Tapetenreste oder Packpapier, etwa 1 × 1 m', hinweis: 'Ein heller, matter Fußboden geht auch, wenn du das Band später wieder ablösen darfst. Vorher an einer kleinen Stelle testen.' },
     { teil: 'Schwarzes Isolierband', zweck: 'Die Linie', produkt: 'Kein neuer Kauf: das matte Band aus Akt 3', hinweis: 'Kurven nicht enger als etwa 15 cm Radius kleben. Dafür das Band in kurzen Stücken leicht überlappend legen.' },
   ],
+  5: [
+    { teil: '2 Gabellichtschranken-Module (Geschwindigkeitssensor LM393)', zweck: 'Radumdrehungen zählen (Mission 5.1)', produkt: 'Kein fester Link: „Speedsensor LM393“ mit 5 mm Schlitz, Versorgung ab 3,3 V', hinweis: 'Bei Roboter-Bausatz.de im November 2026 nicht gefunden. Ein Beispiel ist der Joy-IT SEN-Speed (laut Datenblatt 3,3–5 V, Schlitz 5 mm, Lochscheibe mit 20 Löchern). Wichtig: Der Schlitz muss zur Encoderscheibe deines Fahrgestells passen, und das Modul muss mit 3,3 V arbeiten.' },
+    { teil: 'Encoderscheiben', zweck: 'Werden durch die Lichtschranke gezählt', produkt: 'Kein neuer Kauf: liegen beim 2WD-Fahrgestell aus Akt 1 bei', hinweis: 'Falls nicht: Die Speedsensor-Module gibt es oft mit Lochscheibe im Set.' },
+    { teil: 'Klebeband, Maßband', zweck: 'Markierung am Rad, Strecke nachmessen', produkt: 'Kein neuer Kauf' },
+  ],
 };
