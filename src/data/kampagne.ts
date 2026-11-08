@@ -212,6 +212,7 @@ export const FAHRROBOTER: Akt[] = [
       m('r-5-2', '5.2', 'Geschwindigkeit', 'Aus Impulsen die Geschwindigkeit berechnen.', 'Impulse pro Umdrehung, Radumfang', 'Rechenaufgaben und Messwert', { bereit: true }),
       m('r-5-3', '5.3', 'Wo bin ich?', 'Strecke und Drehwinkel aus den Rädern berechnen.', 'Odometrie, Schlupf', 'Fahrprobe', { bereit: true }),
       m('r-5-4', '5.4', 'Gleich schnell', 'Beide Räder auf dieselbe Drehzahl regeln.', 'Drehzahlregelung, zwei Regelkreise', 'Geradeausfahrt', { bereit: true }),
+      m('r-5-boss', 'Boss 5', 'Der Tacho lügt', 'Fehler bei Encodern und Odometrie finden.', 'Störimpulse, fehlende Richtung, falsche Konstanten, Schlupf', 'Fehlerszenarien', { boss: true, bereit: true }),
     ],
   },
   {
@@ -281,11 +282,16 @@ export function naechste(missionId: string): Mission | undefined {
 }
 
 export const LEVEL = [
+  // XP zählen über alle Kampagnen. Grundwert: Kampagne 1 = 3200 XP, Kampagne 2 = 1900 XP (ohne Erstversuchs-Bonus).
   { ab: 0, name: 'Lehrling' },
   { ab: 300, name: 'Steckbrett-Pilot' },
   { ab: 900, name: 'Firmware-Schmied' },
   { ab: 1500, name: 'Funker' },
   { ab: 2100, name: 'Energiemeister' },
   { ab: 2700, name: 'Klingel-Ingenieur' },
-  { ab: 3150, name: 'Hero' },               // alle Missionen geschafft
+  { ab: 3200, name: 'Klingel-Hero' },       // Kampagne 1 komplett
+  { ab: 3700, name: 'Motor-Mechaniker' },
+  { ab: 4200, name: 'Sensor-Tüftler' },
+  { ab: 4700, name: 'Regel-Profi' },
+  { ab: 5100, name: 'Hero' },               // beide Kampagnen komplett
 ];

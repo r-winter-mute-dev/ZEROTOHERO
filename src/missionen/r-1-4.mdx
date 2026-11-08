@@ -4,6 +4,7 @@ abzeichen: Treiber-Bändiger
 checks:
   - id: verdrahtung
   - id: code
+  - id: rechnen
   - id: geraet
     hardware: true
   - id: anlauf
@@ -22,6 +23,7 @@ spick:
 ---
 import Quiz from '../components/Quiz.astro';
 import Zahl from '../components/Zahl.astro';
+import Rechnen from '../components/Rechnen.astro';
 import Seriell from '../components/Seriell.astro';
 import Merke from '../components/Merke.astro';
 import Hinweis from '../components/Hinweis.astro';
@@ -106,6 +108,12 @@ Das vollständige Programm mit Ablauf, Rampe und Gerätenachweis liegt im Reposi
 <Hinweis titel="Warum 20 kHz?">
 Bei niedriger PWM-Frequenz hörst du den Motor pfeifen, weil die Spule im Takt mitschwingt. 20 kHz liegen über dem, was die meisten Menschen hören. Der ESP32 schafft diese Frequenz bei 8 Bit Auflösung problemlos.
 </Hinweis>
+
+## PWM am Motor
+
+Bei 20 kHz schaltet der Treiber den Motor 20 000-mal pro Sekunde an und aus. Die Spule ist träge und glättet das, der Motor „sieht“ ungefähr die mittlere Spannung: Tastgrad × Versorgungsspannung. Mit 8 Bit ist der Tastgrad der PWM-Wert geteilt durch 255.
+
+<Rechnen id="rechnen" typ="pwm" titel="Rechenaufgaben: Mittlere Spannung" />
 
 <Quiz id="code" titel="Kurzcheck: Code lesen" fragen={[
   { frage: 'Was tut motor(-128)?', richtig: 'IN1 = 0, IN2 = PWM 128: rückwärts mit etwa halber Kraft', falsch: ['Vorwärts mit halber Kraft', 'Bremsen'], erklaerung: 'Negativ heißt rückwärts, also PWM auf IN2. 128 von 255 sind etwa 50 %.' },

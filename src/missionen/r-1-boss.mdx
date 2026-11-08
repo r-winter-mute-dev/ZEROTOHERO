@@ -44,7 +44,7 @@ Die Fälle sind ausgedacht, aber typisch. Die Grenzwerte des DRV8833 stammen aus
   },
   {
     symptom: 'Jedes Mal, wenn der Motor anläuft, startet der ESP32 neu. Der Monitor zeigt immer wieder den Programmstart.',
-    log: 'Mission 1.4: Motor am DRV8833. Räder in der Luft?\nVorwärts, volle Kraft (IN1 = PWM 255, IN2 = 0)\nBrownout detector was triggered\n(Neustart)\nMission 1.4: Motor am DRV8833. Räder in der Luft?\nVerdrahtung: VM des Moduls am 3V3-Pin des ESP32',
+    log: 'Mission 1.5: Motor am DRV8833. Räder in der Luft?\nVorwärts, volle Kraft (IN1 = PWM 255, IN2 = 0)\nBrownout detector was triggered\n(Neustart)\nMission 1.5: Motor am DRV8833. Räder in der Luft?\nVerdrahtung: VM des Moduls am 3V3-Pin des ESP32',
     richtig: 'Der Motor hängt an der 3,3-V-Versorgung des ESP32. Sein Anlaufstrom lässt die Spannung einbrechen.',
     falsch: ['Der Code hat einen Fehler in der Rampe.', 'Die PWM-Frequenz ist zu hoch.'],
     erklaerung: '„Brownout“ heißt Unterspannung. Der Anlaufstrom zieht die 3,3 V des ESP32 nach unten, der Schutz löst einen Neustart aus. VM gehört an eine eigene Quelle, die Massen werden verbunden.',
