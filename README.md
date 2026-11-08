@@ -70,9 +70,9 @@ Der Weg dorthin beginnt mit einer einzelnen LED.
 | 3 | Augen | Infrarot-Reflexsensor, Kalibrieren und Hysterese, Ultraschall, Anhalteweg | ✅ |
 | 4 | Regler | Regelkreis, Zweipunktregler, P, PID mit Simulator, Einstellen am echten Roboter | ✅ |
 | 5 | Tacho | Encoder und Interrupts, Geschwindigkeit, Odometrie, Drehzahlregelung | ✅ |
-| 6 | Funk | Webserver, Fernsteuerung, Notaus, Parcours | 🛠️ |
+| 6 | Funk | Eigenes WLAN und Webserver, Fernsteuerung, Notaus, Finale-Parcours | ✅ |
 
-✅ spielbar · 🛠️ in Arbeit, auf der Karte schon sichtbar
+✅ spielbar
 
 Neu kaufen musst du für Akt 0 und 1 nur ein 2WD-Fahrgestell mit zwei Getriebemotoren und ein DRV8833-Modul. ESP32-DevKit, Multimeter und später die Akku-Versorgung kommen aus Kampagne 1. Am besten spielst du Kampagne 1 vorher komplett. Mission 0.1 von Kampagne 2 zeigt genau, welche Missionen aus Kampagne 1 du für welchen Akt brauchst.
 

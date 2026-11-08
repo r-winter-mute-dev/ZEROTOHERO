@@ -12,6 +12,7 @@ Ein Ordner pro Akt, darin ein Arduino-Sketch pro Mission. Jeder Sketch ist für 
 | `akt-7-schalter/` | 7 | 1 Sketch: Klingel v4, schaltet sich über das Schaltmodul (OFF an GPIO 13) selbst aus |
 | `akt-8-gehaeuse/` | 8 | 1 Sketch: die fertige Klingel, wie v4 mit WLAN-Signalstärke unter dem Foto |
 | `roboter-akt-1-motor/` | K2, 1 | 1 Sketch: ein Motor am DRV8833, vorwärts, rückwärts, bremsen, Rampe |
+| `roboter-akt-6-funk/` | K2, 6 | 3 Sketches: Webserver im eigenen WLAN, Fernsteuerung mit Herzschlag-Notaus, Finale mit Linienfolger, Hindernis-Stopp und Fernsteuerung in einem Programm |
 | `roboter-akt-5-messen/` | K2, 5 | 4 Sketches: Encoder zählen (Interrupt mit Sperrzeit), Geschwindigkeit bei vier PWM-Stufen, Odometrie (1 m und 90°), zwei PI-Drehzahlregler für Geradeausfahrt |
 | `roboter-akt-4-regeln/` | K2, 4 | 1 Sketch: Linienfolger mit PID im festen 10-ms-Takt, Selbstkalibrierung durch Drehen, Notstopp bei Linienverlust |
 | `roboter-akt-3-sehen/` | K2, 3 | 4 Sketches: Reflexsensor lesen, zwei Liniensensoren kalibrieren (mit Hysterese), Ultraschall, vor der Wand anhalten |

@@ -30,7 +30,7 @@ const spick: { t: string; v: string }[] = fm.spick ?? [];
       <a href={url(`kampagne/${kamp.id}`)}>Kampagne {kamp.nr}: {kamp.titel}</a> / Akt {akt.nr}: {akt.titel}
     </nav>
     <header class="mkopf">
-      <p class="mnr">{mission.boss ? `Bosskampf ${akt.nr}` : `Mission ${mission.nr}`}</p>
+      <p class="mnr">{mission.boss ? (mission.nr.startsWith("Boss") ? `Bosskampf ${akt.nr}` : mission.nr) : `Mission ${mission.nr}`}</p>
       <h1>{mission.titel}</h1>
       <p class="mkurz">{mission.kurz}</p>
       <p class="leise klein"><span data-kw-dauer></span>{mission.xp} XP{checks.length ? `, +10 XP wenn alles im ersten Versuch klappt` : ''}{fm.abzeichen ? `. Abzeichen: ${fm.abzeichen}` : ''}</p>

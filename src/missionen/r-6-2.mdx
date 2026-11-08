@@ -1,0 +1,67 @@
+---
+id: r-6-2
+checks:
+  - id: latenz
+  - id: messwert
+    hardware: true
+  - id: geraet
+    hardware: true
+spick:
+  - t: "Befehl"
+    v: "/fahr?v=0.50&w=-0.20 alle 100 ms"
+  - t: "Lenken"
+    v: "links = v − w, rechts = v + w"
+  - t: "Latenz"
+    v: "Zeit von der Bewegung des Fingers bis zur Reaktion"
+  - t: "Nachweis"
+    v: "Steht unten auf der Fernsteuer-Seite"
+---
+import Quiz from '../components/Quiz.astro';
+import Zahl from '../components/Zahl.astro';
+import Seriell from '../components/Seriell.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Karte from '../components/Karte.astro';
+
+Jetzt wird das Handy zur Fernbedienung. Auf der Seite liegt ein runder Steuerknüppel: nach oben schieben fährt vorwärts, zur Seite lenkt. **Deine Mission: Steuere den Roboter per Handy und miss, wie lange ein Befehl unterwegs ist.**
+
+## Befehle im Takt
+
+<Karte titel="Was die Seite schickt" nr={1}>
+Alle 100 ms fragt die Seite eine Adresse ab, zum Beispiel /fahr?v=0.50&w=-0.20. v ist vorwärts oder rückwärts zwischen −1 und 1, w die Lenkung, positiv heißt links. Der Roboter rechnet daraus die Räder aus, wie beim Differenzialantrieb in Mission 2.4: links = v − w, rechts = v + w.
+</Karte>
+
+<Karte titel="Auch wenn sich nichts ändert" nr={2}>
+Die Seite schickt auch dann, wenn der Finger stillhält oder der Knüppel in der Mitte steht. Das wirkt verschwenderisch, ist aber Absicht: Jeder Befehl sagt dem Roboter „ich bin noch da“. Wie wichtig das ist, zeigt Mission 6.3.
+</Karte>
+
+<Karte titel="Latenz" nr={3}>
+Vom Finger bis zur Reaktion vergeht Zeit: Die Seite wartet bis zum nächsten 100-ms-Takt, das WLAN überträgt die Anfrage, der Roboter beantwortet sie, die Motoren beschleunigen. Diese Verzögerung heißt **Latenz**. Die Seite misst die Zeit für Anfrage und Antwort und zeigt sie an.
+</Karte>
+
+<Karte titel="Ausblick: WebSocket" nr={4}>
+Für jeden Befehl baut der Browser hier eine neue Anfrage auf. Schneller geht es mit einem **WebSocket**: einer Verbindung, die offen bleibt und in beide Richtungen Nachrichten transportiert. Dafür braucht der ESP32 eine zusätzliche Bibliothek. Für einen Roboter, der mit 30 cm/s fährt, reichen die einfachen Anfragen aus.
+</Karte>
+
+<Merke>Die Seite schickt alle 100 ms einen Befehl. Latenz ist die Verzögerung zwischen Finger und Reaktion.</Merke>
+
+<Quiz id="latenz" titel="Kurzcheck: Latenz" fragen={[
+  { frage: 'Die Seite zeigt 40 ms Antwortzeit. Wie lange dauert es im ungünstigsten Fall, bis der Roboter auf deinen Finger reagiert?', richtig: 'Etwa 140 ms: bis zu 100 ms bis zum nächsten Takt, dazu 40 ms für die Anfrage', falsch: ['Genau 40 ms', '4 Sekunden'], erklaerung: 'Bewegst du den Finger kurz nach einem Befehl, wartet die Seite bis zum nächsten Takt. Dazu kommt noch die Zeit, bis die Motoren beschleunigt haben.' },
+  { frage: 'Der Roboter fährt 30 cm/s. Wie weit fährt er in 140 ms Latenz?', richtig: 'Gut 4 cm', falsch: ['Gut 40 cm', 'Weniger als 1 mm'], erklaerung: '30 cm/s × 0,14 s = 4,2 cm. Bei der Fernsteuerung ist das gut zu verkraften. Für den Abstand zu Hindernissen verlässt sich der Roboter trotzdem auf seinen eigenen Sensor statt auf dich.' },
+]} />
+
+## Fahren
+
+<Hinweis art="sicherheit">
+Freie Fläche auf dem Boden, keine Treppe in der Nähe. Höchstgeschwindigkeit im Programm (MAX_PROZENT) am Anfang niedrig lassen. Hand am Schalter, bis du sicher steuerst.
+</Hinweis>
+
+Trag in `firmware/roboter-akt-6-funk/r-6-2-fernsteuerung/` WLAN-Name, Passwort und Anlaufwert ein. Hochladen, dann Akku-Betrieb wie gewohnt. Verbinde das Handy mit dem Roboter-WLAN, öffne http://192.168.4.1 und fahr ein paar Runden.
+
+<Zahl id="messwert" titel="Messwert: Antwortzeit" frage="Welche Antwortzeit zeigt die Seite ungefähr an?" einheit="ms" min={2} max={500} vorlaeufig hilfe={[
+  { ueber: 500, text: 'Sehr lang. Steht das Handy weit weg oder hinter einer Wand? Ist im Programm ein delay() in loop() hinzugekommen?' },
+]} />
+
+Nach etwa 30 Sekunden (300 Befehle) erscheint unten auf der Seite eine Nachweis-Zeile. Tipp sie ab oder kopier sie und füg sie hier über „von Hand eingeben“ ein.
+
+<Seriell id="geraet" titel="Gerätenachweis: Ferngesteuert" muster="^KW-CHECK:r-6-[23]:[0-9A-F]{12}:[0-9]+$" hinweis="Die Zeile steht ganz unten auf der Fernsteuer-Seite. Hast du schon einen Notaus ausgelöst (Mission 6.3), steht dort r-6-3, das gilt hier auch." />

@@ -1,0 +1,83 @@
+---
+id: r-6-boss
+abzeichen: Robotik-Hero
+checks:
+  - id: abschluss
+  - id: parcours
+    hardware: true
+  - id: geraet
+    hardware: true
+spick:
+  - t: "Modi"
+    v: "Fernsteuern, Kalibrieren, Linie folgen, STOPP"
+  - t: "Hindernis"
+    v: "In jedem Modus: vorwärts gesperrt unter HALT_CM"
+  - t: "Notaus"
+    v: "300 ms ohne Befehl: bremsen, in jedem Modus"
+  - t: "Ultraschall"
+    v: "Alle 100 ms, höchstens 6 ms warten"
+  - t: "Nachweis"
+    v: "20 s Linie, 1 Hindernis-Stopp, 100 Fernbefehle"
+---
+import Quiz from '../components/Quiz.astro';
+import Seriell from '../components/Seriell.astro';
+import Bestaetigung from '../components/Bestaetigung.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Karte from '../components/Karte.astro';
+import Checkliste from '../components/Checkliste.astro';
+
+Du hast einen Motor zum Drehen gebracht, eine H-Brücke verstanden, eine Versorgung gebaut, die zehnmal Vollgas aushält, dem Roboter Augen gegeben, ihm das Regeln beigebracht, seine Räder gezählt und ihn ans Handy gehängt. **Dein Finale: Ein Parcours, in dem alles zusammenkommt.**
+
+## Ein Programm für alles
+
+Das Programm `firmware/roboter-akt-6-funk/r-6-finale-parcours/` vereint alle Akte. Auf der Seite am Handy wählst du den Modus:
+
+<Karte titel="Fernsteuern" nr={1}>
+Wie in Mission 6.2, mit Notaus aus 6.3. Neu: Steht ein Hindernis näher als HALT_CM vor dem Roboter, ist Vorwärtsfahren gesperrt. Rückwärts und Drehen gehen weiter, damit du dich befreien kannst.
+</Karte>
+
+<Karte titel="Kalibrieren und Linie folgen" nr={2}>
+Wie in Mission 4.4: Der Roboter dreht sich kurz hin und her, um die Sensoren zu kalibrieren, dann folgt er mit deinen PID-Werten der Linie. Taucht ein Hindernis auf, wartet er davor, bis es weg ist.
+</Karte>
+
+<Karte titel="Drei Aufgaben in einer Schleife" nr={3}>
+Die Schleife beantwortet Anfragen vom Handy, misst alle 100 ms den Abstand und regelt alle 10 ms die Motoren. Der Ultraschall wartet dabei höchstens 6 ms auf ein Echo, also bis etwa 1 m Abstand. Mit den 30 ms aus Mission 3.3 würde der Regeltakt jedes Mal gestört. Mehrere Aufgaben teilen sich einen Prozessor, und jede bekommt nur so viel Zeit, wie die anderen übrig lassen.
+</Karte>
+
+<Merke>Ein Programm, drei Takte: Anfragen sofort, Abstand alle 100 ms, Regelung alle 10 ms. Sicherheit gilt in jedem Modus.</Merke>
+
+<Quiz id="abschluss" titel="Abschlussfragen" fragen={[
+  { frage: 'Im Modus „Linie folgen“ verliert das Handy die Verbindung. Was tut der Roboter?', richtig: 'Er hält an, weil der Herzschlag fehlt', falsch: ['Er folgt weiter der Linie, er braucht das Handy ja nicht', 'Er fährt zurück zum Start'], erklaerung: 'Im Programm gilt der Notaus in jedem Modus. Das ist eine Entscheidung: Man könnte auch sagen, beim Linienfolgen ist das Handy egal. Sicherer ist es, bei Verbindungsverlust immer anzuhalten.' },
+  { frage: 'Warum misst der Ultraschall im Finale nur bis etwa 1 m?', richtig: 'Damit das Warten auf das Echo höchstens 6 ms dauert und den 10-ms-Regeltakt nicht stört', falsch: ['Weil der Sensor im Finale schlechter ist', 'Weil 1 m die größte Halle ist'], erklaerung: 'pulseIn() blockiert, bis das Echo kommt oder die Zeit abläuft. Für 1 m hin und zurück braucht der Schall knapp 6 ms. Für einen Haltabstand von 20 cm reicht das völlig.' },
+  { frage: 'Welche Missionen stecken im Linienfolger-Modus des Finales?', richtig: 'Prozent statt PWM (2.3), Kalibrieren (3.2), PID (4.3), fester Takt (4.4) und Anhalten vor Hindernissen (3.4)', falsch: ['Nur die PID-Mission 4.3', 'Nur die Missionen aus Akt 6'], erklaerung: 'Das Finale ist kein neues Wissen, sondern alles zusammen. Genau so entstehen echte Roboter: aus vielen kleinen, einzeln geprüften Bausteinen.' },
+]} />
+
+## Der Parcours
+
+<Checkliste id="aufbau" punkte={[
+  'Rundkurs aus Mission 4.4 auslegen.',
+  'Eine Kiste oder ein dickes Buch als Hindernis bereitlegen.',
+  'Im Programm WLAN-Name, Passwort, Anlaufwert, deine PID-Werte und HALT_CM eintragen. Hochladen.',
+  'Akku-Betrieb, Handy mit dem Roboter-WLAN verbinden, http://192.168.4.1 öffnen.',
+]} />
+
+Fahr den Parcours in beliebiger Reihenfolge:
+
+1. **Linie:** Roboter auf die Linie stellen, „Kalibrieren“, dann „Linie folgen“. Insgesamt mindestens 20 Sekunden.
+2. **Hindernis:** Während er fährt, das Hindernis vor ihn stellen. Er muss davor anhalten. Nimm es weg, und er fährt weiter.
+3. **Fernsteuern:** Mindestens 100 Fahrbefehle per Steuerknüppel, zum Beispiel einmal um den Kurs herum und zurück zum Start.
+
+Die Zähler auf der Seite zeigen den Stand. Sind alle drei erfüllt, erscheint unten die Nachweis-Zeile.
+
+<Hinweis art="sicherheit">
+Hindernisse sind Gegenstände, keine Füße, Hände oder Tiere. Der Ultraschall erkennt weiche Dinge schlecht (Mission 3.3).
+</Hinweis>
+
+<Bestaetigung id="parcours" titel="Parcours gefahren" art="Fahrprobe" text="Mein Roboter ist der Linie gefolgt, hat vor dem Hindernis angehalten und ließ sich per Handy steuern." knopf="Geschafft" />
+
+<Seriell id="geraet" titel="Gerätenachweis: Parcours komplett" muster="^KW-CHECK:r-6-boss:[0-9A-F]{12}:[0-9]+:[1-9][0-9]*:[0-9]{3,}$" hinweis="Die Zeile erscheint auf der Seite erst, wenn alle drei Zähler erfüllt sind: 20 s Linie, mindestens 1 Hindernis-Stopp, mindestens 100 Fernbefehle." />
+
+## Geschafft
+
+Dein Roboter misst, entscheidet und handelt, viele Male pro Sekunde, und er bleibt sicher stehen, wenn etwas schiefgeht. Das sind die Grundlagen jeder Robotik, vom Staubsauger bis zum Roboterarm in einer Fabrik. Die nächste Kampagne baut darauf auf.

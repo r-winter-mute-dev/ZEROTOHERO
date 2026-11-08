@@ -1,0 +1,70 @@
+---
+id: r-6-3
+abzeichen: Sicherheitsingenieur
+checks:
+  - id: sicher
+  - id: geraet
+    hardware: true
+spick:
+  - t: "Sicherer Zustand"
+    v: "Motoren aus, Roboter steht"
+  - t: "Herzschlag"
+    v: "Kommt 300 ms kein Befehl: bremsen"
+  - t: "Absturz"
+    v: "nSLEEP hat einen Pulldown: Treiber schläft"
+  - t: "Test"
+    v: "Flugmodus am Handy, während er fährt"
+---
+import Quiz from '../components/Quiz.astro';
+import Seriell from '../components/Seriell.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Karte from '../components/Karte.astro';
+
+Was passiert, wenn der Akku des Handys leer ist, während der Roboter fährt? Oder du gehst mit dem Handy in ein anderes Zimmer? Ohne Vorsorge: Der Roboter fährt mit dem letzten Befehl weiter, bis er gegen etwas stößt. **Deine Mission: Prüf, dass dein Roboter bei Funkverlust sofort anhält, und verstehe, warum er das auch bei einem Absturz tut.**
+
+## Der sichere Zustand
+
+<Karte titel="Was ist sicher?" nr={1}>
+Jede Maschine braucht einen Zustand, in den sie bei einem Fehler fällt. Für einen kleinen Fahrroboter ist das einfach: Motoren aus, stehen bleiben. Für ein Flugzeug wäre „Motoren aus“ das Gegenteil von sicher. Den sicheren Zustand festzulegen ist der erste Schritt jeder Sicherheitsüberlegung.
+</Karte>
+
+<Karte titel="Der Herzschlag" nr={2}>
+Die Seite schickt alle 100 ms einen Befehl. Das Programm merkt sich die Zeit des letzten. Vergehen 300 ms ohne Befehl, also drei ausgefallene Herzschläge, bremst der Roboter. Diese Überwachung heißt **Watchdog**, Wachhund. Sie braucht keinen Befehl „Stopp“, denn bei Funkverlust kommt ja gar nichts mehr an.
+</Karte>
+
+<Karte titel="Wenn das Programm abstürzt" nr={3}>
+Bleibt das Programm hängen, läuft auch der Watchdog im Programm nicht mehr. Hier hilft der Motortreiber: Laut Datenblatt zieht ein interner Widerstand nSLEEP auf LOW (Mission 1.5). Startet der ESP32 nach einem Absturz neu, sind seine Pins kurz nicht angesteuert. nSLEEP fällt auf LOW, der Treiber schaltet die Motoren ab. Ein guter Entwurf fällt also auch ohne Software in den sicheren Zustand. Achtung: Legt dein Modul nSLEEP auf der Platine fest auf HIGH (Mission 1.4), fehlt diese Schutzschicht.
+</Karte>
+
+<Merke>Erst den sicheren Zustand festlegen. Ausbleibende Befehle lösen ihn aus, nicht ein Stopp-Befehl.</Merke>
+
+```cpp
+// in loop(): Herzschlag ausgeblieben? Dann sofort bremsen.
+if (!steht && millis() - letzterBefehl > NOTAUS_MS) {
+  bremsen();
+  steht = true;
+  notstopps++;
+}
+```
+
+<Quiz id="sicher" titel="Kurzcheck: Notaus" fragen={[
+  { frage: 'Warum reicht ein STOPP-Knopf auf der Seite nicht als Notaus?', richtig: 'Bei Funkverlust kommt auch der Stopp-Befehl nicht an', falsch: ['Weil der Knopf zu klein ist', 'Weil Stopp-Befehle langsamer übertragen werden'], erklaerung: 'Der Notaus muss gerade dann wirken, wenn keine Verbindung mehr besteht. Deshalb löst das Ausbleiben von Befehlen ihn aus.' },
+  { frage: 'Warum 300 ms und nicht 100 ms?', richtig: 'Einzelne Befehle können sich im WLAN etwas verspäten, ohne dass die Verbindung weg ist', falsch: ['Weil der ESP32 nicht schneller zählen kann', 'Weil 100 ms zu kurz zum Bremsen sind'], erklaerung: 'Mit 100 ms würde der Roboter bei jeder kleinen Verzögerung ruckeln. Drei verpasste Herzschläge sind ein guter Kompromiss zwischen Fehlalarm und Reaktionszeit.' },
+  { frage: 'Das Programm hängt in einer Endlosschleife fest, die Motoren laufen weiter. Welche weitere Schutzschicht wäre sinnvoll?', richtig: 'Ein Watchdog im Chip, der den ESP32 neu startet, wenn das Programm sich nicht regelmäßig meldet', falsch: ['Ein zweiter STOPP-Knopf auf der Seite', 'Eine höhere WLAN-Sendeleistung'], erklaerung: 'Der ESP32 hat solche Hardware-Watchdogs. Beim Neustart greift dann der Pulldown an nSLEEP, und die Motoren stehen. Schutzschichten, die voneinander unabhängig sind, machen ein System robust.' },
+]} />
+
+## Testen
+
+Ein Notaus, der nie getestet wurde, ist kein Notaus. Starte die Fernsteuerung aus Mission 6.2 und teste zwei Fälle:
+
+1. **Funkverlust:** Fahr langsam geradeaus und schalt am Handy den Flugmodus ein. Der Roboter muss sofort stehen.
+2. **Seite geschlossen:** Fahr wieder und schließ den Browser-Tab oder sperr das Handy. Auch dann muss er stehen.
+
+Danach wieder verbinden und die Seite neu öffnen. Unten steht jetzt eine Zeile mit r-6-3 und der Zahl der Notstopps.
+
+<Hinweis art="sicherheit">
+Teste den Notaus bei langsamer Fahrt und mit freier Bahn. Erst wenn er zuverlässig funktioniert, darfst du schneller fahren.
+</Hinweis>
+
+<Seriell id="geraet" titel="Gerätenachweis: Notaus ausgelöst" muster="^KW-CHECK:r-6-3:[0-9A-F]{12}:[1-9][0-9]*$" hinweis="Die Zeile erscheint auf der Fernsteuer-Seite, sobald mindestens ein Notstopp passiert ist und 300 Befehle angekommen sind." />

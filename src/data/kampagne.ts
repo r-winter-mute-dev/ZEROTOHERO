@@ -218,10 +218,10 @@ export const FAHRROBOTER: Akt[] = [
     nr: 6, titel: 'Fernsteuern', teil: 'funk', teilName: 'Funk',
     ziel: 'Der Roboter fährt per Handy und hält sicher an, wenn die Verbindung abreißt.',
     missionen: [
-      m('r-6-1', '6.1', 'Ein Webserver', 'Auf dem ESP32 eine kleine Webseite bereitstellen.', 'HTTP-Server, IP-Adresse, lokales Netz', 'Gerätenachweis'),
-      m('r-6-2', '6.2', 'Die Fernbedienung', 'Den Roboter vom Handy aus steuern.', 'WebSocket, Latenz', 'Fahrprobe'),
-      m('r-6-3', '6.3', 'Notaus', 'Bei Funkverlust sofort anhalten.', 'Watchdog, sicherer Zustand', 'Fehlertest'),
-      m('r-6-boss', 'Finale', 'Der Parcours', 'Linie, Hindernis und Fernsteuerung in einem Lauf.', 'Alles aus Kampagne 2', 'Parcours', { boss: true }),
+      m('r-6-1', '6.1', 'Ein Webserver', 'Auf dem ESP32 eine kleine Webseite bereitstellen.', 'Eigenes WLAN (Access Point), HTTP-Server, JSON', 'Gerätenachweis', { bereit: true }),
+      m('r-6-2', '6.2', 'Die Fernbedienung', 'Den Roboter vom Handy aus steuern.', 'Befehle im Takt, Latenz, WebSocket als Ausblick', 'Fahrprobe', { bereit: true }),
+      m('r-6-3', '6.3', 'Notaus', 'Bei Funkverlust sofort anhalten.', 'Watchdog, sicherer Zustand', 'Fehlertest', { bereit: true }),
+      m('r-6-boss', 'Finale', 'Der Parcours', 'Linie, Hindernis und Fernsteuerung in einem Lauf.', 'Alles aus Kampagne 2', 'Parcours', { boss: true, bereit: true }),
     ],
   },
 ];
