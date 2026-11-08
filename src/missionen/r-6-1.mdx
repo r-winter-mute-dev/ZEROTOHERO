@@ -1,0 +1,71 @@
+---
+id: r-6-1
+checks:
+  - id: grundlagen
+  - id: geraet
+    hardware: true
+spick:
+  - t: "Access Point"
+    v: "Der Roboter öffnet sein eigenes WLAN"
+  - t: "Adresse"
+    v: "http://192.168.4.1"
+  - t: "Server"
+    v: "server.on(\"/pfad\", funktion); server.handleClient() in loop()"
+  - t: "JSON"
+    v: "{\"akku\":3.92,\"zeit\":17}"
+  - t: "Passwort"
+    v: "Mindestens 8 Zeichen, nie offen lassen"
+---
+import Quiz from '../components/Quiz.astro';
+import Seriell from '../components/Seriell.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Karte from '../components/Karte.astro';
+import Checkliste from '../components/Checkliste.astro';
+import { url as seitenUrl } from '../config';
+
+Deine Klingel hat in Kampagne 1 Nachrichten ins Internet geschickt. Der Roboter macht es umgekehrt: Er wartet, bis jemand ihn fragt. Er wird zum **Server**, dein Handy zum Client. **Deine Mission: Lass den Roboter ein eigenes WLAN öffnen und darin eine kleine Webseite mit seinen Messwerten anbieten.**
+
+## Zwei Arten, ins WLAN zu gehen
+
+<Karte titel="Station: mitmachen" nr={1}>
+Die Klingel hat sich in dein Heim-WLAN eingebucht wie ein Handy. Das heißt **Station**-Modus. Der Router vergibt die Adresse, das Internet ist erreichbar (<a href={seitenUrl('mission/m-3-1')}>Kampagne 1, Mission 3.1</a>).
+</Karte>
+
+<Karte titel="Access Point: selbst anbieten" nr={2}>
+Der Roboter kann auch selbst ein WLAN aufmachen, wie ein kleiner Router. Das heißt **Access Point**. Dein Handy verbindet sich direkt mit ihm, ganz ohne Heim-WLAN, auch im Garten oder in der Schule. Der ESP32 gibt sich dabei die Adresse 192.168.4.1. Ins Internet kommt in diesem Netz niemand, das braucht der Roboter auch nicht.
+</Karte>
+
+<Karte titel="Der Server" nr={3}>
+Ein Webserver wartet auf Anfragen. Öffnet dein Browser http://192.168.4.1/, fragt er nach dem Pfad „/“. Der Roboter antwortet mit einer HTML-Seite. Die Seite fragt dann jede Sekunde nach „/status“, und der Roboter antwortet mit **JSON**, einem Textformat für Daten, das du von den Bot-APIs aus <a href={seitenUrl('mission/m-3-2')}>Mission 3.2</a> kennst.
+</Karte>
+
+<Karte titel="Abholen statt rufen" nr={4}>
+Ein Server kann nicht von sich aus etwas an den Browser schicken. Der Browser muss fragen. Deshalb holt die Seite regelmäßig neue Werte ab. Damit das klappt, muss das Programm in loop() ständig server.handleClient() aufrufen. Ein langes delay() in der Schleife lässt den Browser warten.
+</Karte>
+
+<Merke>Station: in ein WLAN hinein. Access Point: eigenes WLAN. Der Browser fragt, der Server antwortet.</Merke>
+
+<Quiz id="grundlagen" titel="Kurzcheck: Webserver" fragen={[
+  { frage: 'Warum öffnet der Roboter ein eigenes WLAN, statt sich ins Heim-WLAN einzubuchen?', richtig: 'So funktioniert er überall, ohne Router und ohne Zugangsdaten eines fremden Netzes', falsch: ['Weil der ESP32 kein Heim-WLAN kann', 'Weil ein eigenes WLAN schneller ins Internet geht'], erklaerung: 'Der ESP32 kann beides. Für einen Roboter, der überall fahren soll, ist das eigene Netz praktischer. Ins Internet kommt er darüber allerdings nicht.' },
+  { frage: 'Im Programm steht in loop() ein delay(2000). Was merkst du am Handy?', richtig: 'Die Seite reagiert nur noch alle 2 Sekunden', falsch: ['Nichts, der Server läuft im Hintergrund', 'Das WLAN bricht ab'], erklaerung: 'server.handleClient() beantwortet Anfragen nur, wenn es aufgerufen wird. Während delay() wartet, bleiben alle Anfragen liegen.' },
+  { frage: 'Warum braucht das Roboter-WLAN ein Passwort?', richtig: 'Sonst kann jeder in der Nähe sich verbinden und den Roboter steuern', falsch: ['Ohne Passwort ist das WLAN langsamer', 'Das Passwort braucht der ESP32 zum Starten'], erklaerung: 'Ab Mission 6.2 fährt der Roboter auf Befehle aus diesem Netz. Ein offenes Netz hieße: Jeder Fremde kann mitfahren. Mindestens 8 Zeichen, nicht das Beispiel aus dem Code.' },
+]} />
+
+## Ausprobieren
+
+<Checkliste id="aufbau" punkte={[
+  'Programmier-Regel: Akku AUS, 3V3-Kabel vom Wandler ab. Diese Mission läuft am USB, die Motoren bleiben aus.',
+  'In <code>firmware/roboter-akt-6-funk/r-6-1-webserver/</code> einen eigenen WLAN-Namen und ein eigenes Passwort mit mindestens 8 Zeichen eintragen.',
+  'Hochladen, seriellen Monitor öffnen. Dort steht der WLAN-Name und die Adresse.',
+  'Am Handy: WLAN-Einstellungen, das Roboter-WLAN wählen, Passwort eingeben. Das Handy meldet vielleicht „kein Internet“, das ist richtig so.',
+  'Im Browser http://192.168.4.1 öffnen. Die Laufzeit zählt jede Sekunde hoch.',
+]} />
+
+Beim ersten Aufruf der Seite erscheint im seriellen Monitor die Nachweis-Zeile.
+
+<Seriell id="geraet" titel="Gerätenachweis: Seite ausgeliefert" muster="^KW-CHECK:r-6-1:[0-9A-F]{12}$" hinweis="Die Zeile erscheint, sobald dein Handy die Startseite abgerufen hat." />
+
+<Hinweis titel="Probier selbst">
+Am USB zeigt die Akkuanzeige etwa 0 V, weil VM keinen Strom hat. Füge eine weitere Zeile in die Seite ein, zum Beispiel die Signalstärke oder wie viele Geräte verbunden sind: <code>WiFi.softAPgetStationNum()</code>.
+</Hinweis>
