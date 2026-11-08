@@ -1,4 +1,4 @@
-// Kampagne 2, Mission 1.4: Ein Motor am DRV8833
+// Kampagne 2, Mission 1.5: Ein Motor am DRV8833
 // Board: ESP32 Dev Module. Räder aufbocken, bevor du hochlädst.
 //
 // Verdrahtung (Steckbrett):
@@ -48,7 +48,7 @@ void setup() {
   Serial.begin(115200);
   delay(500);
   Serial.println();
-  Serial.println("Mission 1.4: Motor am DRV8833. Räder in der Luft?");
+  Serial.println("Mission 1.5: Motor am DRV8833. Räder in der Luft?");
 
   pinMode(SLEEP, OUTPUT);
   digitalWrite(SLEEP, HIGH);   // Treiber aufwecken. Ohne HIGH hält ihn ein interner Pulldown im Schlaf.

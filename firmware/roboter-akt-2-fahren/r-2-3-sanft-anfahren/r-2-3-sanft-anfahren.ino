@@ -13,7 +13,7 @@ Preferences speicher;
 const int AIN1 = 25, AIN2 = 26, BIN1 = 32, BIN2 = 33, SLEEP = 27;
 const int VM_PIN = 34;
 
-// Dein Anlaufwert aus Mission 1.4. Darunter brummt der Motor nur.
+// Dein Anlaufwert aus Mission 1.5. Darunter brummt der Motor nur.
 const int ANLAUF = 85;
 
 int aktuellL = 0, aktuellR = 0;   // zuletzt gesetzte PWM-Werte

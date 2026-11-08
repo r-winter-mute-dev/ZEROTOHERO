@@ -13,7 +13,7 @@ spick:
   - t: "0 %"
     v: "bleibt PWM 0"
   - t: "ANLAUF"
-    v: "Dein Wert aus Mission 1.4"
+    v: "Dein Wert aus Mission 1.5"
 ---
 import Quiz from '../components/Quiz.astro';
 import Seriell from '../components/Seriell.astro';
@@ -46,10 +46,10 @@ Eine Rampe kostet Zeit: Der Roboter reagiert etwas später. Für einen Notaus (A
 
 ## In Prozent statt in PWM
 
-Aus Mission 1.4 weißt du: Unter deinem Anlaufwert brummt der Motor nur. Wer „fahr mit 10 %“ sagt, meint aber „langsam fahren“, nicht „brummen“. Das Programm rechnet deshalb Prozent in PWM um: 0 % bleibt 0, 1 % ist der Anlaufwert, 100 % ist 255.
+Aus Mission 1.5 weißt du: Unter deinem Anlaufwert brummt der Motor nur. Wer „fahr mit 10 %“ sagt, meint aber „langsam fahren“, nicht „brummen“. Das Programm rechnet deshalb Prozent in PWM um: 0 % bleibt 0, 1 % ist der Anlaufwert, 100 % ist 255.
 
 ```cpp
-const int ANLAUF = 85;   // dein Wert aus Mission 1.4
+const int ANLAUF = 85;   // dein Wert aus Mission 1.5
 
 int prozentZuPwm(int prozent) {
   prozent = constrain(prozent, -100, 100);

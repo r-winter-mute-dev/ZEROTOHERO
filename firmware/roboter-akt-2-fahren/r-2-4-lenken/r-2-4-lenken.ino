@@ -13,7 +13,7 @@ Preferences speicher;
 const int VM_PIN = 34;
 
 const int AIN1 = 25, AIN2 = 26, BIN1 = 32, BIN2 = 33, SLEEP = 27;
-const int ANLAUF = 85;   // aus Mission 1.4
+const int ANLAUF = 85;   // aus Mission 1.5
 
 void pwm(int links, int rechts) {
   links = constrain(links, -255, 255); rechts = constrain(rechts, -255, 255);

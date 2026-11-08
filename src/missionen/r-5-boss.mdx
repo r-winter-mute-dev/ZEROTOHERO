@@ -1,0 +1,79 @@
+---
+id: r-5-boss
+abzeichen: Messdetektiv
+checks:
+  - id: boss
+spick:
+  - t: "Zählt im Stand"
+    v: "Störimpulse an der Kante: Sperrzeit, Scheibe im Schlitz prüfen"
+  - t: "Zählt zu wenig"
+    v: "Sperrzeit zu lang oder Impulse verpasst"
+  - t: "Strecke falsch"
+    v: "Durchmesser oder Impulse pro Umdrehung prüfen"
+  - t: "Rückwärts"
+    v: "Ein Kanal kennt keine Richtung"
+  - t: "Glaubt mehr als gefahren"
+    v: "Schlupf"
+---
+import Logdiagnose from '../components/Logdiagnose.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+
+Ein Roboter, der falsch misst, ist schlimmer als einer, der gar nicht misst: Er glaubt sich am Ziel und steht woanders. **Dein Bosskampf: Sechs Roboter vertrauen ihren Encodern, aber die Zahlen stimmen nicht. Finde heraus, warum.**
+
+## Die Methode
+
+1. **Von Hand prüfen:** Roboter aufbocken, ein Rad genau eine Umdrehung drehen. Stimmt die Impulszahl?
+2. **Konstanten prüfen:** Durchmesser, Impulse pro Umdrehung, Spurbreite. Ein Tippfehler wirkt auf jede Rechnung.
+3. **Mit dem Maßband vergleichen:** Was glaubt der Roboter, was ist wirklich passiert?
+
+<Merke>Erst die Impulse von Hand prüfen, dann die Konstanten, dann mit dem Maßband vergleichen.</Merke>
+
+<Hinweis titel="Lesetipp">
+Die Fälle sind ausgedacht, aber typisch. Die Werte stammen aus dem seriellen Monitor und vom Maßband.
+</Hinweis>
+
+<Logdiagnose id="boss" titel="Bosskampf: Der Tacho lügt" anzahl={5} faelle={[
+  {
+    symptom: 'Der Roboter steht still auf dem Tisch. Trotzdem steigt der linke Zähler langsam.',
+    log: 'links: 112   rechts: 40\nlinks: 115   rechts: 40\nlinks: 121   rechts: 40\nDie LED am linken Modul flackert schwach\nDie Scheibe steht genau mit einer Kante im Schlitz',
+    richtig: 'Störimpulse: Die Kante im Lichtstrahl lässt das Signal an der Schwelle zittern. Sperrzeit prüfen, Rad ein Stück weiterdrehen.',
+    falsch: ['Das linke Rad dreht sich unmerklich.', 'Der ESP32 zählt bei Stillstand absichtlich weiter.'],
+    erklaerung: 'Halb beleuchtet schwankt der Fototransistor um die Schwelle des Vergleichers, wie das Flackern ohne Hysterese in Mission 3.2. Die Sperrzeit filtert schnelle Störungen, langsames Zittern im Stand kann trotzdem durchkommen.',
+  },
+  {
+    symptom: 'Bei langsamer Fahrt stimmen die Zähler. Bei voller Geschwindigkeit zählt der Roboter viel zu wenig.',
+    log: 'Impulse pro Umdrehung von Hand: 20\nBei 30 %: 41 Impulse/s (passt zur Messung)\nBei 100 %: 52 Impulse/s, erwartet etwa 140\nIm Programm: SPERRZEIT_US = 20000',
+    richtig: 'Die Sperrzeit von 20 ms ist zu lang. Bei voller Fahrt kommen die Impulse schneller, und echte Impulse werden verworfen.',
+    falsch: ['Der Encoder ist bei hoher Geschwindigkeit überfordert.', 'Die Räder rutschen durch.'],
+    erklaerung: 'Bei 140 Impulsen pro Sekunde liegen nur gut 7 ms dazwischen. Eine Sperrzeit muss kürzer sein als der kürzeste echte Abstand, aber länger als typische Störungen. 1,5 ms passen hier.',
+  },
+  {
+    symptom: 'Laut Encoder fährt der Roboter genau 100 cm. Das Maßband zeigt 115 cm.',
+    log: 'Impulse pro Umdrehung von Hand: 20\nIm Programm: RAD_DURCHMESSER_MM = 57\nGemessen mit der Schieblehre: 65,5 mm',
+    richtig: 'Der Raddurchmesser ist zu klein eingetragen. Jeder Impuls wird zu kurz gerechnet, also fährt der Roboter weiter, als er glaubt.',
+    falsch: ['Schlupf auf dem Boden.', 'Der Encoder verliert Impulse.'],
+    erklaerung: '65,5 / 57 ≈ 1,15. Genau so viel weiter fährt er. Schlupf würde das Gegenteil bewirken: Er würde weniger weit fahren, als er glaubt.',
+  },
+  {
+    symptom: 'Der Roboter fährt 50 cm vor und 50 cm zurück. Danach glaubt er, er sei 100 cm vom Start entfernt.',
+    log: 'Vorwärts: 242 Impulse\nRückwärts: 241 Impulse\nPosition laut Programm: strecke += impulse * mm_pro_impuls\nEndposition: 1000 mm',
+    richtig: 'Ein einkanaliger Encoder zählt immer hoch. Beim Rückwärtsfahren muss das Programm die Impulse abziehen.',
+    falsch: ['Der Encoder ist falsch herum eingebaut.', 'Die Räder drehen rückwärts schneller.'],
+    erklaerung: 'Die Scheibe sieht in beiden Richtungen gleich aus. Das Programm weiß, ob es die Motoren vorwärts oder rückwärts ansteuert, und muss das Vorzeichen selbst setzen.',
+  },
+  {
+    symptom: 'Auf glatten Fliesen glaubt der Roboter nach einem Vollgas-Start, er sei 1 m gefahren. Gemessen sind 88 cm.',
+    log: 'Start mit PWM 255 ohne Rampe\nBeim Anfahren quietschen die Reifen kurz\nAuf Teppich: 99 cm gemessen bei 100 cm laut Encoder',
+    richtig: 'Schlupf: Beim harten Anfahren drehen die Räder auf den Fliesen durch. Sie drehen sich, ohne dass der Roboter weiterkommt.',
+    falsch: ['Der Raddurchmesser ist falsch eingetragen.', 'Die Fliesen reflektieren das Licht der Gabellichtschranke.'],
+    erklaerung: 'Auf Teppich passt es, auf Fliesen nicht: Der Encoder zählt richtig, aber der Boden macht nicht mit. Eine Rampe beim Anfahren (Mission 2.3) hilft.',
+  },
+  {
+    symptom: 'Der Roboter soll sich auf der Stelle um 90° drehen. Er dreht sich jedes Mal etwa um 120°.',
+    log: 'Im Programm: SPURBREITE_MM = 187\nGemessen von Radmitte zu Radmitte: 140 mm\nGeradeaus 100 cm: passt',
+    richtig: 'Die Spurbreite ist zu groß eingetragen. Für 90° fährt jedes Rad π × b / 4. Mit zu großem b fahren die Räder zu weit, und der Roboter dreht sich zu stark.',
+    falsch: ['Die Encoder zählen beim Drehen doppelt.', 'Der Raddurchmesser stimmt nicht.'],
+    erklaerung: 'Geradeaus passt, also stimmen Encoder und Durchmesser. Nur die Drehung ist falsch, und die hängt an der Spurbreite. 187 / 140 ≈ 1,34, und 90° × 1,34 ≈ 120°.',
+  },
+]} />
