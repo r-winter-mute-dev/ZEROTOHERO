@@ -1,0 +1,84 @@
+---
+id: r-5-1
+checks:
+  - id: prinzip
+  - id: impulse
+    hardware: true
+  - id: geraet
+    hardware: true
+spick:
+  - t: "Gabellichtschranke"
+    v: "Licht durch einen Schlitz, die Scheibe unterbricht es"
+  - t: "Anschluss"
+    v: "VCC → 3V3, DO links → GPIO 16, DO rechts → GPIO 17"
+  - t: "Zählen"
+    v: "Interrupt bei steigender Flanke (RISING)"
+  - t: "Störungen"
+    v: "Sperrzeit: zu schnelle Impulse ignorieren"
+  - t: "Richtung"
+    v: "Ein Kanal kennt keine Richtung"
+---
+import Quiz from '../components/Quiz.astro';
+import Zahl from '../components/Zahl.astro';
+import Seriell from '../components/Seriell.astro';
+import Merke from '../components/Merke.astro';
+import Hinweis from '../components/Hinweis.astro';
+import Karte from '../components/Karte.astro';
+import Checkliste from '../components/Checkliste.astro';
+import { url as seitenUrl } from '../config';
+
+Seit Mission 2.4 weißt du: Gleicher PWM-Wert heißt nicht gleiche Drehzahl. Bisher konnte der Roboter das nicht merken. Er wusste nur, was er den Motoren befiehlt, nicht, was sie tun. **Deine Mission: Gib dem Roboter Encoder, mit denen er die Umdrehungen seiner Räder zählt.**
+
+## Licht durch Schlitze
+
+<Karte titel="Die Gabellichtschranke" nr={1}>
+Das Modul hat zwei Türmchen mit einem Schlitz dazwischen. In einem Türmchen sitzt eine Infrarot-LED, im anderen ein Fototransistor, genau gegenüber. Ist der Schlitz frei, fällt Licht auf den Fototransistor. Steckt etwas im Schlitz, ist es dunkel. Das ist dasselbe Paar wie im Liniensensor aus Mission 3.1, nur schaut der Fototransistor hier direkt in die LED statt auf den Boden.
+</Karte>
+
+<Karte titel="Die Encoderscheibe" nr={2}>
+Auf der Motorachse sitzt eine Scheibe mit Schlitzen, die durch die Lichtschranke läuft. Dreht sich das Rad, wechseln hell und dunkel. Ein Vergleicher-Chip (LM393) macht daraus ein sauberes digitales Signal: HIGH, LOW, HIGH, LOW. Bei einer Scheibe mit 20 Schlitzen gibt es 20 Impulse pro Umdrehung.
+</Karte>
+
+<Karte titel="Zählen mit Interrupts" nr={3}>
+Ein Impuls dauert bei schneller Fahrt nur wenige Millisekunden. Würde das Programm den Pin in der Schleife abfragen, verpasste es Impulse, sobald es etwas anderes tut. Deshalb zählt ein **Interrupt**: Bei jeder steigenden Flanke unterbricht der ESP32 kurz das Programm und erhöht einen Zähler. Das kennst du aus <a href={seitenUrl('mission/m-2-8')}>Kampagne 1, Mission 2.8</a>.
+</Karte>
+
+<Karte titel="Was ein Encoder nicht weiß" nr={4}>
+Die Scheibe sieht vorwärts und rückwärts genau gleich aus. Ein einzelner Kanal kann deshalb nicht erkennen, in welche Richtung sich das Rad dreht. Der Roboter weiß es trotzdem, weil sein Programm die Motoren ansteuert. Bessere Encoder haben zwei versetzte Kanäle. Aus der Reihenfolge der Flanken erkennen sie die Richtung, das heißt **Quadratur-Encoder**.
+</Karte>
+
+<Merke>Gabellichtschranke plus Schlitzscheibe ergibt Impulse. Ein Interrupt zählt sie. Ein Kanal kennt keine Richtung.</Merke>
+
+<Quiz id="prinzip" titel="Kurzcheck: Encoder" fragen={[
+  { frage: 'Warum zählt der Roboter die Impulse mit einem Interrupt statt in loop()?', richtig: 'Damit kein Impuls verloren geht, während das Programm etwas anderes tut', falsch: ['Weil Interrupts weniger Strom brauchen', 'Weil loop() nur einmal pro Sekunde läuft'], erklaerung: 'Ein Interrupt reagiert sofort auf die Flanke, egal, was das Programm gerade macht. Die Interrupt-Routine bleibt so kurz wie möglich: nur zählen.' },
+  { frage: 'Das Rad steht still, die Scheibe steht genau mit einer Kante im Lichtstrahl. Der Zähler läuft trotzdem langsam hoch. Was passiert?', richtig: 'Das Signal zittert an der Schwelle und erzeugt Störimpulse', falsch: ['Das Rad dreht sich unmerklich', 'Der ESP32 zählt doppelt'], erklaerung: 'An der Kante ist der Fototransistor halb beleuchtet. Kleine Schwankungen kippen den Vergleicher hin und her, wie das Flackern ohne Hysterese in Mission 3.2. Die Sperrzeit im Programm ignoriert Impulse, die schneller kommen, als das Rad drehen kann.' },
+  { frage: 'Der Roboter fährt erst 50 cm vor und dann 50 cm zurück. Was zeigt ein einfacher Zähler, der nur hochzählt?', richtig: 'Impulse für 100 cm', falsch: ['0', 'Impulse für 50 cm'], erklaerung: 'Ohne Richtung zählt der Encoder jede Bewegung dazu. Das Programm muss selbst wissen, ob es vorwärts oder rückwärts fährt, und entsprechend addieren oder abziehen.' },
+]} />
+
+## Anbauen
+
+<Checkliste id="anbau" punkte={[
+  'Programmier-Regel: Akku AUS, 3V3-Kabel vom Wandler ab. Diese Mission läuft am USB.',
+  'Encoderscheiben auf die inneren Achsenden der Motoren stecken, falls noch nicht geschehen (Mission 2.1).',
+  'Je ein Modul so befestigen, dass die Scheibe mittig durch den Schlitz läuft, ohne zu schleifen. Von Hand drehen und prüfen.',
+  'Beide Module: VCC an 3V3, GND an GND. DO des linken an GPIO 16, DO des rechten an GPIO 17.',
+  'Die Kontroll-LED auf dem Modul sollte beim langsamen Drehen blinken.',
+  'Auf jedes Rad einen Streifen Klebeband als Markierung kleben.',
+]} />
+
+## Zählen
+
+Lade `firmware/roboter-akt-5-messen/r-5-1-encoder/` hoch und öffne den seriellen Monitor. Dreh das linke Rad langsam von Hand genau eine Umdrehung, Markierung zu Markierung. Lies den Zähler ab. Dann dasselbe rechts.
+
+<Zahl id="impulse" titel="Messwert: Impulse pro Umdrehung" frage="Wie viele Impulse zählt der Encoder bei einer Radumdrehung?" einheit="" min={8} max={45} vorlaeufig hilfe={[
+  { unter: 8, text: 'Sehr wenige. Läuft die Scheibe durch den Schlitz? Blinkt die LED am Modul? Steckt DO am richtigen Pin?' },
+  { ueber: 45, text: 'Sehr viele. Zitterst du an einer Kante hin und her? Dreh gleichmäßig in eine Richtung. Zählt ein Modul doppelt, prüf den Abstand der Scheibe im Schlitz.' },
+]} />
+
+Die Zahl entspricht normalerweise der Anzahl der Schlitze in der Scheibe. Zähl zur Kontrolle nach. Diese Zahl brauchst du in allen folgenden Missionen als `IMPULSE_PRO_UMDREHUNG`.
+
+<Seriell id="geraet" titel="Gerätenachweis: Beide Encoder zählen" muster="^KW-CHECK:r-5-1:[0-9A-F]{12}:[0-9]{2,4}:[0-9]{2,4}$" hinweis="Die Zeile kommt 3 Sekunden, nachdem beide Zähler mindestens 10 erreicht haben." />
+
+<Hinweis titel="Doppelt so genau">
+Das Programm zählt nur steigende Flanken. Mit CHANGE statt RISING zählt es auch die fallenden und bekommt doppelt so viele Impulse pro Umdrehung. Dann müssen aber auch alle Rechnungen mit der doppelten Zahl arbeiten.
+</Hinweis>

@@ -124,6 +124,18 @@ const { id, titel = 'Rechenaufgaben', typ, anzahl = 3 } = Astro.props;
       return { text: `Der Roboter fährt ${v} cm/s. Bis das Programm das Hindernis bemerkt und die Motoren bremst, vergehen ${tr} ms. Danach rollt er noch ${sb} cm, bis er steht.`, frage: 'Anhalteweg =', einheit: 'cm', loesung: s,
         weg: `Während der Reaktionszeit fährt er ungebremst weiter: ${v} cm/s × ${fmt(tr / 1000, 3)} s = ${fmt(v * tr / 1000, 1)} cm. Dazu kommt der Bremsweg: ${fmt(v * tr / 1000, 1)} cm + ${sb} cm = ${fmt(s, 1)} cm. Der Roboter muss also spätestens bei diesem Abstand anfangen zu reagieren, besser mit Reserve.` };
     },
+    encoder() {
+      const n = pick([20, 40]), d = pick([60, 65, 66, 68]), imp = pick([45, 100, 230, 380]);
+      const strecke = (imp / n) * Math.PI * d / 10;
+      return { text: `Die Encoderscheibe liefert ${n} Impulse pro Radumdrehung. Das Rad hat ${d} mm Durchmesser. Der Zähler steht bei ${imp} Impulsen.`, frage: 'Gefahrene Strecke =', einheit: 'cm', loesung: strecke,
+        weg: `Umfang = π × ${d} mm = ${fmt(Math.PI * d, 1)} mm. Ein Impuls entspricht ${fmt(Math.PI * d, 1)} mm / ${n} = ${fmt(Math.PI * d / n, 2)} mm. ${imp} Impulse × ${fmt(Math.PI * d / n, 2)} mm = ${fmt(strecke * 10, 0)} mm = ${fmt(strecke, 1)} cm.` };
+    },
+    drehung() {
+      const b = pick([12, 13, 14, 15]), sl = pick([0, 5, 10, 20]), dif = pick([5, 8, 11, 16]);
+      const sr = sl + dif, grad = ((sr - sl) / b) * 180 / Math.PI;
+      return { text: `Ein Roboter mit ${b} cm Spurbreite fährt los. Danach meldet der linke Encoder ${sl} cm, der rechte ${sr} cm.`, frage: 'Um wie viel Grad hat er sich nach links gedreht?', einheit: '°', loesung: grad,
+        weg: `Drehwinkel = (s_r − s_l) / b = (${sr} − ${sl}) cm / ${b} cm = ${fmt((sr - sl) / b, 3)} rad. Umrechnen: × 180 / π = ${fmt(grad, 1)}°. Die Mitte ist dabei (${sl} + ${sr}) / 2 = ${fmt((sl + sr) / 2, 1)} cm gefahren.` };
+    },
     laufzeit() {
       const kap = pick([1000, 2000, 2500, 2900, 3400]), i = pick([50, 80, 120, 180, 250]);
       const h = kap / i;
