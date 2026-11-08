@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/r-winter-mute-dev/ZEROTOHERO/actions/workflows/deploy.yml"><img src="https://github.com/r-winter-mute-dev/ZEROTOHERO/actions/workflows/deploy.yml/badge.svg" alt="Veröffentlichung"></a>
-  <img src="https://img.shields.io/badge/spielbar-alle_8_Akte-a6e3a1?labelColor=2a2a2a" alt="Spielbar: alle acht Akte">
+  <img src="https://img.shields.io/badge/spielbar-2_Kampagnen-a6e3a1?labelColor=2a2a2a" alt="Spielbar: zwei Kampagnen">
   <img src="https://img.shields.io/badge/kostenlos-ohne_Anmeldung-cba6f7?labelColor=2a2a2a" alt="Kostenlos, ohne Anmeldung">
   <img src="https://img.shields.io/badge/Inhalte-CC_BY--SA_4.0-a0a0a0?labelColor=2a2a2a" alt="Inhalte: CC BY-SA 4.0">
   <img src="https://img.shields.io/badge/Code-MIT-a0a0a0?labelColor=2a2a2a" alt="Code: MIT">
@@ -74,7 +74,7 @@ Der Weg dorthin beginnt mit einer einzelnen LED.
 
 ✅ spielbar
 
-Neu kaufen musst du für Akt 0 und 1 nur ein 2WD-Fahrgestell mit zwei Getriebemotoren und ein DRV8833-Modul. ESP32-DevKit, Multimeter und später die Akku-Versorgung kommen aus Kampagne 1. Am besten spielst du Kampagne 1 vorher komplett. Mission 0.1 von Kampagne 2 zeigt genau, welche Missionen aus Kampagne 1 du für welchen Akt brauchst.
+Neu dazu kommen ein 2WD-Fahrgestell mit zwei Getriebemotoren, ein DRV8833-Modul, zwei Liniensensoren (TCRT5000), ein Ultraschallsensor für 3,3 V (HC-SR04P) und zwei Gabellichtschranken als Encoder. ESP32-DevKit, Multimeter und die Akku-Versorgung kommen aus Kampagne 1. Am besten spielst du Kampagne 1 vorher komplett. Mission 0.1 von Kampagne 2 zeigt genau, welche Missionen aus Kampagne 1 du für welchen Akt brauchst.
 
 ## Was du brauchst
 
